@@ -1,9 +1,11 @@
 package user
 
 import (
+	"fmt"
+	"medassist/internal/user/dto"
 	"medassist/utils"
 	"net/http"
-	"medassist/internal/user/dto"
+
 	"github.com/golang-jwt/jwt/v5"
 
 	"github.com/gin-gonic/gin"
@@ -102,5 +104,27 @@ func (h *UserHandler) CreateVisit(c *gin.Context){
 	}
 
 	utils.SendSuccessResponse(c, "Visita agendada com sucesso.", http.StatusOK)
+}
+
+func (h *UserHandler) GetAllVisits(c *gin.Context){
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+		return
+	}
+	patientId, ok := claims.(jwt.MapClaims)["sub"].(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
+		return
+	}
+
+	fmt.Println("patientId", patientId)
+
+	visits, err := h.userService.FindAllVisits(patientId)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}
+
+	utils.SendSuccessResponse(c, "Lista de visitas listadas com sucesso.", visits)
 
 }

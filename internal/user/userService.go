@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"medassist/internal/auth/dto"
 	"medassist/internal/model"
 	"medassist/internal/repository"
@@ -18,6 +19,7 @@ type UserService interface {
 	ContactUsMessage(contactUsDto userDTO.ContactUsDTO) error
 	GetNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
 	CreateVisit(userId string, createVisitDto userDTO.CreateVisitDto) error
+	FindAllVisits(patientId string) ([]model.Visit, error)
 }
 
 type userService struct {
@@ -110,7 +112,7 @@ func (h *userService) CreateVisit(patientId string, createVisitDto userDTO.Creat
 
 	visit := model.Visit{
 		ID: primitive.NewObjectID(),
-		Status: "PENDING",
+		Status: "PENDING", 
 
 		PatientId: patientId,
 		PatientName: patient.Name,
@@ -131,4 +133,15 @@ func (h *userService) CreateVisit(patientId string, createVisitDto userDTO.Creat
 	}
 
 	return nil
+}
+
+func (h *userService) FindAllVisits(patientId string) ([]model.Visit, error) {
+	visits, err := h.visitRepository.FindAllVisits(patientId)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println("visits", visits)
+
+	return visits, nil
 }
