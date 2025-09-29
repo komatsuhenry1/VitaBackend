@@ -23,6 +23,10 @@ type Nurse struct {
 	Department      string `bson:"department" json:"department"`                            // setor/hospital onde trabalha
 	YearsExperience int    `bson:"years_experience" json:"years_experience"`
 
+	Rating float64 `bson:"rating" json:"rating"`
+	Price  float64 `bson:"price" json:"price"`
+	Bio    string  `bson:"bio" json:"bio"`
+
 	LicenseDocumentID     primitive.ObjectID `bson:"license_document_id,omitempty"`
 	QualificationsID      primitive.ObjectID `bson:"qualifications_id,omitempty"`
 	GeneralRegisterID     primitive.ObjectID `bson:"general_register_id,omitempty"`

@@ -361,34 +361,3 @@ func (r *nurseRepository) GetAllNurses() ([]userDTO.AllNursesListDto, error) {
 
 	return nursesDto, nil
 }
-
-// func (r *nurseRepository) FindFileByID(id primitive.ObjectID) (*nurseDTO.FileData, error) {
-
-// 	// Abre o stream de download para o arquivo
-// 	downloadStream, err := r.bucket.OpenDownloadStream(id)
-// 	if err != nil {
-// 		return nil, fmt.Errorf("falha ao abrir stream de download: %w", err)
-// 	}
-// 	defer downloadStream.Close()
-
-// 	// Lê os dados do stream para um buffer
-// 	buf := new(bytes.Buffer)
-// 	if _, err := io.Copy(buf, downloadStream); err != nil {
-// 		return nil, fmt.Errorf("falha ao ler dados do arquivo: %w", err)
-// 	}
-
-// 	// Extrai o ContentType do metadata (você precisa salvar isso durante o upload!)
-// 	fileInfo := downloadStream.GetFile()
-// 	contentType := "application/octet-stream" // Tipo padrão
-// 	if metadata := fileInfo.Metadata; metadata != nil {
-// 		if ct, ok := metadata["contentType"].(string); ok {
-// 			contentType = ct
-// 		}
-// 	}
-
-// 	return &FileData{
-// 		Data:        buf.Bytes(),
-// 		ContentType: contentType,
-// 		Filename:    fileInfo.Name,
-// 	}, nil
-// }

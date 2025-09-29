@@ -22,10 +22,10 @@ func NewContainer() *Container {
 	// Construtores: repository → service → handler
 	userRepository := repository.NewUserRepository(db)
 	nurseRepository := repository.NewNurseRepository(db)
-
+	visitRepository := repository.NewVisitRepository(db)
 	authService := auth.NewAuthService(userRepository, nurseRepository)
 	adminService := admin.NewAdminService(userRepository, nurseRepository)
-	userService := user.NewUserService(userRepository, nurseRepository)
+	userService := user.NewUserService(userRepository, nurseRepository, visitRepository)
 	nurseService := nurse.NewNurseService(nurseRepository)
 
 	authHandler := auth.NewAuthHandler(authService)

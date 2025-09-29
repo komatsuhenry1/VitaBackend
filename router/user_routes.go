@@ -15,5 +15,6 @@ func SetupUserRoutes(r *gin.RouterGroup, container *di.Container) {
 		user.POST("/visit", middleware.AuthUser(), container.UserHandler.CreateVisit) // agendamento de visita TODO
 		user.GET("/file/:id", container.UserHandler.GetFileByID)
 		user.POST("/contact", container.UserHandler.ContactUsMessage)
+		user.GET("/nurse/:id", middleware.AuthUser(), container.UserHandler.GetNurseProfile)
 	}
 }
