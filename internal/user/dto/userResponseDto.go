@@ -25,22 +25,39 @@ type AvailabilityDTO struct {
 	Hours string `json:"hours"`
 }
 
-type NurseProfileResponseDTO struct{
-	ID             string              `json:"id"`
-	Name           string           `json:"name"`
-	Specialization string           `json:"specialization"`
-	Experience     int              `json:"experience"`
-	Rating         float64          `json:"rating"`
-	Price          float64          `json:"price"`
-	Shift          string           `json:"shift"`
-	Department     string           `json:"department"`
-	Image          string           `json:"image"`
-	Available      bool             `json:"available"`
-	Location       string           `json:"location"`
-	Bio            string           `json:"bio"`
-	Qualifications []string         `json:"qualifications"`
-	Services       []string         `json:"services"`
-	Reviews        []ReviewDTO      `json:"reviews"`
+type NurseProfileResponseDTO struct {
+	ID             string            `json:"id"`
+	Name           string            `json:"name"`
+	Specialization string            `json:"specialization"`
+	Experience     int               `json:"experience"`
+	Rating         float64           `json:"rating"`
+	Price          float64           `json:"price"`
+	Shift          string            `json:"shift"`
+	Department     string            `json:"department"`
+	Image          string            `json:"image"`
+	Available      bool              `json:"available"`
+	Location       string            `json:"location"`
+	Bio            string            `json:"bio"`
+	Qualifications []string          `json:"qualifications"`
+	Services       []string          `json:"services"`
+	Reviews        []ReviewDTO       `json:"reviews"`
 	Availability   []AvailabilityDTO `json:"availability"`
+}
 
+type NurseDto struct {
+	ID             string `json:"id"`
+	Name           string `json:"name"`
+	Specialization string `json:"specialization"`
+	Image          string `json:"image"`
+}
+
+type AllVisitsDto struct {
+	ID          string   `json:"id"`
+	Description string   `json:"description"`
+	Reason      string   `json:"reason"`
+	VisitType   string   `json:"visit_type"`
+	CreatedAt   string   `json:"created_at"`
+	Date        string   `json:"date"`
+	Status      string   `json:"status"`
+	Nurse       NurseDto `json:"nurse"`
 }

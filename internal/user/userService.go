@@ -19,7 +19,7 @@ type UserService interface {
 	ContactUsMessage(contactUsDto userDTO.ContactUsDTO) error
 	GetNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
 	CreateVisit(userId string, createVisitDto userDTO.CreateVisitDto) error
-	FindAllVisits(patientId string) ([]model.Visit, error)
+	FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, error)
 }
 
 type userService struct {
@@ -111,15 +111,15 @@ func (h *userService) CreateVisit(patientId string, createVisitDto userDTO.Creat
 	}
 
 	visit := model.Visit{
-		ID: primitive.NewObjectID(),
-		Status: "PENDING", 
+		ID:     primitive.NewObjectID(),
+		Status: "PENDING",
 
-		PatientId: patientId,
+		PatientId:   patientId,
 		PatientName: patient.Name,
 		Description: createVisitDto.Description,
-		Reason: createVisitDto.Reason,
+		Reason:      createVisitDto.Reason,
 
-		NurseId: createVisitDto.NurseId,
+		NurseId:   createVisitDto.NurseId,
 		NurseName: nurse.Name,
 
 		VisitDate: createVisitDto.VisitDate,
@@ -135,13 +135,56 @@ func (h *userService) CreateVisit(patientId string, createVisitDto userDTO.Creat
 	return nil
 }
 
-func (h *userService) FindAllVisits(patientId string) ([]model.Visit, error) {
+func (h *userService) FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, error) {
+	fmt.Print("antes")
 	visits, err := h.visitRepository.FindAllVisits(patientId)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("depois")
+	fmt.Println(visits)
+	fmt.Println("depois")
 
-	fmt.Println("visits", visits)
+	for _, visit := range visits {
+		fmt.Print("^========")
+		fmt.Print(visit.Confirmed)
+		fmt.Print("^========")
+		fmt.Println("visit", visit)
+	}
 
-	return visits, nil
+
+	var allVisitsDto []userDTO.AllVisitsDto
+
+	for _, visit := range visits {
+		if visit.Confirmed{
+			nurse, err := h.nurseRepository.FindNurseById(visit.NurseId)
+			if err != nil {
+				return nil, err
+			}
+	
+			visit, err := h.visitRepository.FindVisitById(visit.ID.Hex())
+			if err != nil {
+				return nil, err
+			}
+	
+			allVisitsDto = append(allVisitsDto, userDTO.AllVisitsDto{
+				ID:          visit.ID.Hex(),
+				Description: visit.Description,
+				Reason:      visit.Reason,
+				VisitType:   visit.VisitType,
+				CreatedAt:   visit.CreatedAt.Format("02/01/2006 15:04"),
+				Date:        visit.VisitDate.Format("02/01/2006 15:04"),
+				Status:      visit.Status,
+				Nurse: userDTO.NurseDto{
+					ID:             nurse.ID.Hex(),
+					Name:           nurse.Name,
+					Specialization: nurse.Specialization,
+					Image:          nurse.FaceImageID.Hex(),
+				},
+			})
+			fmt.Println("visits", visits)	
+		}
+	}
+
+	return allVisitsDto, nil
 }

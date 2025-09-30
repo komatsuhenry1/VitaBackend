@@ -1,10 +1,10 @@
 package user
 
-import (
-	"fmt"
+import (	
 	"medassist/internal/user/dto"
 	"medassist/utils"
 	"net/http"
+	"fmt"
 
 	"github.com/golang-jwt/jwt/v5"
 
@@ -118,7 +118,8 @@ func (h *UserHandler) GetAllVisits(c *gin.Context){
 		return
 	}
 
-	fmt.Println("patientId", patientId)
+	fmt.Print("antesssssss")
+
 
 	visits, err := h.userService.FindAllVisits(patientId)
 	if err != nil {
