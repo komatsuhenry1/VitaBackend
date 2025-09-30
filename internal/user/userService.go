@@ -2,7 +2,6 @@ package user
 
 import (
 	"context"
-	"fmt"
 	"medassist/internal/auth/dto"
 	"medassist/internal/model"
 	"medassist/internal/repository"
@@ -18,7 +17,7 @@ type UserService interface {
 	GetFileByID(ctx context.Context, id primitive.ObjectID) (*dto.FileData, error)
 	ContactUsMessage(contactUsDto userDTO.ContactUsDTO) error
 	GetNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
-	CreateVisit(userId string, createVisitDto userDTO.CreateVisitDto) error
+	VisitSolicitation(userId string, createVisitDto userDTO.CreateVisitDto) error
 	FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, error)
 }
 
@@ -99,7 +98,7 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 
 }
 
-func (h *userService) CreateVisit(patientId string, createVisitDto userDTO.CreateVisitDto) error {
+func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO.CreateVisitDto) error {
 	patient, err := h.userRepository.FindUserById(patientId)
 	if err != nil {
 		return err
@@ -122,6 +121,8 @@ func (h *userService) CreateVisit(patientId string, createVisitDto userDTO.Creat
 		NurseId:   createVisitDto.NurseId,
 		NurseName: nurse.Name,
 
+		VisitType: createVisitDto.VisitType,
+
 		VisitDate: createVisitDto.VisitDate,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -132,26 +133,17 @@ func (h *userService) CreateVisit(patientId string, createVisitDto userDTO.Creat
 		return err
 	}
 
+	//utils.SendEmailVisitSolicitation(nurse.Email, patient.Name, createVisitDto.VisitDate.String(), "100", patient.Address)
+	utils.SendEmailVisitSolicitation("komatsuhenry@gmail.com", patient.Name, createVisitDto.VisitDate.String(), "100", patient.Address)
+
 	return nil
 }
 
 func (h *userService) FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, error) {
-	fmt.Print("antes")
-	visits, err := h.visitRepository.FindAllVisits(patientId)
+	visits, err := h.visitRepository.FindAllVisitsForPatient(patientId)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("depois")
-	fmt.Println(visits)
-	fmt.Println("depois")
-
-	for _, visit := range visits {
-		fmt.Print("^========")
-		fmt.Print(visit.Confirmed)
-		fmt.Print("^========")
-		fmt.Println("visit", visit)
-	}
-
 
 	var allVisitsDto []userDTO.AllVisitsDto
 
@@ -182,7 +174,6 @@ func (h *userService) FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, e
 					Image:          nurse.FaceImageID.Hex(),
 				},
 			})
-			fmt.Println("visits", visits)	
 		}
 	}
 

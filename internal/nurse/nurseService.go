@@ -3,6 +3,7 @@ package nurse
 import (
 	"fmt"
 	"medassist/internal/model"
+	"medassist/internal/nurse/dto"
 	"medassist/internal/repository"
 	"time"
 
@@ -11,16 +12,16 @@ import (
 
 type NurseService interface {
 	UpdateAvailablityNursingService(userId string) (model.Nurse, error)
-	// GetAllVisits() ([]model.Visit, error)
+	GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, error)
 }
 
 type nurseService struct {
 	nurseRepository repository.NurseRepository
+	visitRepository repository.VisitRepository
 }
 
-
-func NewNurseService(nurseRepository repository.NurseRepository) NurseService {
-	return &nurseService{nurseRepository: nurseRepository}
+func NewNurseService(nurseRepository repository.NurseRepository, visitRepository repository.VisitRepository) NurseService {
+	return &nurseService{nurseRepository: nurseRepository, visitRepository: visitRepository}
 }
 
 func (s *nurseService) UpdateAvailablityNursingService(nurseId string) (model.Nurse, error) {
@@ -49,4 +50,49 @@ func (s *nurseService) UpdateAvailablityNursingService(nurseId string) (model.Nu
 	}
 
 	return nurse, nil
+}
+
+func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, error) {
+	visits, err := s.visitRepository.FindAllVisitsForNurse(nurseId)
+	if err != nil {
+		return dto.NurseVisitsListsDto{}, err
+	}
+
+	fmt.Println(visits)
+
+	var pendingVisits []dto.VisitDto
+	var confirmedVisits []dto.VisitDto
+	var completedVisits []dto.VisitDto
+
+	for _, visit := range visits {
+		fmt.Println(visit)
+		visitDto := dto.VisitDto{
+			ID:          visit.ID.Hex(),
+			Description: visit.Description,
+			Reason:      visit.Reason,
+			VisitType:   visit.VisitType,
+			CreatedAt:   visit.CreatedAt.Format("02/01/2006 15:04"),
+			Date:        visit.VisitDate.Format("02/01/2006 15:04"),
+			Status:      visit.Status,
+			PatientName: visit.PatientName,
+			NurseName:   visit.NurseName,
+		}
+
+		switch visit.Status {
+		case "PENDING":
+			pendingVisits = append(pendingVisits, visitDto)
+		case "CONFIRMED":
+			confirmedVisits = append(confirmedVisits, visitDto)
+		case "COMPLETED":
+			completedVisits = append(completedVisits, visitDto)
+		}
+	}
+
+	allVisitsDto := dto.NurseVisitsListsDto{
+		Pending:   pendingVisits,
+		Confirmed: confirmedVisits,
+		Completed: completedVisits,
+	}
+
+	return allVisitsDto, nil
 }

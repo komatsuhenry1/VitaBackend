@@ -12,7 +12,8 @@ import(
 
 type VisitRepository interface{
 	CreateVisit(visit model.Visit) error
-	FindAllVisits(patientId string) ([]model.Visit, error)
+	FindAllVisitsForPatient(patientId string) ([]model.Visit, error)
+	FindAllVisitsForNurse(nurseId string) ([]model.Visit, error)
 	FindVisitById(id string) (model.Visit, error)
 }
 
@@ -34,7 +35,21 @@ func (r *visitRepository) CreateVisit(visit model.Visit) error {
 	return err
 }
 
-func (r *visitRepository) FindAllVisits(patientId string) ([]model.Visit, error) {
+func (r *visitRepository) FindAllVisitsForNurse(nurseId string) ([]model.Visit, error) {
+	cursor, err := r.collection.Find(r.ctx, bson.M{"nurse_id": nurseId})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var visits []model.Visit
+	if err := cursor.All(context.TODO(), &visits); err != nil {
+		return nil, err
+	}
+	return visits, nil
+}
+
+func (r *visitRepository) FindAllVisitsForPatient(patientId string) ([]model.Visit, error) {
 	cursor, err := r.collection.Find(r.ctx, bson.M{"patient_id": patientId})
 	if err != nil {
 		return nil, err
@@ -47,6 +62,8 @@ func (r *visitRepository) FindAllVisits(patientId string) ([]model.Visit, error)
 	}
 	return visits, nil
 }
+
+
 
 func (r *visitRepository) FindVisitById(id string) (model.Visit, error) {
 	var visit model.Visit

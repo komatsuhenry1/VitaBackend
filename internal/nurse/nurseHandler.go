@@ -20,7 +20,7 @@ func (h *NurseHandler) NurseDashboard(c *gin.Context){
 }
 
 func (h *NurseHandler) ChangeOnlineNurse(c *gin.Context){
-	nurseId := utils.GetUserId(c)
+	nurseId := utils.GetUserId(c) // pega pelo token
 
 	//VALIDACAO DE ROLE
 	claims, exists := c.Get("claims")
@@ -49,7 +49,16 @@ func (h *NurseHandler) ChangeOnlineNurse(c *gin.Context){
 }
 
 func (h *NurseHandler) GetAllVisits(c *gin.Context){
-	utils.SendSuccessResponse(c, "get all visits", http.StatusOK)
+	//pega o id pelo token
+	nurseId := utils.GetUserId(c)
+
+	visits, err := h.nurseService.GetAllVisits(nurseId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Visitas [PENDENTE/MARCADAS/CONCLUIDAS] listadas com sucesso.", visits)
 }
 
 func (h *NurseHandler) ConfirmVisit(c *gin.Context){
