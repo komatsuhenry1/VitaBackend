@@ -115,6 +115,8 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 
 		PatientId:   patientId,
 		PatientName: patient.Name,
+		PatientEmail: patient.Email,
+
 		Description: createVisitDto.Description,
 		Reason:      createVisitDto.Reason,
 
@@ -122,8 +124,10 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 		NurseName: nurse.Name,
 
 		VisitType: createVisitDto.VisitType,
-
 		VisitDate: createVisitDto.VisitDate,
+		VisitValue: createVisitDto.VisitValue,
+
+
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
@@ -134,7 +138,7 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 	}
 
 	//utils.SendEmailVisitSolicitation(nurse.Email, patient.Name, createVisitDto.VisitDate.String(), "100", patient.Address)
-	utils.SendEmailVisitSolicitation("komatsuhenry@gmail.com", patient.Name, createVisitDto.VisitDate.String(), "100", patient.Address)
+	utils.SendEmailVisitSolicitation(nurse.Email, patient.Name, createVisitDto.VisitDate.String(), visit.VisitValue, patient.Address)
 
 	return nil
 }

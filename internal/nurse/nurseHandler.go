@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
+	"medassist/internal/nurse/dto"
+	"fmt"
 )
 
 type NurseHandler struct {
@@ -64,12 +66,34 @@ func (h *NurseHandler) GetAllVisits(c *gin.Context){
 func (h *NurseHandler) ConfirmOrCancelVisit(c *gin.Context){
 	nurseId := utils.GetUserId(c) // pega o id do user pela req
 
-	visitId := c.Param("id")
+	fmt.Println("nurseiD", nurseId)
 
-	response, err := h.nurseService.ConfirmOrCancelVisit(nurseId, visitId)
+	visitId := c.Param("id")
+	fmt.Println("antes binfing")
+	var reason dto.CancelReason
+	if err := c.ShouldBindJSON(&reason); err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+	fmt.Println("antes service")
+	response, err := h.nurseService.ConfirmOrCancelVisit(nurseId, visitId, reason.Reason)
 	if err != nil{
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 	}	
+	fmt.Println("response", response)
 	
 	utils.SendSuccessResponse(c, "Status da visita alterado com sucesso.", response)
+}
+
+func (h *NurseHandler) GetPatientProfile(c *gin.Context){
+
+	patientId := c.Param("id")
+
+	patientProfile, err := h.nurseService.GetPatientProfile(patientId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)	
+	}
+
+	utils.SendSuccessResponse(c, "Perfil do paciente listado com sucesso.", patientProfile)
+
 }

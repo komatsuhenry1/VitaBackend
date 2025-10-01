@@ -15,9 +15,10 @@ type ContactUsDTO struct {
 type CreateVisitDto struct {
 	Description string `json:"description" binding:"required"`
 	Reason      string `json:"reason" binding:"required"`
-	VisitType   string `json:"visit_type" binding:"required"`
 
 	NurseId string `json:"nurse_id" binding:"required"`
 
-	VisitDate time.Time `json:"date" binding:"required"`
+	VisitValue float64   `json:"value" binding:"required"`
+	VisitType  string    `json:"visit_type" binding:"required"`
+	VisitDate  time.Time `json:"date" binding:"required"`
 }

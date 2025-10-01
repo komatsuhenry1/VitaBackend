@@ -2,8 +2,8 @@ package utils
 
 import (
 	"fmt"
-	"os"
 	"medassist/internal/user/dto"
+	"os"
 
 	"gopkg.in/gomail.v2"
 )
@@ -651,13 +651,11 @@ func SendEmailApprovedNurse(email string) error {
 	return nil
 }
 
-func SendContactUsEmail(contactUsDto dto.ContactUsDTO) error {	
+func SendContactUsEmail(contactUsDto dto.ContactUsDTO) error {
 	m := gomail.NewMessage()
 
 	m.SetHeader("From", os.Getenv("EMAIL_SENDER"))
 	m.SetHeader("To", os.Getenv("EMAIL_CENTRAL_CONTACT"))
-
-
 
 	m.SetHeader("Reply-To", contactUsDto.Email)
 
@@ -752,7 +750,7 @@ func SendContactUsEmail(contactUsDto dto.ContactUsDTO) error {
 	return nil
 }
 
-func SendEmailVisitSolicitation(email string, patientName string, visitDate string, visitValue string, address string) error {
+func SendEmailVisitSolicitation(email string, patientName string, visitDate string, visitValue float64, address string) error {
 	// Cria a mensagem de email
 	m := gomail.NewMessage()
 	m.SetHeader("From", os.Getenv("EMAIL_SENDER"))
@@ -762,7 +760,7 @@ func SendEmailVisitSolicitation(email string, patientName string, visitDate stri
 	m.SetHeader("Subject", "🔔 Nova Solicitação de Visita Recebida")
 
 	// Conteúdo do email
-	html := createVisitSolicitationHTML(patientName, visitDate, visitValue, address)
+	html := createVisitSolicitationHTML(patientName, visitDate, fmt.Sprintf("%.2f", visitValue), address)
 	m.SetBody("text/html", html)
 
 	// Configuração do Dial and Send
@@ -860,4 +858,159 @@ func createVisitSolicitationHTML(patientName string, visitDate string, visitValu
     `, patientName, patientName, visitDate, visitValue, address) // O primeiro %s é o nome no cabeçalho.
 }
 
+// SendEmailVisitApproved envia um email para o paciente sobre a aprovação da visita.
+func SendEmailVisitApproved(patientEmail string, nurseName string, visitDate string, visitValue float64) error {
+	m := gomail.NewMessage()
+	m.SetHeader("From", os.Getenv("EMAIL_SENDER"))
+	m.SetHeader("To", patientEmail)
+
+	m.SetHeader("Subject", "✅ Visita Confirmada! Seu atendimento foi aprovado")
+
+	// Conteúdo do email
+	html := CreateVisitApprovedHTML(nurseName, visitDate, fmt.Sprintf("%.2f", visitValue))
+	m.SetBody("text/html", html)
+
+	d := gomail.NewDialer(
+		"smtp.gmail.com",
+		587,
+		os.Getenv("EMAIL_SENDER"),
+		os.Getenv("EMAIL_PASSWORD"),
+	)
+
+	// Boa prática: enriquecer o erro
+	if err := d.DialAndSend(m); err != nil {
+		return fmt.Errorf("erro ao enviar email de visita aprovada para o paciente: %w", err)
+	}
+
+	return nil
+}
+
+// createVisitApprovedHTML gera o corpo HTML do email de visita aprovada.
+func CreateVisitApprovedHTML(nurseName string, visitDate string, visitValue string) string {
+	// Reutilizando o estilo, ajustando as cores para sucesso (verde)
+	return fmt.Sprintf(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <title>Visita Aprovada</title>
+        <style>
+            body { background-color: #f9f9f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333333; padding: 0; margin: 0; }
+            .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 30px 40px; }
+            h2 { color: #4CAF50; /* Verde para Sucesso */ text-align: center; }
+            p { line-height: 1.6; font-size: 15px; }
+            .details-box { background-color: #E8F5E9; /* Verde bem suave */ border: 1px solid #A5D6A7; border-radius: 6px; padding: 15px; margin: 20px 0; }
+            .detail-item { margin-bottom: 8px; font-size: 15px; }
+            .detail-item strong { color: #555555; }
+            .footer { margin-top: 30px; font-size: 12px; color: #999999; text-align: center; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>✅ Visita Confirmada!</h2>
+            <p>Olá,</p>
+            <p>Temos uma ótima notícia! O enfermeiro(a) <strong>%s</strong> aprovou sua solicitação de visita.</p>
+            <p>Os detalhes da sua visita são:</p>
+            
+            <div class="details-box">
+                <div class="detail-item"><strong>Profissional:</strong> %s</div>
+                <div class="detail-item"><strong>Data/Hora Agendada:</strong> %s</div>
+                <div class="detail-item"><strong>Valor:</strong> %s</div>
+            </div>
+
+            <p>Lembre-se de preparar os detalhes necessários para o atendimento. Em caso de dúvidas, entre em contato através da plataforma.</p>
+
+            <div class="footer">
+                <p>Este é um e-mail automático. Por favor, não responda.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `, nurseName, nurseName, visitDate, visitValue)
+}
+
+func SendEmailVisitCanceledWithReason(patientEmail string, nurseName string, visitDate string, cancelReason string) error {
+	// Cria a mensagem de email
+	m := gomail.NewMessage()
+	m.SetHeader("From", os.Getenv("EMAIL_SENDER"))
+	m.SetHeader("To", patientEmail)
+
+	// Tema
+	m.SetHeader("Subject", "❌ Visita Cancelada - Solicitamos uma nova")
+
+	// Conteúdo do email
+	html := CreateVisitCanceledWithReasonHTML(nurseName, visitDate, cancelReason)
+	m.SetBody("text/html", html)
+
+	// Configuração do Dial and Send
+	d := gomail.NewDialer(
+		"smtp.gmail.com",
+		587,
+		os.Getenv("EMAIL_SENDER"),
+		os.Getenv("EMAIL_PASSWORD"),
+	)
+
+	// Envio e tratamento de erro enriquecido
+	if err := d.DialAndSend(m); err != nil {
+		return fmt.Errorf("erro ao enviar email de visita cancelada (com motivo) para o paciente: %w", err)
+	}
+
+	return nil
+}
+
+// createVisitCanceledWithReasonHTML gera o corpo HTML do email de visita cancelada com motivo.
+func CreateVisitCanceledWithReasonHTML(nurseName string, visitDate string, cancelReason string) string {
+	// Mantendo o estilo de alerta/erro (vermelho)
+	return fmt.Sprintf(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+        <meta charset="UTF-8">
+        <title>Visita Cancelada</title>
+        <style>
+            body { background-color: #f9f9f9; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333333; padding: 0; margin: 0; }
+            .container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); padding: 30px 40px; }
+            h2 { color: #F44336; /* Vermelho para Cancelamento */ text-align: center; }
+            p { line-height: 1.6; font-size: 15px; }
+            .details-box { background-color: #FFEBEE; border: 1px solid #EF9A9A; border-radius: 6px; padding: 15px; margin: 20px 0; }
+            .detail-item { margin-bottom: 8px; font-size: 15px; }
+            .detail-item strong { color: #555555; }
+            .reason-box {
+                background-color: #fce4e4; /* Vermelho mais claro para o motivo */
+                border-left: 5px solid #F44336;
+                padding: 10px 15px;
+                margin: 15px 0;
+                font-style: italic;
+                font-size: 14px;
+            }
+            .footer { margin-top: 30px; font-size: 12px; color: #999999; text-align: center; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h2>❌ Cancelamento de Visita</h2>
+            <p>Olá,</p>
+            <p>Informamos que o enfermeiro(a) **%s** cancelou a visita agendada para **%s**.</p>
+            
+            <div class="details-box">
+                <div class="detail-item">**Profissional:** %s</div>
+                <div class="detail-item">**Data/Hora Cancelada:** %s</div>
+            </div>
+            
+            <p>O motivo fornecido pelo profissional foi:</p>
+            
+            <div class="reason-box">
+                %s
+            </div>
+
+            <p>Recomendamos que você acesse a plataforma para solicitar uma nova visita com outro profissional o mais breve possível.</p>
+
+            <div class="footer">
+                <p>Este é um e-mail automático. Por favor, não responda.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+    `, nurseName, visitDate, nurseName, visitDate, cancelReason)
+}
 

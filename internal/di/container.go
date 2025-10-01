@@ -26,7 +26,7 @@ func NewContainer() *Container {
 	authService := auth.NewAuthService(userRepository, nurseRepository)
 	adminService := admin.NewAdminService(userRepository, nurseRepository)
 	userService := user.NewUserService(userRepository, nurseRepository, visitRepository)
-	nurseService := nurse.NewNurseService(nurseRepository, visitRepository)
+	nurseService := nurse.NewNurseService(userRepository, nurseRepository, visitRepository)
 
 	authHandler := auth.NewAuthHandler(authService)
 	adminHandler := admin.NewAdminHandler(adminService)
