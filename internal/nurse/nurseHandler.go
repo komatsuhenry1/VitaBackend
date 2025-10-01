@@ -61,6 +61,15 @@ func (h *NurseHandler) GetAllVisits(c *gin.Context){
 	utils.SendSuccessResponse(c, "Visitas [PENDENTE/MARCADAS/CONCLUIDAS] listadas com sucesso.", visits)
 }
 
-func (h *NurseHandler) ConfirmVisit(c *gin.Context){
-	utils.SendSuccessResponse(c, "confirm visit", http.StatusOK)
+func (h *NurseHandler) ConfirmOrCancelVisit(c *gin.Context){
+	nurseId := utils.GetUserId(c) // pega o id do user pela req
+
+	visitId := c.Param("id")
+
+	response, err := h.nurseService.ConfirmOrCancelVisit(nurseId, visitId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}	
+	
+	utils.SendSuccessResponse(c, "Status da visita alterado com sucesso.", response)
 }

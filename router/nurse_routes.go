@@ -13,6 +13,6 @@ func SetupNurseRoutes(r *gin.RouterGroup, container *di.Container) {
 		nurse.GET("/dashboard", middleware.AuthNurse(), container.NurseHandler.NurseDashboard) // dados relevenates para dashboard de nurse TODO
 		nurse.PATCH("/online", middleware.AuthNurse(), container.NurseHandler.ChangeOnlineNurse) // ativa online de nurse para receber chamadas de visitas DONE
 		nurse.GET("/visits", middleware.AuthNurse(), container.NurseHandler.GetAllVisits) // retorna todas visitas possiveis / marcadas TODO
-		nurse.PATCH("/confirm", middleware.AuthNurse(), container.NurseHandler.ConfirmVisit) // confirma que uma enfermeira ira para a visita
+		nurse.PATCH("/visit/:id", middleware.AuthNurse(), container.NurseHandler.ConfirmOrCancelVisit) // confirma que uma enfermeira ira para a visita
 	}
 }

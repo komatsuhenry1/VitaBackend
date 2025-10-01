@@ -13,6 +13,7 @@ import (
 type NurseService interface {
 	UpdateAvailablityNursingService(userId string) (model.Nurse, error)
 	GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, error)
+	ConfirmOrCancelVisit(nurseId, visitId string) (string, error)
 }
 
 type nurseService struct {
@@ -29,10 +30,10 @@ func (s *nurseService) UpdateAvailablityNursingService(nurseId string) (model.Nu
 	//busca o user
 	nurse, err := s.nurseRepository.FindNurseById(nurseId)
 	if err != nil {
-		return model.Nurse{}, fmt.Errorf("Erro ao buscar user by id.")
+		return model.Nurse{}, fmt.Errorf("erro ao buscar user by id")
 	}
 
-	if nurse.Online == true {
+	if nurse.Online {
 		nurse.Online = false
 	} else {
 		nurse.Online = true
@@ -95,4 +96,32 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 	}
 
 	return allVisitsDto, nil
+}
+
+func (s *nurseService) ConfirmOrCancelVisit(nurseId, visitId string) (string, error) {
+	visit, err := s.visitRepository.FindVisitById(visitId)
+	if err != nil {
+		return "", err
+	}
+
+	var response string
+	if visit.Status == "CONFIRMED" {
+		visit.Status = "PENDING"
+		response = "Visita cancelada com sucesso."
+	} else if visit.Status == "PENDING" {
+		visit.Status = "CONFIRMED"
+		response = "Visita confirmada com sucesso."
+	}
+
+	visitUpdates := bson.M{
+		"status": visit.Status,
+		"updatedAt": time.Now(),
+	}
+
+	_, err = s.visitRepository.UpdateVisitFields(visitId, visitUpdates)
+	if err != nil {
+		return "", err
+	}
+
+	return response, nil
 }

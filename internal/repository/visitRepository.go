@@ -8,6 +8,7 @@ import(
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"errors"
 	"fmt"
+	"time"
 )
 
 type VisitRepository interface{
@@ -15,6 +16,7 @@ type VisitRepository interface{
 	FindAllVisitsForPatient(patientId string) ([]model.Visit, error)
 	FindAllVisitsForNurse(nurseId string) ([]model.Visit, error)
 	FindVisitById(id string) (model.Visit, error)
+	UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit,error)
 }
 
 type visitRepository struct{
@@ -63,8 +65,6 @@ func (r *visitRepository) FindAllVisitsForPatient(patientId string) ([]model.Vis
 	return visits, nil
 }
 
-
-
 func (r *visitRepository) FindVisitById(id string) (model.Visit, error) {
 	var visit model.Visit
 
@@ -83,4 +83,34 @@ func (r *visitRepository) FindVisitById(id string) (model.Visit, error) {
 	}
 
 	return visit, nil
+}
+
+func (r *visitRepository) UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit,error) {
+	cleanUpdates := bson.M{}
+
+	for key, value := range updates {
+		if value != nil || value == "" {
+			cleanUpdates[key] = value
+		}
+	}
+
+	if len(cleanUpdates) == 0 {
+		return model.Visit{}, fmt.Errorf("nenhum campo válido para atualizar")
+	}
+
+	cleanUpdates["updated_at"] = time.Now()
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return model.Visit{}, fmt.Errorf("ID inválido")
+	}
+
+	update := bson.M{"$set": cleanUpdates}
+
+	_, err = r.collection.UpdateByID(context.TODO(), objID, update)
+	if err != nil {
+		return model.Visit{}, err
+	}
+
+	return r.FindVisitById(id)
 }

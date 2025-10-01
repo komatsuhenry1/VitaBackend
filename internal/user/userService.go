@@ -148,7 +148,7 @@ func (h *userService) FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, e
 	var allVisitsDto []userDTO.AllVisitsDto
 
 	for _, visit := range visits {
-		if visit.Confirmed{
+		if visit.Status =="CONFIRMED"{
 			nurse, err := h.nurseRepository.FindNurseById(visit.NurseId)
 			if err != nil {
 				return nil, err

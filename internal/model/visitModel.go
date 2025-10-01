@@ -15,7 +15,6 @@ type Visit struct {
 	Description string `bson:"description" json:"description" binding:"required"`
 	Reason      string `bson:"reason" json:"reason" binding:"required"`
 	VisitType   string `bson:"visit_type" json:"visit_type" binding:"required"`
-	Confirmed   bool   `bson:"confirmed" json:"confirmed"`
 
 	NurseId   string `bson:"nurse_id" json:"nurse_id" binding:"required"`
 	NurseName string `bson:"nurse_name" json:"nurse_name" binding:"required"`
