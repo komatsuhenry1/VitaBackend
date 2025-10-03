@@ -62,8 +62,6 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 		return dto.NurseVisitsListsDto{}, err
 	}
 
-	fmt.Println(visits)
-
 	pendingVisits := make([]dto.VisitDto, 0)
 	confirmedVisits := make([]dto.VisitDto, 0)
 	completedVisits := make([]dto.VisitDto, 0)
@@ -75,6 +73,7 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 			Description: visit.Description,
 			Reason:      visit.Reason,
 			VisitType:   visit.VisitType,
+			VisitValue:  visit.VisitValue,
 			CreatedAt:   visit.CreatedAt.Format("02/01/2006 15:04"),
 			Date:        visit.VisitDate.Format("02/01/2006 15:04"),
 			Status:      visit.Status,
