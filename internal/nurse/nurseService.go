@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"strings"
 )
 
 type NurseService interface {
@@ -17,7 +18,7 @@ type NurseService interface {
 	ConfirmOrCancelVisit(nurseId, visitId, reason string) (string, error)
 	GetPatientProfile(patientId string) (dto.PatientProfileResponseDTO, error)
 	NurseDashboardData(nurseId string) (dto.NurseDashboardDataResponseDTO, error)
-
+	UpdateNurseFields(id string, updates map[string]interface{}) (dto.NurseUpdateResponseDTO, error) 
 }
 
 type nurseService struct {
@@ -46,7 +47,7 @@ func (s *nurseService) UpdateAvailablityNursingService(nurseId string) (model.Nu
 
 	nurseUpdates := bson.M{
 		"online":    nurse.Online,
-		"updatedAt": time.Now(),
+		"updated_at": time.Now(),
 	}
 
 	//salve user com status true/false
@@ -203,9 +204,6 @@ func (s *nurseService) NurseDashboardData(nurseId string) (dto.NurseDashboardDat
 		})
 	}
 
-	//history
-
-
 	//nurseProfile
 	nurseProfile := dto.NurseProfileResponseDTO{
 		Name: nurse.Name,
@@ -237,4 +235,40 @@ func (s *nurseService) NurseDashboardData(nurseId string) (dto.NurseDashboardDat
 	return dashboardData, nil
 
 
+}
+
+func (s *nurseService) UpdateNurseFields(id string, updates map[string]interface{}) (dto.NurseUpdateResponseDTO, error) {
+	if emailRaw, ok := updates["email"]; ok {
+		email, ok := emailRaw.(string)
+		if ok {
+			normalizedEmail := strings.ToLower(email)
+
+			_, err := utils.EmailRegex(email)
+			if err != nil {
+				return dto.NurseUpdateResponseDTO{}, fmt.Errorf("Email no formato incorreto.")
+			}
+
+			existingUser, err := s.nurseRepository.FindNurseByEmail(normalizedEmail)
+			if err == nil && existingUser.ID.Hex() != id {
+				return dto.NurseUpdateResponseDTO{}, fmt.Errorf("Email já está em uso por outro usuário")
+			}
+
+			updates["email"] = normalizedEmail
+		}
+	}
+
+	nurse, err := s.nurseRepository.UpdateNurseFields(id, updates)
+	if err != nil {
+		return dto.NurseUpdateResponseDTO{}, fmt.Errorf("erro ao atualizar campos do usuario: %w", err)
+	}
+
+	return dto.NurseUpdateResponseDTO{
+		ID:        nurse.ID.Hex(),
+		Name:      nurse.Name,
+		Email:     nurse.Email,
+		Hidden:    nurse.Hidden,
+		Role:      nurse.Role,
+		CreatedAt: nurse.CreatedAt,
+		UpdatedAt: nurse.UpdatedAt,
+	}, nil
 }

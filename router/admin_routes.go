@@ -18,5 +18,9 @@ func SetupAdminRoutes(r *gin.RouterGroup, container *di.Container) {
 		admin.PATCH("/approve/:id", middleware.AuthAdmin(), container.AdminHandler.ApproveNurseRegister)
 		admin.POST("/reject/:id", middleware.AuthAdmin(), container.AdminHandler.RejectNurseRegister)
 		admin.GET("/file/:id", container.UserHandler.GetFileByID)
+
+		//crud visits
+
+		//crud patient
 	}
 }

@@ -67,10 +67,20 @@ type AvailabilityDTO struct {
 }
 
 type NurseDashboardDataResponseDTO struct {
-	Online       bool                        `json:"online"`
-	Stats        StatsDTO                    `json:"stats"`
-	Visits       []VisitDto                  `json:"visits"`
+	Online bool       `json:"online"`
+	Stats  StatsDTO   `json:"stats"`
+	Visits []VisitDto `json:"visits"`
 	// History      []VisitDto                  `json:"history"`
-	Profile      NurseProfileResponseDTO     `json:"profile"`
-	Availability AvailabilityDTO             `json:"availability"`
+	Profile      NurseProfileResponseDTO `json:"profile"`
+	Availability AvailabilityDTO         `json:"availability"`
+}
+
+type NurseUpdateResponseDTO struct {
+	ID        string    `json:"id"`
+	Name      string    `json:"name"`
+	Email     string    `bson:"email" json:"email"`
+	Hidden    bool      `bson:"hidden" json:"hidden"`
+	Role      string    `bson:"role" json:"role"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
 }

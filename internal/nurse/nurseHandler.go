@@ -7,6 +7,7 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 	"medassist/internal/nurse/dto"
 	"fmt"
+	"strings"
 )
 
 type NurseHandler struct {
@@ -103,5 +104,38 @@ func (h *NurseHandler) GetPatientProfile(c *gin.Context){
 	}
 
 	utils.SendSuccessResponse(c, "Perfil do paciente listado com sucesso.", patientProfile)
+
+}
+
+func (h *NurseHandler) UpdateNurseProfile(c *gin.Context){
+	nurseId := utils.GetUserId(c)
+
+	var updates map[string]interface{}
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		utils.SendErrorResponse(c, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	protectedFields := map[string]bool{
+		"id":         true,
+		"created_at": true,
+		"updated_at": true,
+		"password":   true,
+	}
+
+	for key := range updates {
+		if protectedFields[strings.ToLower(key)] {
+			utils.SendErrorResponse(c, fmt.Sprintf("Campo(s) %s não pode ser atualizado.", key), http.StatusBadRequest)
+			return
+		}
+	}
+
+	user, err := h.nurseService.UpdateNurseFields(nurseId, updates)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Usuário atualizado com sucesso.", user)
 
 }

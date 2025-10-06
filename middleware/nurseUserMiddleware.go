@@ -62,7 +62,7 @@ func AuthUserOrNurse() gin.HandlerFunc {
 
 		userId, _ := claims["sub"].(string)
 		role, ok := claims["role"].(string)
-		if !ok || (role != "USER" && role != "NURSE"){
+		if !ok || (role != "PATIENT" && role != "NURSE"){
 			c.AbortWithStatusJSON(http.StatusForbidden, gin.H{
 				"message": "acesso restrito a usuários ou enfermeiros",
 				"success": false,

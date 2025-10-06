@@ -156,7 +156,7 @@ func (r *userRepository) UpdateTempCode(userID string, code int) error {
 	update := bson.M{
 		"$set": bson.M{
 			"temp_code": code,
-			"updatedAt": time.Now(),
+			"updated_at": time.Now(),
 		},
 	}
 

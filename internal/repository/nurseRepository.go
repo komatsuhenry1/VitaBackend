@@ -17,6 +17,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"strings"
 )
 
 type NurseRepository interface {
@@ -28,13 +29,13 @@ type NurseRepository interface {
 	FindAllNursesNotVerified() ([]model.Nurse, error)
 	UpdateTempCode(userID string, code int) error
 	UpdateNurse(nurseId string, userUpdated bson.M) (model.Nurse, error)
-	UpdateNurseFields(userId string, updates map[string]interface{}) (model.Nurse, error)
 	SetLicenseDocumentID(nurseID, documentID primitive.ObjectID) error
 	UploadFile(file io.Reader, fileName string, contentType string) (primitive.ObjectID, error)
 	FindAuthNurseByID(id string) (dto.AuthUser, error)
 	UpdatePasswordByNurseID(userID string, hashedPassword string) error
 	GetIdsNursesPendents() ([]string, error)
 	GetAllNurses() ([]userDTO.AllNursesListDto, error)
+	UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error)
 }
 
 type nurseRepository struct {
@@ -188,7 +189,7 @@ func (r *nurseRepository) UpdateTempCode(userID string, code int) error {
 	update := bson.M{
 		"$set": bson.M{
 			"temp_code": code,
-			"updatedAt": time.Now(),
+			"updated_at": time.Now(),
 		},
 	}
 
@@ -220,35 +221,35 @@ func (r *nurseRepository) UpdateNurse(nurseId string, nurseUpdates bson.M) (mode
 	return nurse, nil
 }
 
-func (r *nurseRepository) UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error) {
-	cleanUpdates := bson.M{}
+// func (r *nurseRepository) UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error) {
+// 	cleanUpdates := bson.M{}
 
-	for key, value := range updates {
-		if value != nil {
-			cleanUpdates[key] = value
-		}
-	}
+// 	for key, value := range updates {
+// 		if value != nil {
+// 			cleanUpdates[key] = value
+// 		}
+// 	}
 
-	if len(cleanUpdates) == 0 {
-		return model.Nurse{}, fmt.Errorf("nenhum campo válido para atualizar")
-	}
+// 	if len(cleanUpdates) == 0 {
+// 		return model.Nurse{}, fmt.Errorf("nenhum campo válido para atualizar")
+// 	}
 
-	cleanUpdates["updated_at"] = time.Now()
+// 	cleanUpdates["updated_at"] = time.Now()
 
-	objID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return model.Nurse{}, fmt.Errorf("ID inválido")
-	}
+// 	objID, err := primitive.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		return model.Nurse{}, fmt.Errorf("ID inválido")
+// 	}
 
-	update := bson.M{"$set": cleanUpdates}
+// 	update := bson.M{"$set": cleanUpdates}
 
-	_, err = r.collection.UpdateByID(context.TODO(), objID, update)
-	if err != nil {
-		return model.Nurse{}, err
-	}
+// 	_, err = r.collection.UpdateByID(context.TODO(), objID, update)
+// 	if err != nil {
+// 		return model.Nurse{}, err
+// 	}
 
-	return r.FindNurseById(id)
-}
+// 	return r.FindNurseById(id)
+// }
 
 func (r *nurseRepository) GetIdsNursesPendents() ([]string, error) {
 	var nursesIds []string
@@ -359,4 +360,47 @@ func (r *nurseRepository) GetAllNurses() ([]userDTO.AllNursesListDto, error) {
 	}
 
 	return nursesDto, nil
+}
+
+func (r *nurseRepository) UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error) {
+	var nurse model.Nurse
+
+	fieldsToFormat := map[string]bool{
+		"name": true,
+	}
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return nurse, fmt.Errorf("ID inválido")
+	}
+
+	cleanUpdates := bson.M{}
+	for key, value := range updates {
+		if value == nil || value == "" {
+			continue
+		}
+
+		valStr, ok := value.(string)
+		if fieldsToFormat[strings.ToLower(key)] && ok {
+			cleanUpdates[key] = utils.CapitalizeWords(valStr)
+		} else {
+			cleanUpdates[key] = value
+		}
+	}
+
+	if len(cleanUpdates) == 0 {
+		return nurse, fmt.Errorf("nenhum campo válido para atualizar")
+	}
+
+	cleanUpdates["updated_at"] = time.Now()
+
+	update := bson.M{"$set": cleanUpdates}
+
+	_, err = r.collection.UpdateByID(r.ctx, objID, update)
+	if err != nil {
+		return nurse, err
+	}
+
+	err = r.collection.FindOne(r.ctx, bson.M{"_id": objID}).Decode(&nurse)
+	return nurse, err
 }

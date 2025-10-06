@@ -46,7 +46,7 @@ func (s *adminService) ApproveNurseRegister(approvedNurseId string) (string, err
 
 	nurseUpdates := bson.M{
 		"verification_seal": true,
-		"updatedAt":         time.Now(),
+		"updated_at":         time.Now(),
 	}
 
 	//salve user com status true/false
