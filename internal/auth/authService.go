@@ -15,7 +15,7 @@ import (
 )
 
 type AuthService interface {
-	UserRegister(registerRequestDTO dto.UserRegisterRequestDTO) (model.User, error)
+	UserRegister(registerRequestDTO dto.UserRegisterRequestDTO, files map[string][]*multipart.FileHeader) (model.User, error)
 	NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO, files map[string][]*multipart.FileHeader) (model.Nurse, error)
 	LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dto.AuthUser, error)
 	SendCodeToEmail(emailAuthRequestDTO dto.EmailAuthRequestDTO) (dto.CodeResponseDTO, error)
@@ -35,47 +35,109 @@ func NewAuthService(userRepository repository.UserRepository, nurseRepository re
 	return &authService{userRepository: userRepository, nurseRepository: nurseRepository}
 }
 
-func (s *authService) UserRegister(registerRequestDTO dto.UserRegisterRequestDTO) (model.User, error) {
+// func (s *authService) UserRegister(registerRequestDTO dto.UserRegisterRequestDTO) (model.User, error) {
+// 	if err := registerRequestDTO.Validate(); err != nil {
+// 		return model.User{}, err
+// 	}
+
+// 	normalizedEmail, err := utils.EmailRegex(registerRequestDTO.Email)
+// 	if err != nil {
+// 		return model.User{}, fmt.Errorf("email invalido")
+// 	}
+
+// 	// Verifica se usuário existe (sem erro se não achar)
+// 	_, err = s.userRepository.FindUserByEmail(normalizedEmail)
+// 	if err == nil {
+// 		return model.User{}, fmt.Errorf("o usuario com o email '%s' ja existe", normalizedEmail)
+// 	}
+
+// 	_, err = s.userRepository.FindUserByCpf(registerRequestDTO.Cpf)
+// 	if err == nil {
+// 		return model.User{}, fmt.Errorf("o usuario com o CPF '%s' ja existe", registerRequestDTO.Cpf)
+// 	}
+
+// 	hashedPassword, err := utils.HashPassword(registerRequestDTO.Password)
+// 	if err != nil {
+// 		return model.User{}, fmt.Errorf("erro ao criptografar senha: %w", err)
+// 	}
+
+// 	user := model.User{
+// 		ID:          primitive.NewObjectID(),
+// 		Name:        registerRequestDTO.Name,
+// 		Cpf:         registerRequestDTO.Cpf,
+// 		Phone:       registerRequestDTO.Phone,
+// 		Address:     registerRequestDTO.Address,
+// 		Email:       normalizedEmail,
+// 		Password:    hashedPassword,
+// 		Role:        "PATIENT",
+// 		Hidden:      false,
+// 		FirstAccess: true,
+// 		TempCode:    0,
+// 		CreatedAt:   time.Now(),
+// 		UpdatedAt:   time.Now(),
+// 	}
+
+// 	if err := s.userRepository.CreateUser(&user); err != nil {
+// 		return model.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
+// 	}
+
+// 	if err := utils.SendEmailUserRegister(registerRequestDTO.Email); err != nil {
+// 		return model.User{}, fmt.Errorf("erro ao enviar e-mail: %w", err)
+// 	}
+
+// 	return user, nil
+// }
+
+func (s *authService) UserRegister(registerRequestDTO dto.UserRegisterRequestDTO, files map[string][]*multipart.FileHeader) (model.User, error) {
 	if err := registerRequestDTO.Validate(); err != nil {
 		return model.User{}, err
 	}
 
+	// ... (toda a sua lógica de validação de email, cpf e hash de senha continua igual)
 	normalizedEmail, err := utils.EmailRegex(registerRequestDTO.Email)
-	if err != nil {
-		return model.User{}, fmt.Errorf("email invalido")
-	}
-
-	// Verifica se usuário existe (sem erro se não achar)
-	_, err = s.userRepository.FindUserByEmail(normalizedEmail)
-	if err == nil {
-		return model.User{}, fmt.Errorf("o usuario com o email '%s' ja existe", normalizedEmail)
-	}
-
-	_, err = s.userRepository.FindUserByCpf(registerRequestDTO.Cpf)
-	if err == nil {
-		return model.User{}, fmt.Errorf("o usuario com o CPF '%s' ja existe", registerRequestDTO.Cpf)
-	}
-
+	// ... etc ...
 	hashedPassword, err := utils.HashPassword(registerRequestDTO.Password)
 	if err != nil {
 		return model.User{}, fmt.Errorf("erro ao criptografar senha: %w", err)
 	}
 
 	user := model.User{
-		ID:          primitive.NewObjectID(),
-		Name:        registerRequestDTO.Name,
-		Cpf:         registerRequestDTO.Cpf,
-		Phone:       registerRequestDTO.Phone,
-		Address:     registerRequestDTO.Address,
-		Email:       normalizedEmail,
-		Password:    hashedPassword,
-		Role:        "PATIENT",
-		Hidden:      false,
-		FirstAccess: true,
-		TempCode:    0,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+		ID:   primitive.NewObjectID(),
+		Name: registerRequestDTO.Name,
+		Cpf:  registerRequestDTO.Cpf,
+		// ... outros campos ...
+		Email:    normalizedEmail,
+		Password: hashedPassword,
+		Role:     "PATIENT",
+		// ... resto dos campos ...
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
+
+	// ---- NOVA LÓGICA PARA UPLOAD DA IMAGEM ----
+	// Verificamos se o arquivo 'image_profile' foi enviado no formulário
+	if fileHeaders, ok := files["image_profile"]; ok && len(fileHeaders) > 0 {
+		fileHeader := fileHeaders[0] // Pegamos apenas o primeiro arquivo
+
+		file, err := fileHeader.Open()
+		if err != nil {
+			return model.User{}, fmt.Errorf("erro ao abrir a imagem de perfil: %w", err)
+		}
+		defer file.Close()
+
+		uniqueFileName := fmt.Sprintf("%s_profile_%s", user.ID.Hex(), fileHeader.Filename)
+		contentType := fileHeader.Header.Get("Content-Type")
+
+		// Chamamos a nova função UploadFile no repositório de usuário
+		fileID, err := s.userRepository.UploadFile(file, uniqueFileName, contentType)
+		if err != nil {
+			return model.User{}, fmt.Errorf("erro no upload da imagem de perfil: %w", err)
+		}
+
+		// Atribuímos o ID do arquivo ao nosso modelo de usuário
+		user.ProfileImageID = fileID
+	}
+	// ---- FIM DA NOVA LÓGICA ----
 
 	if err := s.userRepository.CreateUser(&user); err != nil {
 		return model.User{}, fmt.Errorf("erro ao criar usuário: %w", err)

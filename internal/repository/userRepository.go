@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type UserRepository interface {
@@ -31,6 +32,7 @@ type UserRepository interface {
 	UpdatePasswordByUserID(userID string, hashedPassword string) error
 	DownloadFileByID(fileID primitive.ObjectID) (*gridfs.DownloadStream, error)
 	FindFileByID(ctx context.Context, id primitive.ObjectID) (*dto.FileData, error)
+	UploadFile(file io.Reader, fileName string, contentType string) (primitive.ObjectID, error)
 }
 
 type userRepository struct {
@@ -143,6 +145,25 @@ func (r *userRepository) CreateUser(user *model.User) error {
 	_, err := r.collection.InsertOne(r.ctx, user)
 	return err
 }
+
+func (r *userRepository) UploadFile(file io.Reader, fileName string, contentType string) (primitive.ObjectID, error) {
+    opts := options.GridFSUpload().
+        SetMetadata(bson.M{"contentType": contentType})
+
+    uploadStream, err := r.bucket.OpenUploadStream(fileName, opts)
+    if err != nil {
+        return primitive.NilObjectID, err
+    }
+    defer uploadStream.Close()
+
+    if _, err := io.Copy(uploadStream, file); err != nil {
+        return primitive.NilObjectID, err
+    }
+
+    fileID := uploadStream.FileID.(primitive.ObjectID)
+    return fileID, nil
+}
+
 
 func (r *userRepository) UpdateTempCode(userID string, code int) error {
 

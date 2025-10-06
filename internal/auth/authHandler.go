@@ -18,20 +18,53 @@ func NewAuthHandler(authService AuthService) *AuthHandler {
 	return &AuthHandler{authService: authService}
 }
 
-func (h *AuthHandler) UserRegister(c *gin.Context) {
-	var userRequestDTO dto.UserRegisterRequestDTO
-	if err := c.ShouldBindJSON(&userRequestDTO); err != nil {
-		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
-		return
-	}
+// func (h *AuthHandler) UserRegister(c *gin.Context) {
+// 	var userRequestDTO dto.UserRegisterRequestDTO
+// 	if err := c.ShouldBindJSON(&userRequestDTO); err != nil {
+// 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+// 		return
+// 	}
 
-	createdUser, err := h.authService.UserRegister(userRequestDTO)
-	if err != nil {
-		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
-		return
-	}
-	utils.SendSuccessResponse(c, "usuário criado com sucesso", gin.H{"user": createdUser})
+// 	createdUser, err := h.authService.UserRegister(userRequestDTO)
+// 	if err != nil {
+// 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+// 		return
+// 	}
+// 	utils.SendSuccessResponse(c, "usuário criado com sucesso", gin.H{"user": createdUser})
+// }
+
+func (h *AuthHandler) UserRegister(c *gin.Context) {
+    // 1. Criar o DTO e preenchê-lo com os dados do formulário
+    var userRequestDTO dto.UserRegisterRequestDTO
+    userRequestDTO.Name = c.PostForm("name")
+    userRequestDTO.Email = c.PostForm("email")
+    userRequestDTO.Phone = c.PostForm("phone")
+    userRequestDTO.Address = c.PostForm("address")
+    userRequestDTO.Cpf = c.PostForm("cpf")
+    userRequestDTO.Password = c.PostForm("password")
+
+    // 2. Processar a parte de multipart/form-data para pegar os arquivos
+    form, err := c.MultipartForm()
+    if err != nil {
+        // Se não for um multipart form, pode ser que nenhum arquivo foi enviado, o que é ok.
+        // Vamos tratar o `form` como nulo ou vazio na camada de serviço.
+        // Se o erro for outro (ex: form mal formatado), ele será pego.
+        // Para simplificar, vamos assumir que o erro aqui indica um problema.
+        utils.SendErrorResponse(c, "Erro ao processar formulário multipart: "+err.Error(), http.StatusBadRequest)
+        return
+    }
+    files := form.File // Pega o mapa de todos os arquivos
+
+    // 3. Chamar o serviço com o DTO e os arquivos
+    createdUser, err := h.authService.UserRegister(userRequestDTO, files)
+    if err != nil {
+        utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    utils.SendSuccessResponse(c, "usuário criado com sucesso", gin.H{"user": createdUser})
 }
+
 
 func (h *AuthHandler) NurseRegister(c *gin.Context) {
 	
