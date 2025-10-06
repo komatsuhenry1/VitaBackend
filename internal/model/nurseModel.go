@@ -38,6 +38,8 @@ type Nurse struct {
 	Online      bool      `bson:"online" json:"online" binding:"required"`
 	FirstAccess bool      `bson:"first_access" json:"first_access"`
 	CreatedAt   time.Time `bson:"created_at" json:"created_at"`
+	StartTime   string    `bson:"start_time" json:"start_time" binding:"required"`
+	EndTime     string    `bson:"end_time" json:"end_time" binding:"required"`
 	TempCode    int       `bson:"temp_code" json:"temp_code"`
 	UpdatedAt   time.Time `bson:"updated_at" json:"updated_at"`
 }

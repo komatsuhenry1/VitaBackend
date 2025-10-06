@@ -16,6 +16,8 @@ type NurseService interface {
 	GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, error)
 	ConfirmOrCancelVisit(nurseId, visitId, reason string) (string, error)
 	GetPatientProfile(patientId string) (dto.PatientProfileResponseDTO, error)
+	NurseDashboardData(nurseId string) (dto.NurseDashboardDataResponseDTO, error)
+
 }
 
 type nurseService struct {
@@ -160,4 +162,79 @@ func (s *nurseService) GetPatientProfile(patientId string) (dto.PatientProfileRe
 	}
 
 	return patientProfile, nil
+}
+
+func (s *nurseService) NurseDashboardData(nurseId string) (dto.NurseDashboardDataResponseDTO, error) {
+	var dashboardData dto.NurseDashboardDataResponseDTO
+
+	nurse, err := s.nurseRepository.FindNurseById(nurseId)
+	if err != nil {
+		return dashboardData, err
+	}
+
+	visits, err := s.visitRepository.FindAllVisitsForNurse(nurseId)
+	if err != nil {
+		return dashboardData, err
+	}
+
+	// stats
+	stats := dto.StatsDTO{
+		PatientsAttended: 10,
+		AppointmentsToday: 3,
+		AverageRating: 4.5,
+		MonthlyEarnings: 1000,
+	}
+
+	//itera pela lista de visits e mapeia para o dto VisitDto
+	visitsDto := make([]dto.VisitDto, 0)
+	for _, visit := range visits {
+		visitsDto = append(visitsDto, dto.VisitDto{
+			ID: visit.ID.Hex(),
+			Description: visit.Description,
+			Reason: visit.Reason,
+			VisitType: visit.VisitType,
+			VisitValue: visit.VisitValue,
+			CreatedAt: visit.CreatedAt.Format("02/01/2006 15:04"),
+			Date: visit.VisitDate.Format("02/01/2006 15:04"),
+			Status: visit.Status,
+			PatientName: visit.PatientName,
+			PatientId: visit.PatientId,
+			NurseName: visit.NurseName,
+		})
+	}
+
+	//history
+
+
+	//nurseProfile
+	nurseProfile := dto.NurseProfileResponseDTO{
+		Name: nurse.Name,
+		Email: nurse.Email,
+		Phone: nurse.Phone,
+		Coren: nurse.LicenseNumber,
+		ExperienceYears: nurse.YearsExperience,
+		Department: nurse.Department,
+		Bio: nurse.Bio,
+	}
+
+	nurseAvailability := dto.AvailabilityDTO{
+		IsAvailable: nurse.Online,
+		StartTime: nurse.StartTime,
+		EndTime: nurse.EndTime,
+		Specialization: nurse.Specialization,
+	}
+
+	dashboardData = dto.NurseDashboardDataResponseDTO{
+		Online: nurse.Online,
+		Stats: stats,
+		Visits: visitsDto,
+		// Patients: patientsDto,
+		// History: historyDto,
+		Profile: nurseProfile,
+		Availability: nurseAvailability,
+	}
+
+	return dashboardData, nil
+
+
 }

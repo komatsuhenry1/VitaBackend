@@ -8,7 +8,6 @@ import (
 	"io"
 	"medassist/internal/auth/dto"
 	"medassist/internal/model"
-	// nurseDTO "medassist/internal/nurse/dto"
 	userDTO "medassist/internal/user/dto"
 	"medassist/utils"
 	"time"

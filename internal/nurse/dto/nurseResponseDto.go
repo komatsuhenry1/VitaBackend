@@ -41,3 +41,36 @@ type PatientProfileResponseDTO struct {
 	TempCode    int                `json:"temp_code"`
 	UpdatedAt   time.Time          `json:"updated_at"`
 }
+
+type StatsDTO struct {
+	PatientsAttended  int     `json:"patients_attended"`
+	AppointmentsToday int     `json:"appointments_today"`
+	AverageRating     float64 `json:"average_rating"`
+	MonthlyEarnings   float64 `json:"monthly_earnings"`
+}
+
+type NurseProfileResponseDTO struct {
+	Name            string `json:"name"`
+	Email           string `json:"email"`
+	Phone           string `json:"phone"`
+	Coren           string `json:"coren"`
+	ExperienceYears int    `json:"experience_years"`
+	Department      string `json:"department"`
+	Bio             string `json:"bio"`
+}
+
+type AvailabilityDTO struct {
+	IsAvailable    bool   `json:"is_available"`
+	StartTime      string `json:"start_time"`
+	EndTime        string `json:"end_time"`
+	Specialization string `json:"specialization"`
+}
+
+type NurseDashboardDataResponseDTO struct {
+	Online       bool                        `json:"online"`
+	Stats        StatsDTO                    `json:"stats"`
+	Visits       []VisitDto                  `json:"visits"`
+	// History      []VisitDto                  `json:"history"`
+	Profile      NurseProfileResponseDTO     `json:"profile"`
+	Availability AvailabilityDTO             `json:"availability"`
+}

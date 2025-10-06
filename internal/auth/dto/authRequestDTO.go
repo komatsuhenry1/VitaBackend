@@ -61,6 +61,9 @@ type NurseRegisterRequestDTO struct {
 	Shift           string `json:"shift"` // turno
 	Department      string `json:"department"`
 	YearsExperience int    `json:"years_experience"`
+	Bio             string `json:"bio"`
+	StartTime       string `json:"start_time"`
+	EndTime         string `json:"end_time"`
 }
 
 func (u *NurseRegisterRequestDTO) Validate() error {
@@ -109,7 +112,7 @@ type InputCodeDto struct {
 	Code  int    `json:"code"`
 }
 
-type ForgotPasswordRequestDTO struct{
+type ForgotPasswordRequestDTO struct {
 	Email string `json:"email"`
 }
 

@@ -18,7 +18,15 @@ func NewNurseHandler(nurseService NurseService) *NurseHandler {
 }
 
 func (h *NurseHandler) NurseDashboard(c *gin.Context){
-	utils.SendSuccessResponse(c, "nurse dashboard", http.StatusOK)
+	nurseId := utils.GetUserId(c)
+
+	dashboardData, err := h.nurseService.NurseDashboardData(nurseId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Dados de enfermeiro carregados com sucesso.", dashboardData)
 }
 
 func (h *NurseHandler) ChangeOnlineNurse(c *gin.Context){

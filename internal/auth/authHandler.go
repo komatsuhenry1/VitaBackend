@@ -44,8 +44,6 @@ func (h *AuthHandler) NurseRegister(c *gin.Context) {
 		utils.SendErrorResponse(c, "Formato inválido para 'anos de experiência'. Esperado um número.", http.StatusBadRequest)
 		return // Interrompe a execução
 	}
-	fmt.Println(yearsExp)
-	fmt.Printf("yearsExp type: %T\n", yearsExp)
 	
 	var nurseRequestDTO dto.NurseRegisterRequestDTO
 	nurseRequestDTO.Name = c.PostForm("name")
@@ -60,13 +58,15 @@ func (h *AuthHandler) NurseRegister(c *gin.Context) {
 	nurseRequestDTO.Shift = c.PostForm("shift")
 	nurseRequestDTO.Department = c.PostForm("department")
 	nurseRequestDTO.YearsExperience = yearsExp	
+	nurseRequestDTO.Bio = c.PostForm("bio")
+	nurseRequestDTO.StartTime = c.PostForm("start_time")
+	nurseRequestDTO.EndTime = c.PostForm("end_time")
 	
 	form, err := c.MultipartForm()
 	if err != nil {
 		utils.SendErrorResponse(c, "Erro ao processar formulário: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println(form)
 
 	files := form.File // todos arquivos enviados
 
