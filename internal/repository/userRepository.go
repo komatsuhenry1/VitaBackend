@@ -33,6 +33,7 @@ type UserRepository interface {
 	DownloadFileByID(fileID primitive.ObjectID) (*gridfs.DownloadStream, error)
 	FindFileByID(ctx context.Context, id primitive.ObjectID) (*dto.FileData, error)
 	UploadFile(file io.Reader, fileName string, contentType string) (primitive.ObjectID, error)
+	DeleteUser(id string) error
 }
 
 type userRepository struct {
@@ -308,4 +309,14 @@ func (r *userRepository) FindFileByID(ctx context.Context, id primitive.ObjectID
 		ContentType: contentType,
 		Filename:    fileInfo.Name,
 	}, nil
+}
+
+func (r *userRepository) DeleteUser(id string) error {
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("ID inválido")
+	}
+
+	_, err = r.collection.DeleteOne(r.ctx, bson.M{"_id": objID})
+	return err
 }

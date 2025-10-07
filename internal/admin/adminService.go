@@ -6,6 +6,7 @@ import (
 	"medassist/internal/repository"
 	"medassist/utils"
 	"os"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -19,6 +20,9 @@ type AdminService interface {
 	GetFileStream(fileID primitive.ObjectID) (*gridfs.DownloadStream, error)
 	GetDashboardData() (dto.DashboardAdminDataResponse, error)
 	RejectNurseRegister(rejectedNurseId string, rejectDescription dto.RejectDescription) (string, error)
+	UserLists() (dto.UserListsResponse, error)
+	UpdateUser(userId string, updates map[string]interface{}) (dto.UserTypeResponse, error)
+	DeleteNurseOrUser(userId string) error
 }
 
 type adminService struct {
@@ -75,10 +79,8 @@ func (s *adminService) GetNurseDocumentsToAnalisys(nurseID string) ([]dto.Docume
 
 	var documents []dto.DocumentInfoResponse
 
-	// 2. Monta a URL base para os downloads. Em um ambiente real, isso viria de uma variável de ambiente.
 	baseURL := os.Getenv("DOWNLOAD_URL")
 
-	// 3. Verifica cada campo de documento e, se existir, adiciona à lista de resposta.
 	if !nurse.LicenseDocumentID.IsZero() {
 		documents = append(documents, dto.DocumentInfoResponse{
 			Name:        "Documento de Licença (COREN)",
@@ -130,11 +132,6 @@ func (s *adminService) GetFileStream(fileID primitive.ObjectID) (*gridfs.Downloa
 func (s *adminService) GetDashboardData() (dto.DashboardAdminDataResponse, error) {
 	var response dto.DashboardAdminDataResponse
 
-	// nursesIDsPendents, err := s.nurseRepository.GetIdsNursesPendents()
-	// if err != nil {
-	// 	return response, err
-	// }
-
 	allUsers, err := s.userRepository.FindAllUsers()
 	if err != nil {
 		return response, err
@@ -184,4 +181,142 @@ func (s *adminService) RejectNurseRegister(rejectedNurseId string, rejectDescrip
 	//possivel funcao que salva esse acontecimento no historico
 
 	return "Enfermeiro(a) rejeitado com sucesso.", nil
+}
+
+func (s *adminService) UserLists() (dto.UserListsResponse, error) {
+
+	users, err := s.userRepository.FindAllUsers()
+	if err != nil {
+		return dto.UserListsResponse{}, err
+	}
+
+	nurses, err := s.nurseRepository.FindAllNurses()
+	if err != nil {
+		return dto.UserListsResponse{}, err
+	}
+
+	var userLists dto.UserListsResponse
+	for _, user := range users {
+		if user.Role == "PATIENT" {
+			userLists.Users = append(userLists.Users, dto.UserTypeResponse{
+				Name:        user.Name,
+				Email:       user.Email,
+				Role:        user.Role,
+				Phone:       user.Phone,
+				Address:     user.Address,
+				Cpf:         user.Cpf,
+				Password:    "",
+				Hidden:      user.Hidden,
+				FirstAccess: user.FirstAccess,
+			})
+		}
+	}
+
+	for _, nurse := range nurses {
+		userLists.Nurses = append(userLists.Nurses, dto.NurseTypeResponse{
+			Name:             nurse.Name,
+			Email:            nurse.Email,
+			Phone:            nurse.Phone,
+			Address:          nurse.Address,
+			Cpf:              nurse.Cpf,
+			Password:         "",
+			Hidden:           nurse.Hidden,
+			FirstAccess:      nurse.FirstAccess,
+			Role:             nurse.Role,
+			VerificationSeal: nurse.VerificationSeal,
+			LicenseNumber:    nurse.LicenseNumber,
+			Specialization:   nurse.Specialization,
+			Shift:            nurse.Shift,
+			Department:       nurse.Department,
+			YearsExperience:  nurse.YearsExperience,
+			Price:            nurse.Price,
+			Bio:              nurse.Bio,
+		})
+	}
+
+	return userLists, nil
+}
+
+func (s *adminService) UpdateUser(userId string, updates map[string]interface{}) (dto.UserTypeResponse, error) {
+
+	if emailRaw, ok := updates["email"]; ok {
+		email, ok := emailRaw.(string)
+		if ok {
+			normalizedEmail := strings.ToLower(email)
+
+			_, err := utils.EmailRegex(email)
+			if err != nil {
+				return dto.UserTypeResponse{}, fmt.Errorf("Email no formato incorreto.")
+			}
+
+			existingUser, err := s.userRepository.FindUserByEmail(normalizedEmail)
+			// se nao achar em user, busca em nurseRepositoru
+			if err != nil {
+				existingUser, err = s.nurseRepository.FindNurseByEmail(normalizedEmail)
+			}
+
+			if err == nil && existingUser.ID.Hex() != userId {
+				return dto.UserTypeResponse{}, fmt.Errorf("Email já está em uso por outro usuário")
+			}
+
+			updates["email"] = normalizedEmail
+		}
+	}
+
+	if existingUser, err := s.userRepository.FindUserById(userId); err == nil && existingUser.Role == "PATIENT" {
+		updated, err := s.userRepository.UpdateUserFields(userId, updates)
+		if err != nil {
+			return dto.UserTypeResponse{}, fmt.Errorf("erro ao atualizar campos do usuario: %w", err)
+		}
+		return dto.UserTypeResponse{
+			Name:        updated.Name,
+			Email:       updated.Email,
+			Role:        updated.Role,
+			Phone:       updated.Phone,
+			Address:     updated.Address,
+			Cpf:         updated.Cpf,
+			Password:    updated.Password,
+			Hidden:      updated.Hidden,
+			FirstAccess: updated.FirstAccess,
+		}, nil
+	}
+
+	if _, err := s.nurseRepository.FindNurseById(userId); err == nil {
+		updated, err := s.nurseRepository.UpdateNurseFields(userId, updates)
+		if err != nil {
+			return dto.UserTypeResponse{}, fmt.Errorf("erro ao atualizar campos do enfermeiro(a): %w", err)
+		}
+		return dto.UserTypeResponse{
+			Name:        updated.Name,
+			Email:       updated.Email,
+			Role:        updated.Role,
+			Phone:       updated.Phone,
+			Address:     updated.Address,
+			Cpf:         updated.Cpf,
+			Password:    updated.Password,
+			Hidden:      updated.Hidden,
+			FirstAccess: updated.FirstAccess,
+		}, nil
+	}
+
+	return dto.UserTypeResponse{}, fmt.Errorf("usuário não encontrado")
+}
+
+
+func (s *adminService) DeleteNurseOrUser(userId string) error {
+	if existingUser, err := s.userRepository.FindUserById(userId); err == nil && existingUser.Role == "PATIENT" {
+		err := s.userRepository.DeleteUser(userId)
+		if err != nil {
+			return fmt.Errorf("erro ao deletar usuario: %w", err)
+		}
+	}
+
+	if _, err := s.nurseRepository.FindNurseById(userId); err == nil {
+		err := s.nurseRepository.DeleteNurse(userId)
+		if err != nil {
+			return fmt.Errorf("erro ao deletar enfermeiro(a): %w", err)
+		}
+	}
+
+	return nil
 }

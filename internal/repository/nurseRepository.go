@@ -36,6 +36,7 @@ type NurseRepository interface {
 	GetIdsNursesPendents() ([]string, error)
 	GetAllNurses() ([]userDTO.AllNursesListDto, error)
 	UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error)
+	DeleteNurse(id string) error
 }
 
 type nurseRepository struct {
@@ -221,36 +222,6 @@ func (r *nurseRepository) UpdateNurse(nurseId string, nurseUpdates bson.M) (mode
 	return nurse, nil
 }
 
-// func (r *nurseRepository) UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error) {
-// 	cleanUpdates := bson.M{}
-
-// 	for key, value := range updates {
-// 		if value != nil {
-// 			cleanUpdates[key] = value
-// 		}
-// 	}
-
-// 	if len(cleanUpdates) == 0 {
-// 		return model.Nurse{}, fmt.Errorf("nenhum campo válido para atualizar")
-// 	}
-
-// 	cleanUpdates["updated_at"] = time.Now()
-
-// 	objID, err := primitive.ObjectIDFromHex(id)
-// 	if err != nil {
-// 		return model.Nurse{}, fmt.Errorf("ID inválido")
-// 	}
-
-// 	update := bson.M{"$set": cleanUpdates}
-
-// 	_, err = r.collection.UpdateByID(context.TODO(), objID, update)
-// 	if err != nil {
-// 		return model.Nurse{}, err
-// 	}
-
-// 	return r.FindNurseById(id)
-// }
-
 func (r *nurseRepository) GetIdsNursesPendents() ([]string, error) {
 	var nursesIds []string
 	filter := bson.M{"verification_seal": false}
@@ -403,4 +374,15 @@ func (r *nurseRepository) UpdateNurseFields(id string, updates map[string]interf
 
 	err = r.collection.FindOne(r.ctx, bson.M{"_id": objID}).Decode(&nurse)
 	return nurse, err
+}
+
+
+func (r *nurseRepository) DeleteNurse(id string) error {
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return fmt.Errorf("ID inválido")
+	}
+
+	_, err = r.collection.DeleteOne(r.ctx, bson.M{"_id": objID})
+	return err
 }

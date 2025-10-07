@@ -11,6 +11,8 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"strings"
+	"fmt"
 )
 
 type AdminHandler struct {
@@ -97,15 +99,14 @@ func (h *AdminHandler) DownloadFile(c *gin.Context) {
 	}
 }
 
-func (h *AdminHandler) RejectNurseRegister(c *gin.Context){
+func (h *AdminHandler) RejectNurseRegister(c *gin.Context) {
 	rejectedNurseId := c.Param("id")
 
 	var rejectDescription dto.RejectDescription
 	if err := c.ShouldBindJSON(&rejectDescription); err != nil {
-        utils.SendErrorResponse(c, "Corpo da requisição inválido: "+err.Error(), http.StatusBadRequest)
-        return
-    }
-
+		utils.SendErrorResponse(c, "Corpo da requisição inválido: "+err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	data, err := h.adminService.RejectNurseRegister(rejectedNurseId, rejectDescription)
 	if err != nil {
@@ -114,4 +115,56 @@ func (h *AdminHandler) RejectNurseRegister(c *gin.Context){
 	}
 
 	utils.SendSuccessResponse(c, "Enfermeiro(a) rejeitado com sucesso.", data)
-} 
+}
+
+func (h *AdminHandler) UsersManagement(c *gin.Context) {
+
+	userLists, err := h.adminService.UserLists()
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}
+
+	utils.SendSuccessResponse(c, "Listas de usuários retornadas com sucesso.", userLists)
+}
+
+func (h *AdminHandler) UpdateUser(c *gin.Context){
+	userId := c.Param("id")
+
+	var updates map[string]interface{}
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		utils.SendErrorResponse(c, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	protectedFields := map[string]bool{
+		"id":         true,
+		"created_at": true,
+		"updated_at": true,
+	}
+
+	for key := range updates {
+		if protectedFields[strings.ToLower(key)] {
+			utils.SendErrorResponse(c, fmt.Sprintf("Campo(s) %s não pode ser atualizado.", key), http.StatusBadRequest)
+			return
+		}
+	}
+	
+	user, err := h.adminService.UpdateUser(userId, updates)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}
+
+	utils.SendSuccessResponse(c, "Usuário atualizado com sucesso.", user)
+
+}
+
+func (h *AdminHandler) DeleteUser(c *gin.Context){
+	userId := c.Param("id")
+
+	err := h.adminService.DeleteNurseOrUser(userId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}
+
+	utils.SendSuccessResponse(c, "Usuário deletado com sucesso.", http.StatusOK)
+}
