@@ -199,6 +199,7 @@ func (s *adminService) UserLists() (dto.UserListsResponse, error) {
 	for _, user := range users {
 		if user.Role == "PATIENT" {
 			userLists.Users = append(userLists.Users, dto.UserTypeResponse{
+				ID:          user.ID.Hex(),
 				Name:        user.Name,
 				Email:       user.Email,
 				Role:        user.Role,
@@ -214,6 +215,7 @@ func (s *adminService) UserLists() (dto.UserListsResponse, error) {
 
 	for _, nurse := range nurses {
 		userLists.Nurses = append(userLists.Nurses, dto.NurseTypeResponse{
+			ID:               nurse.ID.Hex(),
 			Name:             nurse.Name,
 			Email:            nurse.Email,
 			Phone:            nurse.Phone,
@@ -264,7 +266,7 @@ func (s *adminService) UpdateUser(userId string, updates map[string]interface{})
 	}
 
 	if existingUser, err := s.userRepository.FindUserById(userId); err == nil && existingUser.Role == "PATIENT" {
-		updated, err := s.userRepository.UpdateUserFields(userId, updates)
+		updated, err := s.userRepository.UpdateUser(userId, updates)
 		if err != nil {
 			return dto.UserTypeResponse{}, fmt.Errorf("erro ao atualizar campos do usuario: %w", err)
 		}
@@ -282,7 +284,7 @@ func (s *adminService) UpdateUser(userId string, updates map[string]interface{})
 	}
 
 	if _, err := s.nurseRepository.FindNurseById(userId); err == nil {
-		updated, err := s.nurseRepository.UpdateNurseFields(userId, updates)
+		updated, err := s.nurseRepository.UpdateNurse(userId, updates)
 		if err != nil {
 			return dto.UserTypeResponse{}, fmt.Errorf("erro ao atualizar campos do enfermeiro(a): %w", err)
 		}

@@ -215,6 +215,19 @@ func (r *nurseRepository) UpdateNurse(nurseId string, nurseUpdates bson.M) (mode
 		}
 	}
 
+	if passwordRaw, ok := nurseUpdates["password"]; ok {
+		password, ok := passwordRaw.(string)
+		if ok {
+			hashedPassword, err := utils.HashPassword(password)
+			if err != nil {
+				return model.Nurse{}, fmt.Errorf("erro ao criptografar senha: %w", err)
+			}
+			fmt.Println("hasehd password", hashedPassword)
+			nurseUpdates["password"] = hashedPassword
+		}
+	}
+
+
 	nurse, err := r.UpdateNurseFields(nurseId, nurseUpdates)
 	if err != nil {
 		return model.Nurse{}, fmt.Errorf("erro ao atualizar enfermeiro(a)")

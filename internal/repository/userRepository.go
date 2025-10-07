@@ -203,6 +203,22 @@ func (r *userRepository) UpdateUser(userId string, userUpdates bson.M) (model.Us
 		}
 	}
 
+	fmt.Println(userUpdates)
+
+	if passwordRaw, ok := userUpdates["password"]; ok {
+		password, ok := passwordRaw.(string)
+		if ok {
+			hashedPassword, err := utils.HashPassword(password)
+			if err != nil {
+				return model.User{}, fmt.Errorf("erro ao criptografar senha: %w", err)
+			}
+			fmt.Println("hasehd password", hashedPassword)
+			userUpdates["password"] = hashedPassword
+		}
+	}
+
+	fmt.Println("hasehd password", userUpdates["password"])
+
 	product, err := r.UpdateUserFields(userId, userUpdates)
 	if err != nil {
 		return model.User{}, fmt.Errorf("erro ao atualizar produto")
