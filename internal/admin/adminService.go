@@ -46,7 +46,7 @@ func (s *adminService) ApproveNurseRegister(approvedNurseId string) (string, err
 
 	nurseUpdates := bson.M{
 		"verification_seal": true,
-		"updated_at":         time.Now(),
+		"updated_at":        time.Now(),
 	}
 
 	//salve user com status true/false
@@ -84,7 +84,7 @@ func (s *adminService) GetNurseDocumentsToAnalisys(nurseID string) ([]dto.Docume
 			Name:        "Documento de Licença (COREN)",
 			Type:        "license_document",
 			DownloadURL: fmt.Sprintf("%s/%s", baseURL, nurse.LicenseDocumentID.Hex()),
-			ImageID: nurse.LicenseDocumentID.Hex(),
+			ImageID:     nurse.LicenseDocumentID.Hex(),
 		})
 	}
 	if !nurse.QualificationsID.IsZero() {
@@ -92,7 +92,7 @@ func (s *adminService) GetNurseDocumentsToAnalisys(nurseID string) ([]dto.Docume
 			Name:        "Certificado de Qualificações",
 			Type:        "qualifications",
 			DownloadURL: fmt.Sprintf("%s/%s", baseURL, nurse.QualificationsID.Hex()),
-			ImageID: nurse.QualificationsID.Hex(),
+			ImageID:     nurse.QualificationsID.Hex(),
 		})
 	}
 	if !nurse.GeneralRegisterID.IsZero() {
@@ -100,7 +100,7 @@ func (s *adminService) GetNurseDocumentsToAnalisys(nurseID string) ([]dto.Docume
 			Name:        "Documento de Identidade (RG)",
 			Type:        "general_register",
 			DownloadURL: fmt.Sprintf("%s/%s", baseURL, nurse.GeneralRegisterID.Hex()),
-			ImageID: nurse.GeneralRegisterID.Hex(),
+			ImageID:     nurse.GeneralRegisterID.Hex(),
 		})
 	}
 	if !nurse.ResidenceComprovantId.IsZero() {
@@ -108,7 +108,15 @@ func (s *adminService) GetNurseDocumentsToAnalisys(nurseID string) ([]dto.Docume
 			Name:        "Comprovante de Residência",
 			Type:        "residence_comprovant",
 			DownloadURL: fmt.Sprintf("%s/%s", baseURL, nurse.ResidenceComprovantId.Hex()),
-			ImageID: nurse.ResidenceComprovantId.Hex(),
+			ImageID:     nurse.ResidenceComprovantId.Hex(),
+		})
+	}
+	if !nurse.ProfileImageID.IsZero() {
+		documents = append(documents, dto.DocumentInfoResponse{
+			Name:        "Foto de perfil",
+			Type:        "profile_image",
+			DownloadURL: fmt.Sprintf("%s/%s", baseURL, nurse.ProfileImageID.Hex()),
+			ImageID:     nurse.ProfileImageID.Hex(),
 		})
 	}
 
