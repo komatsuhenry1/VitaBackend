@@ -343,7 +343,7 @@ func (r *nurseRepository) GetAllNurses() ([]userDTO.AllNursesListDto, error) {
 			Specialization:  nurseModel.Specialization,
 			YearsExperience: nurseModel.YearsExperience,
 			Price:           0,
-			Image:           nurseModel.FaceImageID.Hex(),
+			Image:           nurseModel.ProfileImageID.Hex(),
 			Shift:           nurseModel.Shift,
 			Department:      nurseModel.Department,
 			Available:       nurseModel.Online,  // Mapeando o campo 'Online' para 'Available'

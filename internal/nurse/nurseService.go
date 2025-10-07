@@ -8,8 +8,9 @@ import (
 	"medassist/utils"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"strings"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type NurseService interface {
@@ -18,7 +19,7 @@ type NurseService interface {
 	ConfirmOrCancelVisit(nurseId, visitId, reason string) (string, error)
 	GetPatientProfile(patientId string) (dto.PatientProfileResponseDTO, error)
 	NurseDashboardData(nurseId string) (dto.NurseDashboardDataResponseDTO, error)
-	UpdateNurseFields(id string, updates map[string]interface{}) (dto.NurseUpdateResponseDTO, error) 
+	UpdateNurseFields(id string, updates map[string]interface{}) (dto.NurseUpdateResponseDTO, error)
 }
 
 type nurseService struct {
@@ -46,7 +47,7 @@ func (s *nurseService) UpdateAvailablityNursingService(nurseId string) (model.Nu
 	}
 
 	nurseUpdates := bson.M{
-		"online":    nurse.Online,
+		"online":     nurse.Online,
 		"updated_at": time.Now(),
 	}
 
@@ -147,19 +148,20 @@ func (s *nurseService) GetPatientProfile(patientId string) (dto.PatientProfileRe
 	}
 
 	patientProfile := dto.PatientProfileResponseDTO{
-		ID:          patient.ID,
-		Name:        patient.Name,
-		Email:       patient.Email,
-		Phone:       patient.Phone,
-		Address:     patient.Address,
-		Cpf:         patient.Cpf,
-		Password:    patient.Password,
-		Hidden:      patient.Hidden,
-		Role:        patient.Role,
-		FirstAccess: patient.FirstAccess,
-		CreatedAt:   patient.CreatedAt,
-		TempCode:    patient.TempCode,
-		UpdatedAt:   patient.UpdatedAt,
+		ID:             patient.ID,
+		Name:           patient.Name,
+		Email:          patient.Email,
+		Phone:          patient.Phone,
+		Address:        patient.Address,
+		Cpf:            patient.Cpf,
+		Password:       patient.Password,
+		Hidden:         patient.Hidden,
+		Role:           patient.Role,
+		ProfileImageID: patient.ProfileImageID.Hex(),
+		FirstAccess:    patient.FirstAccess,
+		CreatedAt:      patient.CreatedAt,
+		TempCode:       patient.TempCode,
+		UpdatedAt:      patient.UpdatedAt,
 	}
 
 	return patientProfile, nil
@@ -180,60 +182,59 @@ func (s *nurseService) NurseDashboardData(nurseId string) (dto.NurseDashboardDat
 
 	// stats
 	stats := dto.StatsDTO{
-		PatientsAttended: 10,
+		PatientsAttended:  10,
 		AppointmentsToday: 3,
-		AverageRating: 4.5,
-		MonthlyEarnings: 1000,
+		AverageRating:     4.5,
+		MonthlyEarnings:   1000,
 	}
 
 	//itera pela lista de visits e mapeia para o dto VisitDto
 	visitsDto := make([]dto.VisitDto, 0)
 	for _, visit := range visits {
 		visitsDto = append(visitsDto, dto.VisitDto{
-			ID: visit.ID.Hex(),
+			ID:          visit.ID.Hex(),
 			Description: visit.Description,
-			Reason: visit.Reason,
-			VisitType: visit.VisitType,
-			VisitValue: visit.VisitValue,
-			CreatedAt: visit.CreatedAt.Format("02/01/2006 15:04"),
-			Date: visit.VisitDate.Format("02/01/2006 15:04"),
-			Status: visit.Status,
+			Reason:      visit.Reason,
+			VisitType:   visit.VisitType,
+			VisitValue:  visit.VisitValue,
+			CreatedAt:   visit.CreatedAt.Format("02/01/2006 15:04"),
+			Date:        visit.VisitDate.Format("02/01/2006 15:04"),
+			Status:      visit.Status,
 			PatientName: visit.PatientName,
-			PatientId: visit.PatientId,
-			NurseName: visit.NurseName,
+			PatientId:   visit.PatientId,
+			NurseName:   visit.NurseName,
 		})
 	}
 
 	//nurseProfile
 	nurseProfile := dto.NurseProfileResponseDTO{
-		Name: nurse.Name,
-		Email: nurse.Email,
-		Phone: nurse.Phone,
-		Coren: nurse.LicenseNumber,
+		Name:            nurse.Name,
+		Email:           nurse.Email,
+		Phone:           nurse.Phone,
+		Coren:           nurse.LicenseNumber,
 		ExperienceYears: nurse.YearsExperience,
-		Department: nurse.Department,
-		Bio: nurse.Bio,
+		Department:      nurse.Department,
+		Bio:             nurse.Bio,
 	}
 
 	nurseAvailability := dto.AvailabilityDTO{
-		IsAvailable: nurse.Online,
-		StartTime: nurse.StartTime,
-		EndTime: nurse.EndTime,
+		IsAvailable:    nurse.Online,
+		StartTime:      nurse.StartTime,
+		EndTime:        nurse.EndTime,
 		Specialization: nurse.Specialization,
 	}
 
 	dashboardData = dto.NurseDashboardDataResponseDTO{
 		Online: nurse.Online,
-		Stats: stats,
+		Stats:  stats,
 		Visits: visitsDto,
 		// Patients: patientsDto,
 		// History: historyDto,
-		Profile: nurseProfile,
+		Profile:      nurseProfile,
 		Availability: nurseAvailability,
 	}
 
 	return dashboardData, nil
-
 
 }
 

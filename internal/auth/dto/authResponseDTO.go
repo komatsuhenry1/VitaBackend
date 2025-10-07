@@ -11,6 +11,7 @@ type AuthUser struct {
 	Role             string             `bson:"role"`
 	Hidden           bool               `bson:"hidden"`
 	TempCode         int                `bson:"temp_code"`
+	ProfileImageID   primitive.ObjectID `bson:"profile_image_id"`
 }
 
 type CodeResponseDTO struct {

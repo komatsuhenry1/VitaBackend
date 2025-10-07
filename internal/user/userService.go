@@ -84,7 +84,7 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		Price:          nurse.Price,
 		Shift:          nurse.Shift,
 		Department:     nurse.Department,
-		Image:          nurse.FaceImageID.Hex(),
+		Image:          nurse.ProfileImageID.Hex(),
 		Available:      nurse.Online,
 		Location:       nurse.Address,
 		Bio:            "NURSE BIO",
@@ -175,7 +175,7 @@ func (h *userService) FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, e
 					ID:             nurse.ID.Hex(),
 					Name:           nurse.Name,
 					Specialization: nurse.Specialization,
-					Image:          nurse.FaceImageID.Hex(),
+					Image:          nurse.ProfileImageID.Hex(),
 				},
 			})
 		}

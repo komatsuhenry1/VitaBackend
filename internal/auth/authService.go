@@ -35,87 +35,47 @@ func NewAuthService(userRepository repository.UserRepository, nurseRepository re
 	return &authService{userRepository: userRepository, nurseRepository: nurseRepository}
 }
 
-// func (s *authService) UserRegister(registerRequestDTO dto.UserRegisterRequestDTO) (model.User, error) {
-// 	if err := registerRequestDTO.Validate(); err != nil {
-// 		return model.User{}, err
-// 	}
-
-// 	normalizedEmail, err := utils.EmailRegex(registerRequestDTO.Email)
-// 	if err != nil {
-// 		return model.User{}, fmt.Errorf("email invalido")
-// 	}
-
-// 	// Verifica se usuário existe (sem erro se não achar)
-// 	_, err = s.userRepository.FindUserByEmail(normalizedEmail)
-// 	if err == nil {
-// 		return model.User{}, fmt.Errorf("o usuario com o email '%s' ja existe", normalizedEmail)
-// 	}
-
-// 	_, err = s.userRepository.FindUserByCpf(registerRequestDTO.Cpf)
-// 	if err == nil {
-// 		return model.User{}, fmt.Errorf("o usuario com o CPF '%s' ja existe", registerRequestDTO.Cpf)
-// 	}
-
-// 	hashedPassword, err := utils.HashPassword(registerRequestDTO.Password)
-// 	if err != nil {
-// 		return model.User{}, fmt.Errorf("erro ao criptografar senha: %w", err)
-// 	}
-
-// 	user := model.User{
-// 		ID:          primitive.NewObjectID(),
-// 		Name:        registerRequestDTO.Name,
-// 		Cpf:         registerRequestDTO.Cpf,
-// 		Phone:       registerRequestDTO.Phone,
-// 		Address:     registerRequestDTO.Address,
-// 		Email:       normalizedEmail,
-// 		Password:    hashedPassword,
-// 		Role:        "PATIENT",
-// 		Hidden:      false,
-// 		FirstAccess: true,
-// 		TempCode:    0,
-// 		CreatedAt:   time.Now(),
-// 		UpdatedAt:   time.Now(),
-// 	}
-
-// 	if err := s.userRepository.CreateUser(&user); err != nil {
-// 		return model.User{}, fmt.Errorf("erro ao criar usuário: %w", err)
-// 	}
-
-// 	if err := utils.SendEmailUserRegister(registerRequestDTO.Email); err != nil {
-// 		return model.User{}, fmt.Errorf("erro ao enviar e-mail: %w", err)
-// 	}
-
-// 	return user, nil
-// }
-
 func (s *authService) UserRegister(registerRequestDTO dto.UserRegisterRequestDTO, files map[string][]*multipart.FileHeader) (model.User, error) {
 	if err := registerRequestDTO.Validate(); err != nil {
 		return model.User{}, err
 	}
 
-	// ... (toda a sua lógica de validação de email, cpf e hash de senha continua igual)
 	normalizedEmail, err := utils.EmailRegex(registerRequestDTO.Email)
-	// ... etc ...
+	if err != nil {
+		return model.User{}, fmt.Errorf("email invalido")
+	}
+
+	_, err = s.userRepository.FindUserByEmail(normalizedEmail)
+	if err == nil {
+		return model.User{}, fmt.Errorf("O usuário com o email '%s' já existe", normalizedEmail)
+	}
+
+	_, err = s.userRepository.FindUserByCpf(registerRequestDTO.Cpf)
+	if err == nil {
+		return model.User{}, fmt.Errorf("O usuário com o CPF '%s' já existe", registerRequestDTO.Cpf)
+	}
+
 	hashedPassword, err := utils.HashPassword(registerRequestDTO.Password)
 	if err != nil {
-		return model.User{}, fmt.Errorf("erro ao criptografar senha: %w", err)
+		return model.User{}, fmt.Errorf("Erro ao criptografar senha: %w", err)
 	}
 
 	user := model.User{
-		ID:   primitive.NewObjectID(),
-		Name: registerRequestDTO.Name,
-		Cpf:  registerRequestDTO.Cpf,
-		// ... outros campos ...
-		Email:    normalizedEmail,
-		Password: hashedPassword,
-		Role:     "PATIENT",
-		// ... resto dos campos ...
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		ID:          primitive.NewObjectID(),
+		Name:        registerRequestDTO.Name,
+		Cpf:         registerRequestDTO.Cpf,
+		Phone:       registerRequestDTO.Phone,
+		Address:     registerRequestDTO.Address,
+		Email:       normalizedEmail,
+		Password:    hashedPassword,
+		Role:        "PATIENT",
+		Hidden:      false,
+		FirstAccess: true,
+		TempCode:    0,
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 
-	// ---- NOVA LÓGICA PARA UPLOAD DA IMAGEM ----
-	// Verificamos se o arquivo 'image_profile' foi enviado no formulário
 	if fileHeaders, ok := files["image_profile"]; ok && len(fileHeaders) > 0 {
 		fileHeader := fileHeaders[0] // Pegamos apenas o primeiro arquivo
 
@@ -242,8 +202,8 @@ func (s *authService) NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO,
 			nurse.GeneralRegisterID = fileID
 		case "residence_comprovant":
 			nurse.ResidenceComprovantId = fileID
-		case "face_image":
-			nurse.FaceImageID = fileID
+		case "profile_image":
+			nurse.ProfileImageID = fileID
 		}
 	}
 

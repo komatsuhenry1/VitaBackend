@@ -16,6 +16,6 @@ func SetupUserRoutes(r *gin.RouterGroup, container *di.Container) {
 		user.GET("/visits", middleware.AuthUser(), container.UserHandler.GetAllVisits)
 		user.GET("/file/:id", container.UserHandler.GetFileByID)
 		user.POST("/contact", container.UserHandler.ContactUsMessage)
-		user.GET("/nurse/:id", middleware.AuthUser(), container.UserHandler.GetNurseProfile)
+		user.GET("/nurse/:id", middleware.AuthUserOrNurse(), container.UserHandler.GetNurseProfile)
 	}
 }

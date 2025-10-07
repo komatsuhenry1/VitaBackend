@@ -40,6 +40,7 @@ type PatientProfileResponseDTO struct {
 	CreatedAt   time.Time          `json:"created_at"`
 	TempCode    int                `json:"temp_code"`
 	UpdatedAt   time.Time          `json:"updated_at"`
+	ProfileImageID     string             `json:"profile_image_id"`
 }
 
 type StatsDTO struct {

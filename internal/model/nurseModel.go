@@ -31,7 +31,7 @@ type Nurse struct {
 	QualificationsID      primitive.ObjectID `bson:"qualifications_id,omitempty"`
 	GeneralRegisterID     primitive.ObjectID `bson:"general_register_id,omitempty"`
 	ResidenceComprovantId primitive.ObjectID `bson:"residence_comprovante_id,omitempty"`
-	FaceImageID           primitive.ObjectID `bson:"face_image_id,omitempty"`
+	ProfileImageID        primitive.ObjectID `bson:"profile_image_id,omitempty"`
 
 	Hidden      bool      `bson:"hidden" json:"hidden"`
 	Role        string    `bson:"role" json:"role" binding:"required"`
