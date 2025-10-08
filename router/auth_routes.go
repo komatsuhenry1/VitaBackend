@@ -15,7 +15,7 @@ func SetupAuthRoutes(r *gin.RouterGroup, container *di.Container) {
 		auth.POST("/user", container.AuthHandler.UserRegister)
 		auth.POST("/nurse", container.AuthHandler.NurseRegister)
 		auth.POST("/email", container.AuthHandler.SendEmailForgotPassword)
-		auth.PATCH("/code", container.AuthHandler.SendCode)
+		auth.PATCH("/code", container.AuthHandler.SendCode) //comentario pra subir certo
 		auth.POST("/validate", container.AuthHandler.ValidateCode)
 		auth.PATCH("/unlogged/password/:id", container.AuthHandler.ChangePasswordUnlogged)
 		auth.POST("/login", container.AuthHandler.LoginUser)
