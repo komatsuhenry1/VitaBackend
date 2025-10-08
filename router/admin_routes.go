@@ -23,6 +23,7 @@ func SetupAdminRoutes(r *gin.RouterGroup, container *di.Container) {
 		admin.PATCH("/user/:id", middleware.AuthAdmin(), container.AdminHandler.UpdateUser)
 		admin.PATCH("visit/:id", middleware.AuthAdmin(), container.AdminHandler.UpdateVisit)
 		admin.DELETE("/user/:id", middleware.AuthAdmin(), container.AdminHandler.DeleteUser)
+		admin.DELETE("/visit/:id", middleware.AuthAdmin(), container.AdminHandler.DeleteVisit)
 
 		//crud visits
 

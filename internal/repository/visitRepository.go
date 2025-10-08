@@ -20,6 +20,7 @@ type VisitRepository interface{
 	FindAllVisits() ([]model.Visit, error)
 	FindVisitById(id string) (model.Visit, error)
 	UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit, error)
+	DeleteVisit(visitId string) error
 }
 
 type visitRepository struct{
@@ -175,4 +176,14 @@ func (r *nurseRepository) UpdateVisitFields(id string, updates map[string]interf
 
 	err = r.collection.FindOne(r.ctx, bson.M{"_id": objID}).Decode(&visit)
 	return visit, err
+}
+
+func (r *visitRepository) DeleteVisit(visitId string) error {
+	objID, err := primitive.ObjectIDFromHex(visitId)
+	if err != nil {
+		return fmt.Errorf("ID inválido")
+	}
+
+	_, err = r.collection.DeleteOne(r.ctx, bson.M{"_id": objID})
+	return err
 }

@@ -198,3 +198,14 @@ func (h *AdminHandler) UpdateVisit(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, "Usuário atualizado com sucesso.", visit)
 }
+
+func (h *AdminHandler) DeleteVisit(c *gin.Context){
+	visitId := c.Param("id")
+
+	err := h.adminService.DeleteVisit(visitId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}
+
+	utils.SendSuccessResponse(c, "Visita deletada com sucesso.", http.StatusOK)
+}

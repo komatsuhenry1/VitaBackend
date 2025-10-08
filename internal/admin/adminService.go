@@ -24,6 +24,7 @@ type AdminService interface {
 	UpdateUser(userId string, updates map[string]interface{}) (dto.UserTypeResponse, error)
 	DeleteNurseOrUser(userId string) error
 	UpdateVisit(visitId string, updates map[string]interface{}) (dto.VisitTypeResponse, error)
+	DeleteVisit(visitId string) error
 }
 
 type adminService struct {
@@ -364,6 +365,15 @@ func (s *adminService) DeleteNurseOrUser(userId string) error {
 		if err != nil {
 			return fmt.Errorf("erro ao deletar enfermeiro(a): %w", err)
 		}
+	}
+
+	return nil
+}
+
+func (s *adminService) DeleteVisit(visitId string) error {
+	err := s.visitRepository.DeleteVisit(visitId)
+	if err != nil {
+		return fmt.Errorf("erro ao deletar visita: %w", err)
 	}
 
 	return nil
