@@ -12,12 +12,13 @@ import (
 	"medassist/utils"
 	"time"
 
+	"strings"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"strings"
 )
 
 type NurseRepository interface {
@@ -152,23 +153,23 @@ func (r *nurseRepository) CreateNurse(nurse *model.Nurse) error {
 }
 
 func (r *nurseRepository) UploadFile(file io.Reader, fileName string, contentType string) (primitive.ObjectID, error) {
-    // Esta parte continua EXATAMENTE IGUAL
-    opts := options.GridFSUpload().
-        SetMetadata(bson.M{"contentType": contentType})
+	// Esta parte continua EXATAMENTE IGUAL
+	opts := options.GridFSUpload().
+		SetMetadata(bson.M{"contentType": contentType})
 
-    // A MUDANÇA ESTÁ AQUI: Usamos a função sem "WithOptions"
-    uploadStream, err := r.bucket.OpenUploadStream(fileName, opts)
-    if err != nil {
-        return primitive.NilObjectID, err
-    }
-    defer uploadStream.Close()
+	// A MUDANÇA ESTÁ AQUI: Usamos a função sem "WithOptions"
+	uploadStream, err := r.bucket.OpenUploadStream(fileName, opts)
+	if err != nil {
+		return primitive.NilObjectID, err
+	}
+	defer uploadStream.Close()
 
-    if _, err := io.Copy(uploadStream, file); err != nil {
-        return primitive.NilObjectID, err
-    }
+	if _, err := io.Copy(uploadStream, file); err != nil {
+		return primitive.NilObjectID, err
+	}
 
-    fileID := uploadStream.FileID.(primitive.ObjectID)
-    return fileID, nil
+	fileID := uploadStream.FileID.(primitive.ObjectID)
+	return fileID, nil
 }
 
 func (r *nurseRepository) SetLicenseDocumentID(nurseID, documentID primitive.ObjectID) error {
@@ -189,7 +190,7 @@ func (r *nurseRepository) UpdateTempCode(userID string, code int) error {
 	filter := bson.M{"_id": id}
 	update := bson.M{
 		"$set": bson.M{
-			"temp_code": code,
+			"temp_code":  code,
 			"updated_at": time.Now(),
 		},
 	}
@@ -226,7 +227,6 @@ func (r *nurseRepository) UpdateNurse(nurseId string, nurseUpdates bson.M) (mode
 			nurseUpdates["password"] = hashedPassword
 		}
 	}
-
 
 	nurse, err := r.UpdateNurseFields(nurseId, nurseUpdates)
 	if err != nil {
@@ -388,7 +388,6 @@ func (r *nurseRepository) UpdateNurseFields(id string, updates map[string]interf
 	err = r.collection.FindOne(r.ctx, bson.M{"_id": objID}).Decode(&nurse)
 	return nurse, err
 }
-
 
 func (r *nurseRepository) DeleteNurse(id string) error {
 	objID, err := primitive.ObjectIDFromHex(id)

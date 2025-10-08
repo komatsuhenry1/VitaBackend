@@ -5,9 +5,11 @@ import(
 	"context"
 	"medassist/internal/model"
 	"go.mongodb.org/mongo-driver/bson"
+	"strings"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"errors"
 	"fmt"
+	"medassist/utils"
 	"time"
 )
 
@@ -15,8 +17,9 @@ type VisitRepository interface{
 	CreateVisit(visit model.Visit) error
 	FindAllVisitsForPatient(patientId string) ([]model.Visit, error)
 	FindAllVisitsForNurse(nurseId string) ([]model.Visit, error)
+	FindAllVisits() ([]model.Visit, error)
 	FindVisitById(id string) (model.Visit, error)
-	UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit,error)
+	UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit, error)
 }
 
 type visitRepository struct{
@@ -113,4 +116,63 @@ func (r *visitRepository) UpdateVisitFields(id string, updates map[string]interf
 	}
 
 	return r.FindVisitById(id)
+}
+
+func (r *visitRepository) FindAllVisits() ([]model.Visit, error) {
+	var visits []model.Visit
+
+	cursor, err := r.collection.Find(r.ctx, bson.M{})
+	if err != nil {
+		return visits, err
+	}
+	defer cursor.Close(r.ctx)
+
+	if err = cursor.All(r.ctx, &visits); err != nil {
+		return visits, err
+	}
+
+	return visits, nil
+}
+
+func (r *nurseRepository) UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit, error) {
+	var visit model.Visit
+
+	fieldsToFormat := map[string]bool{
+		"name": true,
+	}
+
+	objID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return visit, fmt.Errorf("ID inválido")
+	}
+
+	cleanUpdates := bson.M{}
+	for key, value := range updates {
+		if value == nil || value == "" {
+			continue
+		}
+
+		valStr, ok := value.(string)
+		if fieldsToFormat[strings.ToLower(key)] && ok {
+			cleanUpdates[key] = utils.CapitalizeWords(valStr)
+		} else {
+			cleanUpdates[key] = value
+		}
+	}
+
+	if len(cleanUpdates) == 0 {
+		return visit, fmt.Errorf("nenhum campo válido para atualizar")
+	}
+
+	cleanUpdates["updated_at"] = time.Now()
+
+	update := bson.M{"$set": cleanUpdates}
+
+	_, err = r.collection.UpdateByID(r.ctx, objID, update)
+	if err != nil {
+		return visit, err
+	}
+
+	err = r.collection.FindOne(r.ctx, bson.M{"_id": objID}).Decode(&visit)
+	return visit, err
 }

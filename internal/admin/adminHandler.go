@@ -168,3 +168,33 @@ func (h *AdminHandler) DeleteUser(c *gin.Context){
 
 	utils.SendSuccessResponse(c, "Usuário deletado com sucesso.", http.StatusOK)
 }
+
+func (h *AdminHandler) UpdateVisit(c *gin.Context) {
+	visitId := c.Param("id")
+
+	var updates map[string]interface{}
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		utils.SendErrorResponse(c, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	protectedFields := map[string]bool{
+		"id":         true,
+		"created_at": true,
+		"updated_at": true,
+	}
+
+	for key := range updates {
+		if protectedFields[strings.ToLower(key)] {
+			utils.SendErrorResponse(c, fmt.Sprintf("Campo(s) %s não pode ser atualizado.", key), http.StatusBadRequest)
+			return
+		}
+	}
+	
+	visit, err := h.adminService.UpdateVisit(visitId, updates)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}
+
+	utils.SendSuccessResponse(c, "Usuário atualizado com sucesso.", visit)
+}

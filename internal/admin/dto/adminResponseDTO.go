@@ -1,5 +1,7 @@
 package dto
 
+import "time"
+
 type DocumentInfoResponse struct {
 	Name        string `json:"name"`         // Um nome amigável, ex: "Documento de Licença (COREN)"
 	Type        string `json:"type"`         // Um identificador, ex: "license_document"
@@ -60,7 +62,28 @@ type NurseTypeResponse struct {
 	EndTime          string  `json:"end_time"`
 }
 
+type VisitTypeResponse struct {
+	ID     string `json:"id"`
+	Status string `json:"status"`
+
+	PatientId    string `json:"patient_id"`
+	PatientName  string `json:"patient_name"`
+	PatientEmail string `json:"patient_email"`
+
+	Description  string `json:"description"`
+	Reason       string `json:"reason"`
+	CancelReason string `json:"cancel_reason"`
+
+	NurseId   string `json:"nurse_id"`
+	NurseName string `json:"nurse_name"`
+
+	VisitValue float64   `json:"value"`
+	VisitType  string    `json:"visit_type"`
+	VisitDate  time.Time `json:"visit_date"`
+}
+
 type UserListsResponse struct {
 	Users  []UserTypeResponse  `json:"users"`
 	Nurses []NurseTypeResponse `json:"nurses"`
+	Visits []VisitTypeResponse `json:"visits"`
 }

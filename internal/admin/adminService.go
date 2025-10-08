@@ -23,15 +23,17 @@ type AdminService interface {
 	UserLists() (dto.UserListsResponse, error)
 	UpdateUser(userId string, updates map[string]interface{}) (dto.UserTypeResponse, error)
 	DeleteNurseOrUser(userId string) error
+	UpdateVisit(visitId string, updates map[string]interface{}) (dto.VisitTypeResponse, error)
 }
 
 type adminService struct {
 	userRepository  repository.UserRepository
 	nurseRepository repository.NurseRepository
+	visitRepository repository.VisitRepository
 }
 
-func NewAdminService(userRepository repository.UserRepository, nurseRepository repository.NurseRepository) AdminService {
-	return &adminService{userRepository: userRepository, nurseRepository: nurseRepository}
+func NewAdminService(userRepository repository.UserRepository, nurseRepository repository.NurseRepository, visitRepository repository.VisitRepository) AdminService {
+	return &adminService{userRepository: userRepository, nurseRepository: nurseRepository, visitRepository: visitRepository}
 }
 
 func (s *adminService) ApproveNurseRegister(approvedNurseId string) (string, error) {
@@ -195,6 +197,11 @@ func (s *adminService) UserLists() (dto.UserListsResponse, error) {
 		return dto.UserListsResponse{}, err
 	}
 
+	visits, err := s.visitRepository.FindAllVisits()
+	if err != nil {
+		return dto.UserListsResponse{}, err
+	}
+
 	var userLists dto.UserListsResponse
 	for _, user := range users {
 		if user.Role == "PATIENT" {
@@ -233,6 +240,24 @@ func (s *adminService) UserLists() (dto.UserListsResponse, error) {
 			YearsExperience:  nurse.YearsExperience,
 			Price:            nurse.Price,
 			Bio:              nurse.Bio,
+		})
+	}
+
+	for _, visit := range visits {
+		userLists.Visits = append(userLists.Visits, dto.VisitTypeResponse{
+			ID:           visit.ID.Hex(),
+			Status:       visit.Status,
+			PatientId:    visit.PatientId,
+			PatientName:  visit.PatientName,
+			PatientEmail: visit.PatientEmail,
+			Description:  visit.Description,
+			Reason:       visit.Reason,
+			CancelReason: visit.CancelReason,
+			NurseId:      visit.NurseId,
+			NurseName:    visit.NurseName,
+			VisitValue:   visit.VisitValue,
+			VisitType:    visit.VisitType,
+			VisitDate:    visit.VisitDate,
 		})
 	}
 
@@ -304,6 +329,27 @@ func (s *adminService) UpdateUser(userId string, updates map[string]interface{})
 	return dto.UserTypeResponse{}, fmt.Errorf("usuário não encontrado")
 }
 
+func (s *adminService) UpdateVisit(visitId string, updates map[string]interface{}) (dto.VisitTypeResponse, error) {
+	updated, err := s.visitRepository.UpdateVisitFields(visitId, updates)
+	if err != nil {
+		return dto.VisitTypeResponse{}, fmt.Errorf("erro ao atualizar campos do enfermeiro(a): %w", err)
+	}
+
+	updatedVisit := dto.VisitTypeResponse{
+		Status:       updated.Status,
+		PatientId:    updated.PatientId,
+		PatientName:  updated.PatientName,
+		PatientEmail: updated.PatientEmail,
+		Description:  updated.Description,
+		Reason:       updated.Reason,
+		CancelReason: updated.CancelReason,
+		NurseId:      updated.NurseId,
+		NurseName:    updated.NurseName,
+	}
+
+	return updatedVisit, nil
+
+}
 
 func (s *adminService) DeleteNurseOrUser(userId string) error {
 	if existingUser, err := s.userRepository.FindUserById(userId); err == nil && existingUser.Role == "PATIENT" {
