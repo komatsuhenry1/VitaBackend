@@ -24,6 +24,7 @@ type UserService interface {
 	VisitSolicitation(userId string, createVisitDto userDTO.CreateVisitDto) error
 	FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, error)
 	UpdateUser(userId string, updates map[string]interface{}) (adminDTO.UserTypeResponse, error)
+	DeleteUser(patientId string) error
 }
 
 type userService struct {
@@ -234,4 +235,13 @@ func (s *userService) UpdateUser(userId string, updates map[string]interface{}) 
 	}
 
 	return adminDTO.UserTypeResponse{}, fmt.Errorf("usuário não encontrado")
+}
+
+func (s *userService) DeleteUser(patientId string) error {
+	err := s.userRepository.DeleteUser(patientId)
+	if err != nil {
+		return fmt.Errorf("erro ao deletar visita: %w", err)
+	}
+
+	return nil
 }

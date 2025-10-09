@@ -167,3 +167,23 @@ func (h *UserHandler) UpdateUser(c *gin.Context){
 	utils.SendSuccessResponse(c, "Usuário atualizado com sucesso.", user)
 
 }
+
+func (h *UserHandler) DeleteUser(c *gin.Context){
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+		return
+	}
+	patientId, ok := claims.(jwt.MapClaims)["sub"].(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
+		return
+	}
+
+	err := h.userService.DeleteUser(patientId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}
+
+	utils.SendSuccessResponse(c, "Usuário deletado com sucesso.", http.StatusOK)
+}

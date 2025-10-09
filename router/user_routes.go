@@ -19,5 +19,6 @@ func SetupUserRoutes(r *gin.RouterGroup, container *di.Container) {
 		user.POST("/contact", container.UserHandler.ContactUsMessage)
 		user.GET("/nurse/:id", middleware.AuthUserOrNurse(), container.UserHandler.GetNurseProfile)
 		user.PATCH("/update", middleware.AuthUser(), container.UserHandler.UpdateUser)
+		user.DELETE("/delete", middleware.AuthUser(), container.UserHandler.DeleteUser)
 	}
 }
