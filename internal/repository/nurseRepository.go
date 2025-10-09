@@ -34,6 +34,7 @@ type NurseRepository interface {
 	UploadFile(file io.Reader, fileName string, contentType string) (primitive.ObjectID, error)
 	FindAuthNurseByID(id string) (dto.AuthUser, error)
 	UpdatePasswordByNurseID(userID string, hashedPassword string) error
+	UpdatePasswordLoggedByNurseID(userID string, hashedPassword string, twoFactor bool) error
 	GetIdsNursesPendents() ([]string, error)
 	GetAllNurses() ([]userDTO.AllNursesListDto, error)
 	UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error)
@@ -101,6 +102,29 @@ func (r *nurseRepository) UpdatePasswordByNurseID(userID string, hashedPassword 
 	result, err := r.collection.UpdateByID(r.ctx, objID, bson.M{
 		"$set": bson.M{
 			"password":   hashedPassword,
+			"updated_at": time.Now(),
+		},
+	})
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("nenhum usuário encontrado com o ID %s", userID)
+	}
+	return nil
+}
+
+
+func (r *nurseRepository) UpdatePasswordLoggedByNurseID(userID string, hashedPassword string, twoFactor bool) error {
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("ID inválido")
+	}
+
+	result, err := r.collection.UpdateByID(r.ctx, objID, bson.M{
+		"$set": bson.M{
+			"password":   hashedPassword,
+			"two_factor": twoFactor,
 			"updated_at": time.Now(),
 		},
 	})

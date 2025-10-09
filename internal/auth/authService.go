@@ -23,7 +23,9 @@ type AuthService interface {
 	FirstLoginAdmin() error
 	SendEmailForgotPassword(email dto.ForgotPasswordRequestDTO) error
 	ChangePasswordUnlogged(updatedPasswordByNewPassword dto.UpdatedPasswordByNewPassword, id string) error
+	ValidateToken(token string) error
 	ChangePasswordLogged(changePasswordBothRequestDTO dto.ChangePasswordBothRequestDTO, id string) error
+	ResetPassword(resetPasswordDTO dto.ResetPasswordDTO) error
 }
 
 type authService struct {
@@ -249,7 +251,7 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 		return "", dto.AuthUser{}, fmt.Errorf("Credenciais incorretas.")
 	}
 
-	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Hidden, float64(168))
+	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Hidden, time.Hour*168)
 	if err != nil {
 		return "", dto.AuthUser{}, fmt.Errorf("erro ao gerar token: %w", err)
 	}
@@ -300,7 +302,7 @@ func (s *authService) ValidateUserCode(inputCodeDto dto.InputCodeDto) (string, e
 		return "", fmt.Errorf("erro ao buscar user by email")
 	}
 
-	hourExp := float64(168)
+	hourExp := time.Hour * 168
 
 	//valida o codigo inputado com o do banco
 	userCode := user.TempCode
@@ -364,9 +366,9 @@ func (s *authService) SendEmailForgotPassword(forgotPasswordRequestDTO dto.Forgo
 		return fmt.Errorf("Erro ao encontrar usuario para enviar email: %w", err)
 	}
 
-	hourExp := 0.25
+	expiration := time.Minute * 15
 
-	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Hidden, hourExp)
+	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Hidden, expiration)
 	if err != nil {
 		return fmt.Errorf("erro ao gerar token: %w", err)
 	}
@@ -432,7 +434,60 @@ func (s *authService) ChangePasswordLogged(changePasswordBothRequestDTO dto.Chan
 	}
 
 	if authUser.Role == "NURSE" {
-		return s.nurseRepository.UpdatePasswordByNurseID(id, hashedNewPassword)
+		return s.nurseRepository.UpdatePasswordLoggedByNurseID(id, hashedNewPassword, changePasswordBothRequestDTO.TwoFactor)
 	}
-	return s.userRepository.UpdatePasswordByUserID(id, hashedNewPassword)
+	return s.userRepository.UpdatePasswordLoggedByUserID(id, hashedNewPassword, changePasswordBothRequestDTO.TwoFactor)
+}
+
+func (s *authService) ValidateToken(token string) error {
+	_, err := utils.ValidateToken(token)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+// auth_service.go
+
+// Use este método em vez de ChangePasswordUnlogged
+func (s *authService) ResetPassword(resetPasswordDTO dto.ResetPasswordDTO) error {
+    // 1. Valida o token e extrai os dados (claims)
+    claims, err := utils.ValidateToken(resetPasswordDTO.Token)
+    if err != nil {
+        return err // Retorna "Token inválido ou expirado"
+    }
+
+    // 2. Extrai o ID do usuário de dentro do token
+    userID, ok := claims["sub"].(string)
+    if !ok || userID == "" {
+        return fmt.Errorf("token inválido: ID do usuário não encontrado")
+    }
+
+    // 3. Valida a complexidade da senha
+    if !utils.ValidatePassword(resetPasswordDTO.NewPassword) {
+        return fmt.Errorf("senha invalida. A senha precisa ter caracteres especiais, numeros e letras")
+    }
+
+    // 4. Criptografa a nova senha
+    hashedNewPassword, err := utils.HashPassword(resetPasswordDTO.NewPassword)
+    if err != nil {
+        return fmt.Errorf("erro ao criptografar senha: %w", err)
+    }
+    
+    // 5. Busca o usuário pelo ID do token para saber o Role
+    authUser, err := s.userRepository.FindAuthUserByID(userID)
+    if err != nil && err.Error() == "usuário não encontrado" {
+        authUser, err = s.nurseRepository.FindAuthNurseByID(userID)
+        if err != nil {
+            return fmt.Errorf("usuário referenciado no token não foi encontrado")
+        }
+    } else if err != nil {
+        return fmt.Errorf("erro ao buscar usuário: %w", err)
+    }
+
+    // 6. Atualiza a senha no repositório correto
+    if authUser.Role == "NURSE" {
+        return s.nurseRepository.UpdatePasswordByNurseID(userID, hashedNewPassword)
+    }
+    return s.userRepository.UpdatePasswordByUserID(userID, hashedNewPassword)
 }

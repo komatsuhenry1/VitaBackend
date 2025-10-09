@@ -119,7 +119,16 @@ type ForgotPasswordRequestDTO struct {
 type ChangePasswordBothRequestDTO struct {
 	Password    string `json:"password" binding:"required"`
 	NewPassword string `json:"new_password" binding:"required"`
+	TwoFactor   bool   `json:"two_fa"`
 }
 type UpdatedPasswordByNewPassword struct {
 	NewPassword string `json:"new_password" binding:"required"`
+}
+
+type ValidateTokenDTO struct {
+    Token string `json:"token" binding:"required"`
+}
+type ResetPasswordDTO struct {
+    Token       string `json:"token" binding:"required"`
+    NewPassword string `json:"newPassword" binding:"required"`
 }

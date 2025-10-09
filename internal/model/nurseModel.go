@@ -15,6 +15,7 @@ type Nurse struct {
 	Cpf              string             `bson:"cpf" json:"cpf" binding:"required"`
 	PixKey           string             `bson:"pix_key" json:"pix_key" binding:"required"`
 	Password         string             `bson:"password" json:"password" binding:"required"`
+	TwoFactor        int                `bson:"two_factor" json:"two_factor"`
 	VerificationSeal bool               `bson:"verification_seal" json:"verification_seal" binding:"required"`
 
 	LicenseNumber   string `bson:"license_number" json:"license_number" binding:"required"` // registro profissional

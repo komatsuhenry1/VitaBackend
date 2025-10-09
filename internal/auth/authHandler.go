@@ -216,6 +216,25 @@ func (h *AuthHandler) ChangePasswordUnlogged(c *gin.Context) {
 	utils.SendSuccessResponse(c, "Senha atualizada com sucesso.", nil)
 }
 
+// Use este handler em vez de ChangePasswordUnlogged
+func (h *AuthHandler) ResetPassword(c *gin.Context) {
+    var req dto.ResetPasswordDTO
+    if err := c.ShouldBindJSON(&req); err != nil {
+        utils.SendErrorResponse(c, "Dados inválidos: token e nova senha são obrigatórios.", http.StatusBadRequest)
+        return
+    }
+
+    // Chama o novo método do serviço
+    err := h.authService.ResetPassword(req)
+    if err != nil {
+        utils.SendErrorResponse(c, err.Error(), http.StatusUnauthorized)
+        return
+    }
+
+    utils.SendSuccessResponse(c, "Senha alterada com sucesso.", nil)
+}
+
+
 func (h *AuthHandler) ChangePasswordLogged(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
@@ -247,4 +266,20 @@ func (h *AuthHandler) ChangePasswordLogged(c *gin.Context) {
 			"token": "senha atualizada",
 		},
 	)
+}
+
+func (h *AuthHandler) ValidateResetToken(c *gin.Context) {
+    var req dto.ValidateTokenDTO
+    if err := c.ShouldBindJSON(&req); err != nil {
+        utils.SendErrorResponse(c, "Token é obrigatório", http.StatusBadRequest)
+        return
+    }
+
+    err := h.authService.ValidateToken(req.Token)
+    if err != nil {
+        utils.SendErrorResponse(c, "Token inválido ou expirado", http.StatusUnauthorized)
+        return
+    }
+
+    utils.SendSuccessResponse(c, "Token válido", http.StatusOK)
 }

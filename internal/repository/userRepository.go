@@ -30,6 +30,7 @@ type UserRepository interface {
 	UserExistsByEmail(email string) (bool, error)
 	FindAuthUserByID(id string) (dto.AuthUser, error)
 	UpdatePasswordByUserID(userID string, hashedPassword string) error
+	UpdatePasswordLoggedByUserID(userID string, hashedPassword string, twoFactor bool) error
 	DownloadFileByID(fileID primitive.ObjectID) (*gridfs.DownloadStream, error)
 	FindFileByID(ctx context.Context, id primitive.ObjectID) (*dto.FileData, error)
 	UploadFile(file io.Reader, fileName string, contentType string) (primitive.ObjectID, error)
@@ -96,6 +97,28 @@ func (r *userRepository) UpdatePasswordByUserID(userID string, hashedPassword st
 	result, err := r.collection.UpdateByID(r.ctx, objID, bson.M{
 		"$set": bson.M{
 			"password":   hashedPassword,
+			"updated_at": time.Now(),
+		},
+	})
+	if err != nil {
+		return err
+	}
+	if result.MatchedCount == 0 {
+		return fmt.Errorf("nenhum usuário encontrado com o ID %s", userID)
+	}
+	return nil
+}
+
+func (r *userRepository) UpdatePasswordLoggedByUserID(userID string, hashedPassword string, twoFactor bool) error {
+	objID, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		return fmt.Errorf("ID inválido")
+	}
+
+	result, err := r.collection.UpdateByID(r.ctx, objID, bson.M{
+		"$set": bson.M{
+			"password":   hashedPassword,
+			"two_factor": twoFactor,
 			"updated_at": time.Now(),
 		},
 	})
