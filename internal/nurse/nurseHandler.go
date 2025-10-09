@@ -108,7 +108,16 @@ func (h *NurseHandler) GetPatientProfile(c *gin.Context){
 }
 
 func (h *NurseHandler) UpdateNurseProfile(c *gin.Context){
-	nurseId := utils.GetUserId(c)
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+		return
+	}
+	nurseId, ok := claims.(jwt.MapClaims)["sub"].(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
+		return
+	}
 
 	var updates map[string]interface{}
 	if err := c.ShouldBindJSON(&updates); err != nil {
@@ -137,5 +146,25 @@ func (h *NurseHandler) UpdateNurseProfile(c *gin.Context){
 	}
 
 	utils.SendSuccessResponse(c, "Usuário atualizado com sucesso.", user)
+}
+
+func (h *NurseHandler) DeleteNurseProfile(c *gin.Context){
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+		return
+	}
+	nurseId, ok := claims.(jwt.MapClaims)["sub"].(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
+		return
+	}
+
+	err := h.nurseService.DeleteNurse(nurseId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}
+
+	utils.SendSuccessResponse(c, "Usuário deletado com sucesso.", http.StatusOK)
 
 }

@@ -232,11 +232,10 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 		authUser, err = s.nurseRepository.FindNurseByEmail(loginRequestDTO.Email)
 
 		if err != nil {
-			fmt.Println("primeiro erro:", err)
-			return "", dto.AuthUser{}, fmt.Errorf("Credenciais incorretas.")
+			return "", dto.AuthUser{}, fmt.Errorf("Email não cadastrado.")
 		}
 	} else if err != nil {
-		return "", dto.AuthUser{}, err
+		return "", dto.AuthUser{}, fmt.Errorf("Email não cadastrado.")
 	}
 
 	if authUser.Role == "NURSE" && !authUser.VerificationSeal {
@@ -422,7 +421,7 @@ func (s *authService) ChangePasswordLogged(changePasswordBothRequestDTO dto.Chan
 		}
 	}
 	if !utils.ComparePassword(authUser.Password, changePasswordBothRequestDTO.Password) {
-		return fmt.Errorf("senha atual incorreta")
+		return fmt.Errorf("Senha atual incorreta.")
 	}
 	// a senha precisa ter caracteres especiais, numeros e letras
 	if !utils.ValidatePassword(changePasswordBothRequestDTO.NewPassword) {

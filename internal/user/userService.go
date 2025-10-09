@@ -2,11 +2,11 @@ package user
 
 import (
 	"context"
+	adminDTO "medassist/internal/admin/dto"
 	"medassist/internal/auth/dto"
 	"medassist/internal/model"
 	"medassist/internal/repository"
 	userDTO "medassist/internal/user/dto"
-	adminDTO "medassist/internal/admin/dto"
 	"medassist/utils"
 	"time"
 
@@ -93,11 +93,14 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		Image:          nurse.ProfileImageID.Hex(),
 		Available:      nurse.Online,
 		Location:       nurse.Address,
-		Bio:            "NURSE BIO",
+		Phone:          nurse.Phone,
+		LicenseNumber:  nurse.LicenseNumber,
+		Bio:            nurse.Bio,
 		Qualifications: qualifications,
 		Services:       services,
 		Reviews:        reviews,
 		Availability:   availability,
+		ProfileImageID: nurse.ProfileImageID.Hex(),
 	}
 
 	return nurseProfile, nil
@@ -119,8 +122,8 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 		ID:     primitive.NewObjectID(),
 		Status: "PENDING",
 
-		PatientId:   patientId,
-		PatientName: patient.Name,
+		PatientId:    patientId,
+		PatientName:  patient.Name,
 		PatientEmail: patient.Email,
 
 		Description: createVisitDto.Description,
@@ -129,10 +132,9 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 		NurseId:   createVisitDto.NurseId,
 		NurseName: nurse.Name,
 
-		VisitType: createVisitDto.VisitType,
-		VisitDate: createVisitDto.VisitDate,
+		VisitType:  createVisitDto.VisitType,
+		VisitDate:  createVisitDto.VisitDate,
 		VisitValue: createVisitDto.VisitValue,
-
 
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -158,17 +160,17 @@ func (h *userService) FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, e
 	var allVisitsDto []userDTO.AllVisitsDto
 
 	for _, visit := range visits {
-		if visit.Status =="CONFIRMED"{
+		if visit.Status == "CONFIRMED" {
 			nurse, err := h.nurseRepository.FindNurseById(visit.NurseId)
 			if err != nil {
 				return nil, err
 			}
-	
+
 			visit, err := h.visitRepository.FindVisitById(visit.ID.Hex())
 			if err != nil {
 				return nil, err
 			}
-	
+
 			allVisitsDto = append(allVisitsDto, userDTO.AllVisitsDto{
 				ID:          visit.ID.Hex(),
 				Description: visit.Description,

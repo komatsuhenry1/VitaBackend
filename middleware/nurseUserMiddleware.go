@@ -13,6 +13,7 @@ import (
 
 func AuthUserOrNurse() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		fmt.Println("======")
 		const BearerSchema = "Bearer "
 		header := c.GetHeader("Authorization")
 

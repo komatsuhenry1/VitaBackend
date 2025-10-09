@@ -16,5 +16,6 @@ func SetupNurseRoutes(r *gin.RouterGroup, container *di.Container) {
 		nurse.PATCH("/visit/:id", middleware.AuthNurse(), container.NurseHandler.ConfirmOrCancelVisit) // confirma que uma enfermeira ira para a visita
 		nurse.GET("/patient/:id", middleware.AuthUserOrNurse(), container.NurseHandler.GetPatientProfile)
 		nurse.PATCH("/update", middleware.AuthNurse(), container.NurseHandler.UpdateNurseProfile)
+		nurse.DELETE("/delete", middleware.AuthNurse(), container.NurseHandler.DeleteNurseProfile)
 	}
 }

@@ -20,6 +20,8 @@ type NurseService interface {
 	GetPatientProfile(patientId string) (dto.PatientProfileResponseDTO, error)
 	NurseDashboardData(nurseId string) (dto.NurseDashboardDataResponseDTO, error)
 	UpdateNurseFields(id string, updates map[string]interface{}) (dto.NurseUpdateResponseDTO, error)
+	DeleteNurse(nurseId string) error
+
 }
 
 type nurseService struct {
@@ -272,4 +274,13 @@ func (s *nurseService) UpdateNurseFields(id string, updates map[string]interface
 		CreatedAt: nurse.CreatedAt,
 		UpdatedAt: nurse.UpdatedAt,
 	}, nil
+}
+
+func (s *nurseService) DeleteNurse(nurseId string) error {
+	err := s.nurseRepository.DeleteNurse(nurseId)
+	if err != nil {
+		return fmt.Errorf("erro ao deletar enfermeiro: %w", err)
+	}
+
+	return nil
 }

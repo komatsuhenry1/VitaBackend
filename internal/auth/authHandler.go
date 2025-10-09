@@ -247,6 +247,8 @@ func (h *AuthHandler) ChangePasswordLogged(c *gin.Context) {
 		return
 	}
 
+
+
 	var changePasswordBothRequestDTO dto.ChangePasswordBothRequestDTO
 	if err := c.ShouldBindJSON(&changePasswordBothRequestDTO); err != nil {
 		utils.SendErrorResponse(c, "Requisição inválida", http.StatusBadRequest)
@@ -255,7 +257,7 @@ func (h *AuthHandler) ChangePasswordLogged(c *gin.Context) {
 
 	err := h.authService.ChangePasswordLogged(changePasswordBothRequestDTO, id)
 	if err != nil {
-		utils.SendErrorResponse(c, err.Error(), http.StatusNotFound)
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
