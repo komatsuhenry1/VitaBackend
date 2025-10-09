@@ -6,8 +6,12 @@ import (
 	"medassist/internal/model"
 	"medassist/internal/repository"
 	userDTO "medassist/internal/user/dto"
+	adminDTO "medassist/internal/admin/dto"
 	"medassist/utils"
 	"time"
+
+	"fmt"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -19,6 +23,7 @@ type UserService interface {
 	GetNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
 	VisitSolicitation(userId string, createVisitDto userDTO.CreateVisitDto) error
 	FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, error)
+	UpdateUser(userId string, updates map[string]interface{}) (adminDTO.UserTypeResponse, error)
 }
 
 type userService struct {
@@ -182,4 +187,51 @@ func (h *userService) FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, e
 	}
 
 	return allVisitsDto, nil
+}
+
+func (s *userService) UpdateUser(userId string, updates map[string]interface{}) (adminDTO.UserTypeResponse, error) {
+
+	if emailRaw, ok := updates["email"]; ok {
+		email, ok := emailRaw.(string)
+		if ok {
+			normalizedEmail := strings.ToLower(email)
+
+			_, err := utils.EmailRegex(email)
+			if err != nil {
+				return adminDTO.UserTypeResponse{}, fmt.Errorf("Email no formato incorreto.")
+			}
+
+			existingUser, err := s.userRepository.FindUserByEmail(normalizedEmail)
+			// se nao achar em user, busca em nurseRepositoru
+			if err != nil {
+				existingUser, err = s.nurseRepository.FindNurseByEmail(normalizedEmail)
+			}
+
+			if err == nil && existingUser.ID.Hex() != userId {
+				return adminDTO.UserTypeResponse{}, fmt.Errorf("Email já está em uso por outro usuário")
+			}
+
+			updates["email"] = normalizedEmail
+		}
+	}
+
+	if existingUser, err := s.userRepository.FindUserById(userId); err == nil && existingUser.Role == "PATIENT" {
+		updated, err := s.userRepository.UpdateUser(userId, updates)
+		if err != nil {
+			return adminDTO.UserTypeResponse{}, fmt.Errorf("erro ao atualizar campos do usuario: %w", err)
+		}
+		return adminDTO.UserTypeResponse{
+			Name:        updated.Name,
+			Email:       updated.Email,
+			Role:        updated.Role,
+			Phone:       updated.Phone,
+			Address:     updated.Address,
+			Cpf:         updated.Cpf,
+			Password:    updated.Password,
+			Hidden:      updated.Hidden,
+			FirstAccess: updated.FirstAccess,
+		}, nil
+	}
+
+	return adminDTO.UserTypeResponse{}, fmt.Errorf("usuário não encontrado")
 }

@@ -9,6 +9,8 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"fmt"
+	"strings"
 )
 
 type UserHandler struct {
@@ -123,5 +125,45 @@ func (h *UserHandler) GetAllVisits(c *gin.Context){
 	}
 
 	utils.SendSuccessResponse(c, "Lista de visitas listadas com sucesso.", visits)
+
+}
+
+func (h *UserHandler) UpdateUser(c *gin.Context){
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+		return
+	}
+	patientId, ok := claims.(jwt.MapClaims)["sub"].(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
+		return
+	}
+
+	var updates map[string]interface{}
+	if err := c.ShouldBindJSON(&updates); err != nil {
+		utils.SendErrorResponse(c, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	protectedFields := map[string]bool{
+		"id":         true,
+		"created_at": true,
+		"updated_at": true,
+	}
+
+	for key := range updates {
+		if protectedFields[strings.ToLower(key)] {
+			utils.SendErrorResponse(c, fmt.Sprintf("Campo(s) %s não pode ser atualizado.", key), http.StatusBadRequest)
+			return
+		}
+	}
+	
+	user, err := h.userService.UpdateUser(patientId, updates)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}
+
+	utils.SendSuccessResponse(c, "Usuário atualizado com sucesso.", user)
 
 }

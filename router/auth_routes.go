@@ -4,7 +4,6 @@ package router
 import (
 	"medassist/internal/di"
 	"medassist/middleware"
-
 	"github.com/gin-gonic/gin"
 )
 
