@@ -6,6 +6,7 @@ import (
 	"medassist/utils"
 	"net/http"
 	"strconv"
+	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -189,9 +190,12 @@ func (h *AuthHandler) SendEmailForgotPassword(c *gin.Context) {
 		return
 	}
 
+	log.Printf("Recebida solicitação de redefinição de senha para o DTO: %+v\n", email)
+
+
 	err := h.authService.SendEmailForgotPassword(email)
 	if err != nil {
-		utils.SendErrorResponse(c, "Usuário não encontrado", http.StatusBadRequest)
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 	utils.SendSuccessResponse(c, "Email enviado com sucesso.", nil)
