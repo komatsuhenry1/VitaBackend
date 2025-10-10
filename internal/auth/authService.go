@@ -19,7 +19,7 @@ type AuthService interface {
 	NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO, files map[string][]*multipart.FileHeader) (model.Nurse, error)
 	LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dto.AuthUser, error)
 	SendCodeToEmail(emailAuthRequestDTO dto.EmailAuthRequestDTO) (dto.CodeResponseDTO, error)
-	ValidateUserCode(inputCodeDto dto.InputCodeDto) (string, error)
+	ValidateUserCode(inputCodeDto dto.InputCodeDto) (string, dto.AuthUser, error)
 	FirstLoginAdmin() error
 	SendEmailForgotPassword(email dto.ForgotPasswordRequestDTO) error
 	ChangePasswordUnlogged(updatedPasswordByNewPassword dto.UpdatedPasswordByNewPassword, id string) error
@@ -227,27 +227,50 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 
 	loginRequestDTO.Email = strings.ToLower(loginRequestDTO.Email)
 
-	authUser, err := s.userRepository.FindUserByEmail(loginRequestDTO.Email)
-	if err != nil && err.Error() == "usuário não encontrado" {
-		authUser, err = s.nurseRepository.FindNurseByEmail(loginRequestDTO.Email)
-
-		if err != nil {
-			return "", dto.AuthUser{}, fmt.Errorf("Email não cadastrado.")
-		}
-	} else if err != nil {
-		return "", dto.AuthUser{}, fmt.Errorf("Email não cadastrado.")
+	authUser, err := s.findAuthUserByEmail(loginRequestDTO.Email)
+	if err != nil {
+		return "", dto.AuthUser{}, err
 	}
 
+	// O resto das validações continua igual
 	if authUser.Role == "NURSE" && !authUser.VerificationSeal {
-		return "", dto.AuthUser{}, fmt.Errorf("A conta ainda não foi verificada.")
+		return "", dto.AuthUser{}, fmt.Errorf("a conta ainda não foi verificada")
 	}
 
 	if authUser.Hidden {
-		return "", dto.AuthUser{}, fmt.Errorf("Usuário não permitido para login.")
+		return "", dto.AuthUser{}, fmt.Errorf("usuário não permitido para login")
 	}
 	if !utils.ComparePassword(authUser.Password, loginRequestDTO.Password) {
-		fmt.Println("primeiro erro:", err)
-		return "", dto.AuthUser{}, fmt.Errorf("Credenciais incorretas.")
+		return "", dto.AuthUser{}, fmt.Errorf("credenciais incorretas")
+	}
+
+	if authUser.TwoFactor {
+		//gera o codigo
+		code, err := utils.GenerateAuthCode()
+		if err != nil {
+			return "", dto.AuthUser{}, fmt.Errorf("erro ao gerar codigo de verificacao: %w", err)
+		}
+
+		// atualiza o campo temp_code no db
+		if authUser.Role == "PATIENT" {
+			err = s.userRepository.UpdateTempCode(authUser.ID.Hex(), code)
+			if err != nil {
+				return "", dto.AuthUser{}, fmt.Errorf("erro ao atualizar codigo de verificacao de paciente: %w", err)
+			}
+		} else {
+			err = s.nurseRepository.UpdateTempCode(authUser.ID.Hex(), code)
+			if err != nil {
+				return "", dto.AuthUser{}, fmt.Errorf("erro ao atualizar codigo de verificacao de enfermeiro: %w", err)
+			}
+		}
+
+		//manda para o email
+		err = utils.SendAuthCode(authUser.Email, code)
+		if err != nil {
+			return "", dto.AuthUser{}, fmt.Errorf("erro ao enviar email com código de verificação: %w", err)
+		}
+
+		return "", authUser, nil
 	}
 
 	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Hidden, time.Hour*168)
@@ -255,7 +278,6 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 		return "", dto.AuthUser{}, fmt.Errorf("erro ao gerar token: %w", err)
 	}
 
-	// Retorna o token e o usuário autenticado genérico
 	return token, authUser, nil
 }
 
@@ -293,30 +315,38 @@ func (s *authService) SendCodeToEmail(emailAuthRequestDTO dto.EmailAuthRequestDT
 	return codeResponseDTO, nil
 }
 
-func (s *authService) ValidateUserCode(inputCodeDto dto.InputCodeDto) (string, error) {
+func (s *authService) findAuthUserByEmail(email string) (dto.AuthUser, error) {
+	authUser, err := s.userRepository.FindUserByEmail(email)
 
-	//busca o usuario pelo email
-	user, err := s.userRepository.FindUserByEmail(inputCodeDto.Email)
-	if err != nil {
-		return "", fmt.Errorf("erro ao buscar user by email")
-	}
-
-	hourExp := time.Hour * 168
-
-	//valida o codigo inputado com o do banco
-	userCode := user.TempCode
-
-	if inputCodeDto.Code == userCode {
-		token, err := utils.GenerateToken(user.ID.Hex(), user.Role, user.Hidden, hourExp)
+	if err != nil && err.Error() == "usuário não encontrado" {
+		authUser, err = s.nurseRepository.FindNurseByEmail(email)
 		if err != nil {
-			return "", fmt.Errorf("Erro ao gerar token.")
+			return dto.AuthUser{}, fmt.Errorf("email não cadastrado")
 		}
-		return token, nil
+	} else if err != nil {
+		return dto.AuthUser{}, err
 	}
 
-	return "", fmt.Errorf("Código inválido.")
+	return authUser, nil
 }
 
+func (s *authService) ValidateUserCode(inputCodeDto dto.InputCodeDto) (string, dto.AuthUser, error) {
+	authUser, err := s.findAuthUserByEmail(inputCodeDto.Email)
+	if err != nil {
+		return "", dto.AuthUser{}, err
+	}
+
+	if inputCodeDto.Code == authUser.TempCode {
+		hourExp := time.Hour * 168
+		token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Hidden, hourExp)
+		if err != nil {
+			return "", dto.AuthUser{}, fmt.Errorf("erro ao gerar token")
+		}
+		return token, authUser, nil
+	}
+
+	return "", dto.AuthUser{}, fmt.Errorf("erro ao validar código de usuário.")
+}
 func (s *authService) FirstLoginAdmin() error {
 
 	adminPassword := os.Getenv("ADMIN_PASSWORD")
@@ -450,43 +480,43 @@ func (s *authService) ValidateToken(token string) error {
 
 // Use este método em vez de ChangePasswordUnlogged
 func (s *authService) ResetPassword(resetPasswordDTO dto.ResetPasswordDTO) error {
-    // 1. Valida o token e extrai os dados (claims)
-    claims, err := utils.ValidateToken(resetPasswordDTO.Token)
-    if err != nil {
-        return err // Retorna "Token inválido ou expirado"
-    }
+	// 1. Valida o token e extrai os dados (claims)
+	claims, err := utils.ValidateToken(resetPasswordDTO.Token)
+	if err != nil {
+		return err // Retorna "Token inválido ou expirado"
+	}
 
-    // 2. Extrai o ID do usuário de dentro do token
-    userID, ok := claims["sub"].(string)
-    if !ok || userID == "" {
-        return fmt.Errorf("token inválido: ID do usuário não encontrado")
-    }
+	// 2. Extrai o ID do usuário de dentro do token
+	userID, ok := claims["sub"].(string)
+	if !ok || userID == "" {
+		return fmt.Errorf("token inválido: ID do usuário não encontrado")
+	}
 
-    // 3. Valida a complexidade da senha
-    if !utils.ValidatePassword(resetPasswordDTO.NewPassword) {
-        return fmt.Errorf("senha invalida. A senha precisa ter caracteres especiais, numeros e letras")
-    }
+	// 3. Valida a complexidade da senha
+	if !utils.ValidatePassword(resetPasswordDTO.NewPassword) {
+		return fmt.Errorf("senha invalida. A senha precisa ter caracteres especiais, numeros e letras")
+	}
 
-    // 4. Criptografa a nova senha
-    hashedNewPassword, err := utils.HashPassword(resetPasswordDTO.NewPassword)
-    if err != nil {
-        return fmt.Errorf("erro ao criptografar senha: %w", err)
-    }
-    
-    // 5. Busca o usuário pelo ID do token para saber o Role
-    authUser, err := s.userRepository.FindAuthUserByID(userID)
-    if err != nil && err.Error() == "usuário não encontrado" {
-        authUser, err = s.nurseRepository.FindAuthNurseByID(userID)
-        if err != nil {
-            return fmt.Errorf("usuário referenciado no token não foi encontrado")
-        }
-    } else if err != nil {
-        return fmt.Errorf("erro ao buscar usuário: %w", err)
-    }
+	// 4. Criptografa a nova senha
+	hashedNewPassword, err := utils.HashPassword(resetPasswordDTO.NewPassword)
+	if err != nil {
+		return fmt.Errorf("erro ao criptografar senha: %w", err)
+	}
 
-    // 6. Atualiza a senha no repositório correto
-    if authUser.Role == "NURSE" {
-        return s.nurseRepository.UpdatePasswordByNurseID(userID, hashedNewPassword)
-    }
-    return s.userRepository.UpdatePasswordByUserID(userID, hashedNewPassword)
+	// 5. Busca o usuário pelo ID do token para saber o Role
+	authUser, err := s.userRepository.FindAuthUserByID(userID)
+	if err != nil && err.Error() == "usuário não encontrado" {
+		authUser, err = s.nurseRepository.FindAuthNurseByID(userID)
+		if err != nil {
+			return fmt.Errorf("usuário referenciado no token não foi encontrado")
+		}
+	} else if err != nil {
+		return fmt.Errorf("erro ao buscar usuário: %w", err)
+	}
+
+	// 6. Atualiza a senha no repositório correto
+	if authUser.Role == "NURSE" {
+		return s.nurseRepository.UpdatePasswordByNurseID(userID, hashedNewPassword)
+	}
+	return s.userRepository.UpdatePasswordByUserID(userID, hashedNewPassword)
 }

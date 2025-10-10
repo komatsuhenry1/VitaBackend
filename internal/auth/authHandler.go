@@ -128,6 +128,7 @@ func (h *AuthHandler) LoginUser(c *gin.Context) {
 				"name":             authUser.Name,
 				"email":            authUser.Email,
 				"role":             authUser.Role,
+				"two_factor":       authUser.TwoFactor,
 				"profile_image_id": authUser.ProfileImageID,
 			},
 		})
@@ -158,15 +159,24 @@ func (h *AuthHandler) ValidateCode(c *gin.Context) {
 		return
 	}
 
-	token, err := h.authService.ValidateUserCode(inputCodeDto)
+	token, authUser, err := h.authService.ValidateUserCode(inputCodeDto)
 	if err != nil {
 		utils.SendErrorResponse(c, "Código inválido.", http.StatusBadRequest)
 		return
 	}
 
-	fmt.Println("token: ", token)
-
-	utils.SendSuccessResponse(c, "Código enviado com sucesso.", token)
+	utils.SendSuccessResponse(c, "Código validado com sucesso.",
+		gin.H{
+			"token": token,
+			"user": gin.H{
+				"id":               authUser.ID,
+				"name":             authUser.Name,
+				"email":            authUser.Email,
+				"role":             authUser.Role,
+				"two_factor":       authUser.TwoFactor,
+				"profile_image_id": authUser.ProfileImageID,
+			},
+		})
 }
 
 func (h *AuthHandler) FirstLoginAdmin(c *gin.Context) {
@@ -218,22 +228,21 @@ func (h *AuthHandler) ChangePasswordUnlogged(c *gin.Context) {
 
 // Use este handler em vez de ChangePasswordUnlogged
 func (h *AuthHandler) ResetPassword(c *gin.Context) {
-    var req dto.ResetPasswordDTO
-    if err := c.ShouldBindJSON(&req); err != nil {
-        utils.SendErrorResponse(c, "Dados inválidos: token e nova senha são obrigatórios.", http.StatusBadRequest)
-        return
-    }
+	var req dto.ResetPasswordDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.SendErrorResponse(c, "Dados inválidos: token e nova senha são obrigatórios.", http.StatusBadRequest)
+		return
+	}
 
-    // Chama o novo método do serviço
-    err := h.authService.ResetPassword(req)
-    if err != nil {
-        utils.SendErrorResponse(c, err.Error(), http.StatusUnauthorized)
-        return
-    }
+	// Chama o novo método do serviço
+	err := h.authService.ResetPassword(req)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusUnauthorized)
+		return
+	}
 
-    utils.SendSuccessResponse(c, "Senha alterada com sucesso.", nil)
+	utils.SendSuccessResponse(c, "Senha alterada com sucesso.", nil)
 }
-
 
 func (h *AuthHandler) ChangePasswordLogged(c *gin.Context) {
 	claims, exists := c.Get("claims")
@@ -246,8 +255,6 @@ func (h *AuthHandler) ChangePasswordLogged(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
 		return
 	}
-
-
 
 	var changePasswordBothRequestDTO dto.ChangePasswordBothRequestDTO
 	if err := c.ShouldBindJSON(&changePasswordBothRequestDTO); err != nil {
@@ -271,17 +278,17 @@ func (h *AuthHandler) ChangePasswordLogged(c *gin.Context) {
 }
 
 func (h *AuthHandler) ValidateResetToken(c *gin.Context) {
-    var req dto.ValidateTokenDTO
-    if err := c.ShouldBindJSON(&req); err != nil {
-        utils.SendErrorResponse(c, "Token é obrigatório", http.StatusBadRequest)
-        return
-    }
+	var req dto.ValidateTokenDTO
+	if err := c.ShouldBindJSON(&req); err != nil {
+		utils.SendErrorResponse(c, "Token é obrigatório", http.StatusBadRequest)
+		return
+	}
 
-    err := h.authService.ValidateToken(req.Token)
-    if err != nil {
-        utils.SendErrorResponse(c, "Token inválido ou expirado", http.StatusUnauthorized)
-        return
-    }
+	err := h.authService.ValidateToken(req.Token)
+	if err != nil {
+		utils.SendErrorResponse(c, "Token inválido ou expirado", http.StatusUnauthorized)
+		return
+	}
 
-    utils.SendSuccessResponse(c, "Token válido", http.StatusOK)
+	utils.SendSuccessResponse(c, "Token válido", http.StatusOK)
 }

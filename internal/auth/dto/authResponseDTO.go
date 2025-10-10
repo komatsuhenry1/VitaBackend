@@ -7,6 +7,7 @@ type AuthUser struct {
 	Name             string             `bson:"name"`
 	Email            string             `bson:"email"`
 	Password         string             `bson:"password"`
+	TwoFactor        bool               `bson:"two_factor"`
 	VerificationSeal bool               `bson:"verification_seal"`
 	Role             string             `bson:"role"`
 	Hidden           bool               `bson:"hidden"`
