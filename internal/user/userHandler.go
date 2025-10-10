@@ -46,7 +46,7 @@ func (h *UserHandler) GetFileByID(c *gin.Context) {
 
     fileData, err := h.userService.GetFileByID(c.Request.Context(), objectID)
     if err != nil {
-        utils.SendErrorResponse(c, "Arquivo não encontrado", http.StatusNotFound)
+        utils.SendErrorResponse(c, "Arquivo não encontrado", http.StatusBadRequest)
         return
     }
 

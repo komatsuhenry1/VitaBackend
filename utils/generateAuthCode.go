@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 	"fmt"
+	"log"
 )
 
 func GenerateAuthCode()(int, error){
@@ -17,6 +18,9 @@ func GenerateAuthCode()(int, error){
 	fmt.Println("=========")
 	fmt.Println("2 factor code: ", num)
 	fmt.Println("=========")
+	log.Println("=========")
+	log.Println("2 factor code: ", num)
+	log.Println("=========")
 
 	return num, nil
 }

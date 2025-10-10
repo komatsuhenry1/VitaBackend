@@ -75,7 +75,7 @@ func (h *AdminHandler) DownloadFile(c *gin.Context) {
 	downloadStream, err := h.adminService.GetFileStream(fileID)
 	if err != nil {
 		// O serviço retornará um erro se o arquivo não for encontrado.
-		utils.SendErrorResponse(c, "Arquivo não encontrado", http.StatusNotFound)
+		utils.SendErrorResponse(c, "Arquivo não encontrado", http.StatusBadRequest)
 		return
 	}
 	// Garante que o stream será fechado no final da função.

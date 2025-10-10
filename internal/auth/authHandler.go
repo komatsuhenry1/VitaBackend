@@ -191,7 +191,7 @@ func (h *AuthHandler) SendEmailForgotPassword(c *gin.Context) {
 
 	err := h.authService.SendEmailForgotPassword(email)
 	if err != nil {
-		utils.SendErrorResponse(c, "Usuário não encontrado", http.StatusNotFound)
+		utils.SendErrorResponse(c, "Usuário não encontrado", http.StatusBadRequest)
 		return
 	}
 	utils.SendSuccessResponse(c, "Email enviado com sucesso.", nil)
@@ -212,7 +212,7 @@ func (h *AuthHandler) ChangePasswordUnlogged(c *gin.Context) {
 
 	err := h.authService.ChangePasswordUnlogged(updatedPasswordByNewPassword, id)
 	if err != nil {
-		utils.SendErrorResponse(c, err.Error(), http.StatusNotFound)
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
