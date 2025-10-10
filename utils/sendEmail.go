@@ -5,6 +5,10 @@ import (
 	"medassist/internal/user/dto"
 	"os"
 
+	"log"
+
+	"github.com/sendgrid/sendgrid-go"
+	"github.com/sendgrid/sendgrid-go/helpers/mail"
 	"gopkg.in/gomail.v2"
 )
 
@@ -374,108 +378,225 @@ func SendEmailForAdmin(email string) error {
 	return nil
 }
 
-func SendEmailForgotPassword(email, id, token string) error {
-	m := gomail.NewMessage()
-	m.SetHeader("From", os.Getenv("EMAIL_SENDER"))
-	m.SetHeader("To", email)
+// func SendEmailForgotPassword(email, id, token string) error {
+// 	m := gomail.NewMessage()
 
-	// Link agora inclui o token no botão
-	link := os.Getenv("LOCAL_FRONTEND_URL") + "?token=" + token
+// 	m.SetHeader("From", os.Getenv("EMAIL_SENDER"))
+// 	m.SetHeader("To", email)
 
-	m.SetHeader("Subject", "🔐 Recuperação de senha - MEDASSIST")
+// 	// Link agora inclui o token no botão
+// 	link := os.Getenv("LOCAL_FRONTEND_URL") + "?token=" + token
 
-	html := fmt.Sprintf(`
-	<!DOCTYPE html>
-	<html lang="pt-BR">
-	<head>
-	<meta charset="UTF-8">
-	<title>Recuperação de Senha - CTF ARENA</title>
-	<style>
-	body {
-		background-color: #f9f9f9;
-		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-		color: #333333;
-		padding: 0;
-		margin: 0;
-	}
-	.container {
-		max-width: 600px;
-		margin: 40px auto;
-		background-color: #ffffff;
-		border-radius: 10px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-		padding: 30px 40px;
-	}
-	h2 {
-		color: #1E88E5;
-		text-align: center;
-	}
-	p {
-		line-height: 1.6;
-		font-size: 15px;
-	}
-	.button {
-		display: inline-block;
-		padding: 12px 20px;
-		margin: 20px 0;
-		background-color: #1E88E5;
-		color: #ffffff !important;
-		text-decoration: none;
-		border-radius: 6px;
-		font-weight: 600;
-		text-align: center;
-	}
-	.code-box {
-		background-color: #f1f1f1;
-		border-radius: 6px;
-		padding: 10px;
-		font-family: monospace;
-		font-size: 14px;
-		color: #333333;
-		margin: 10px 0;
-	}
-	.footer {
-		margin-top: 30px;
-		font-size: 12px;
-		color: #999999;
-		text-align: center;
-	}
-	</style>
-	</head>
-	<body>
-	<div class="container">
-		<h2>🔐 Recuperação de Senha</h2>
-		<p>Olá,</p>
-		<p>Recebemos uma solicitação para redefinir a senha da sua conta associada ao e-mail:</p>
-		<div class="code-box">%s</div>
+// 	m.SetHeader("Subject", "🔐 Recuperação de senha - MEDASSIST")
 
-		<p>Para criar uma nova senha, clique no botão abaixo:</p>
-		<a href="%s" class="button">Redefinir Senha</a>
+// 	html := fmt.Sprintf(`
+// 	<!DOCTYPE html>
+// 	<html lang="pt-BR">
+// 	<head>
+// 	<meta charset="UTF-8">
+// 	<title>Recuperação de Senha - CTF ARENA</title>
+// 	<style>
+// 	body {
+// 		background-color: #f9f9f9;
+// 		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+// 		color: #333333;
+// 		padding: 0;
+// 		margin: 0;
+// 	}
+// 	.container {
+// 		max-width: 600px;
+// 		margin: 40px auto;
+// 		background-color: #ffffff;
+// 		border-radius: 10px;
+// 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+// 		padding: 30px 40px;
+// 	}
+// 	h2 {
+// 		color: #1E88E5;
+// 		text-align: center;
+// 	}
+// 	p {
+// 		line-height: 1.6;
+// 		font-size: 15px;
+// 	}
+// 	.button {
+// 		display: inline-block;
+// 		padding: 12px 20px;
+// 		margin: 20px 0;
+// 		background-color: #1E88E5;
+// 		color: #ffffff !important;
+// 		text-decoration: none;
+// 		border-radius: 6px;
+// 		font-weight: 600;
+// 		text-align: center;
+// 	}
+// 	.code-box {
+// 		background-color: #f1f1f1;
+// 		border-radius: 6px;
+// 		padding: 10px;
+// 		font-family: monospace;
+// 		font-size: 14px;
+// 		color: #333333;
+// 		margin: 10px 0;
+// 	}
+// 	.footer {
+// 		margin-top: 30px;
+// 		font-size: 12px;
+// 		color: #999999;
+// 		text-align: center;
+// 	}
+// 	</style>
+// 	</head>
+// 	<body>
+// 	<div class="container">
+// 		<h2>🔐 Recuperação de Senha</h2>
+// 		<p>Olá,</p>
+// 		<p>Recebemos uma solicitação para redefinir a senha da sua conta associada ao e-mail:</p>
+// 		<div class="code-box">%s</div>
 
-		<p>Se você não solicitou essa alteração, apenas ignore este e-mail. Nenhuma ação será realizada.</p>
+// 		<p>Para criar uma nova senha, clique no botão abaixo:</p>
+// 		<a href="%s" class="button">Redefinir Senha</a>
 
-		<div class="footer">
-			<p>CTF ARENA - Este é um e-mail automático, por favor não responda.</p>
-		</div>
-	</div>
-	</body>
-	</html>
-	`, email, link)
+// 		<p>Se você não solicitou essa alteração, apenas ignore este e-mail. Nenhuma ação será realizada.</p>
 
-	m.SetBody("text/html", html)
+// 		<div class="footer">
+// 			<p>CTF ARENA - Este é um e-mail automático, por favor não responda.</p>
+// 		</div>
+// 	</div>
+// 	</body>
+// 	</html>
+// 	`, email, link)
 
-	d := gomail.NewDialer(
-		"smtp.gmail.com",
-		587,
-		os.Getenv("EMAIL_SENDER"),
-		os.Getenv("EMAIL_PASSWORD"),
-	)
+// 	m.SetBody("text/html", html)
 
-	if err := d.DialAndSend(m); err != nil {
+// 	d := gomail.NewDialer(
+// 		"smtp.gmail.com",
+// 		587,
+// 		os.Getenv("EMAIL_SENDER"),
+// 		os.Getenv("EMAIL_PASSWORD"),
+// 	)
+
+// 	if err := d.DialAndSend(m); err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
+func SendEmailForgotPassword(toEmail, id, token string) error {
+	link := os.Getenv("LOCAL_FRONTEND_URL") + "/reset-password?token=" + token
+
+	htmlContent := fmt.Sprintf(`
+    <!DOCTYPE html>
+    <html lang="pt-BR">
+    <head>
+    <meta charset="UTF-8">
+    <title>Recuperação de Senha - MEDASSIST</title> 
+    <style>
+    /* Seu CSS continua o mesmo */
+    body {
+        background-color: #f9f9f9;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        color: #333333;
+        padding: 0;
+        margin: 0;
+    }
+    .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        padding: 30px 40px;
+    }
+    h2 {
+        color: #1E88E5;
+        text-align: center;
+    }
+    p {
+        line-height: 1.6;
+        font-size: 15px;
+    }
+    .button {
+        display: inline-block;
+        padding: 12px 20px;
+        margin: 20px 0;
+        background-color: #1E88E5;
+        color: #ffffff !important;
+        text-decoration: none;
+        border-radius: 6px;
+        font-weight: 600;
+        text-align: center;
+    }
+    .code-box {
+        background-color: #f1f1f1;
+        border-radius: 6px;
+        padding: 10px;
+        font-family: monospace;
+        font-size: 14px;
+        color: #333333;
+        margin: 10px 0;
+    }
+    .footer {
+        margin-top: 30px;
+        font-size: 12px;
+        color: #999999;
+        text-align: center;
+    }
+    </style>
+    </head>
+    <body>
+    <div class="container">
+        <h2>🔐 Recuperação de Senha</h2>
+        <p>Olá,</p>
+        <p>Recebemos uma solicitação para redefinir a senha da sua conta associada ao e-mail:</p>
+        <div class="code-box">%s</div>
+
+        <p>Para criar uma nova senha, clique no botão abaixo:</p>
+        <a href="%s" class="button">Redefinir Senha</a>
+
+        <p>Se você não solicitou essa alteração, apenas ignore este e-mail. Nenhuma ação será realizada.</p>
+
+        <div class="footer">
+            <p>MEDASSIST - Este é um e-mail automático, por favor não responda.</p>
+        </div>
+    </div>
+    </body>
+    </html>
+    `, toEmail, link)
+
+	// --- Início da Lógica do SendGrid ---
+
+	// O nome que aparece como remetente e o email (verificado no SendGrid)
+	from := mail.NewEmail("MEDASSIST", os.Getenv("EMAIL_SENDER"))
+	subject := "🔐 Recuperação de senha - MEDASSIST"
+
+	// O nome do destinatário (pode ser vazio) e o email de destino
+	to := mail.NewEmail("", toEmail)
+
+	// Texto puro como alternativa para clientes de e-mail que não leem HTML
+	plainTextContent := fmt.Sprintf("Para criar uma nova senha, acesse o seguinte link: %s", link)
+
+	message := mail.NewSingleEmail(from, subject, to, plainTextContent, htmlContent)
+
+	// Cria o cliente do SendGrid com a sua chave de API
+	client := sendgrid.NewSendClient(os.Getenv("SENDGRID_API_KEY"))
+	response, err := client.Send(message)
+
+	if err != nil {
+		log.Printf("Erro ao tentar enviar email via SendGrid: %v", err)
 		return err
 	}
 
-	return nil
+	// O SendGrid retorna um status code 2xx em caso de sucesso (geralmente 202 Accepted)
+	if response.StatusCode >= 200 && response.StatusCode < 300 {
+		log.Printf("Email enviado com sucesso para %s. Status: %d", toEmail, response.StatusCode)
+		return nil
+	}
+
+	// Se o status for diferente de sucesso, logamos o corpo da resposta para depuração
+	log.Printf("Falha ao enviar e-mail. SendGrid retornou status: %d. Corpo: %s", response.StatusCode, response.Body)
+	return fmt.Errorf("falha ao enviar e-mail, serviço retornou status %d", response.StatusCode)
 }
 
 func SendEmailRegistrationRejected(email, description string) error {
@@ -1013,4 +1134,3 @@ func CreateVisitCanceledWithReasonHTML(nurseName string, visitDate string, cance
     </html>
     `, nurseName, visitDate, nurseName, visitDate, cancelReason)
 }
-
