@@ -270,7 +270,13 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 			return "", dto.AuthUser{}, fmt.Errorf("erro ao enviar email com código de verificação: %w", err)
 		}
 
-		return "", authUser, nil
+		user := dto.AuthUser{
+			Email: authUser.Email,
+			TwoFactor: authUser.TwoFactor,
+			Role: authUser.Role,
+		}
+
+		return "", user, nil
 	}
 
 	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Hidden, time.Hour*168)

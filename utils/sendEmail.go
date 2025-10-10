@@ -252,7 +252,7 @@ func SendAuthCode(email string, code int) error {
 			<h2>🔑 Seu código de acesso</h2>
 
 			<p><strong>Code:</strong></p>
-			<div class="code-box">%s</div>
+			<div class="code-box">%d</div>
 
 			<p>⚠️ Por motivos de segurança, recomendamos que você altere sua senha no menu de segurança.</p>
 

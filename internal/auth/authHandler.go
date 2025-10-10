@@ -123,14 +123,7 @@ func (h *AuthHandler) LoginUser(c *gin.Context) {
 	utils.SendSuccessResponse(c, "Usuário logado com sucesso.",
 		gin.H{
 			"token": token,
-			"user": gin.H{
-				"id":               authUser.ID,
-				"name":             authUser.Name,
-				"email":            authUser.Email,
-				"role":             authUser.Role,
-				"two_factor":       authUser.TwoFactor,
-				"profile_image_id": authUser.ProfileImageID,
-			},
+			"user": authUser,
 		})
 }
 
