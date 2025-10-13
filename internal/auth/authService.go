@@ -153,7 +153,6 @@ func (s *authService) NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO,
 
 		LicenseNumber:   nurseRequestDTO.LicenseNumber,
 		Specialization:  nurseRequestDTO.Specialization,
-		Shift:           nurseRequestDTO.Shift,
 		Department:      nurseRequestDTO.Department,
 		YearsExperience: nurseRequestDTO.YearsExperience,
 		Bio:             nurseRequestDTO.Bio,

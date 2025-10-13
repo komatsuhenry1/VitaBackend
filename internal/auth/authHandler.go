@@ -55,13 +55,10 @@ func (h *AuthHandler) UserRegister(c *gin.Context) {
 func (h *AuthHandler) NurseRegister(c *gin.Context) {
 
 	yearsExpStr := c.PostForm("years_experience")
-	fmt.Println("yearsExpStr: ", yearsExpStr)
-	fmt.Printf("yearsExpStr type: %T\n", yearsExpStr)
 	yearsExp, err := strconv.Atoi(yearsExpStr)
 	if err != nil {
-		// Se a conversão falhar, retorne um erro claro para o frontend
 		utils.SendErrorResponse(c, "Formato inválido para 'anos de experiência'. Esperado um número.", http.StatusBadRequest)
-		return // Interrompe a execução
+		return
 	}
 
 	var nurseRequestDTO dto.NurseRegisterRequestDTO
@@ -74,7 +71,6 @@ func (h *AuthHandler) NurseRegister(c *gin.Context) {
 	nurseRequestDTO.Password = c.PostForm("password")
 	nurseRequestDTO.LicenseNumber = c.PostForm("license_number")
 	nurseRequestDTO.Specialization = c.PostForm("specialization")
-	nurseRequestDTO.Shift = c.PostForm("shift")
 	nurseRequestDTO.Department = c.PostForm("department")
 	nurseRequestDTO.YearsExperience = yearsExp
 	nurseRequestDTO.Bio = c.PostForm("bio")
@@ -163,7 +159,7 @@ func (h *AuthHandler) ValidateCode(c *gin.Context) {
 		gin.H{
 			"token": token,
 			"user": gin.H{
-				"id":               authUser.ID,
+				"_id":               authUser.ID,
 				"name":             authUser.Name,
 				"email":            authUser.Email,
 				"role":             authUser.Role,

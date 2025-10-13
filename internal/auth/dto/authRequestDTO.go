@@ -58,7 +58,6 @@ type NurseRegisterRequestDTO struct {
 	Password        string `json:"password"`
 	LicenseNumber   string `json:"license_number"`
 	Specialization  string `json:"specialization"`
-	Shift           string `json:"shift"` // turno
 	Department      string `json:"department"`
 	YearsExperience int    `json:"years_experience"`
 	Bio             string `json:"bio"`
@@ -90,9 +89,6 @@ func (u *NurseRegisterRequestDTO) Validate() error {
 	}
 	if u.Specialization == "" {
 		return utils.ErrParamIsRequired("specialization", "string")
-	}
-	if u.Shift == "" {
-		return utils.ErrParamIsRequired("shift", "string")
 	}
 	if u.Department == "" {
 		return utils.ErrParamIsRequired("department", "string")
