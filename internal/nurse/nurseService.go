@@ -65,15 +65,19 @@ func (s *nurseService) UpdateAvailablityNursingService(nurseId string) (model.Nu
 func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, error) {
 	visits, err := s.visitRepository.FindAllVisitsForNurse(nurseId)
 	if err != nil {
-		return dto.NurseVisitsListsDto{}, err
 	}
 
+	
 	pendingVisits := make([]dto.VisitDto, 0)
 	confirmedVisits := make([]dto.VisitDto, 0)
 	completedVisits := make([]dto.VisitDto, 0)
-
+	
 	for _, visit := range visits {
-		fmt.Println(visit)
+		patient, err := s.userRepository.FindUserById(visit.PatientId)
+		if err != nil{
+			return dto.NurseVisitsListsDto{}, err
+		}
+		fmt.Println(patient.ProfileImageID)
 		visitDto := dto.VisitDto{
 			ID:          visit.ID.Hex(),
 			Description: visit.Description,
@@ -84,7 +88,7 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 			Date:        visit.VisitDate.Format("02/01/2006 15:04"),
 			Status:      visit.Status,
 			PatientName: visit.PatientName,
-			PatientId:   visit.PatientId,
+			PatientImageID:   patient.ProfileImageID.Hex(),
 			NurseName:   visit.NurseName,
 		}
 

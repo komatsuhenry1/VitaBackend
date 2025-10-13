@@ -13,34 +13,35 @@ type NurseVisitsListsDto struct {
 }
 
 type VisitDto struct {
-	ID          string  `json:"id"`
-	Description string  `json:"description"`
-	Reason      string  `json:"reason"`
-	VisitType   string  `json:"visit_type"`
-	VisitValue  float64 `json:"visit_value"`
-	CreatedAt   string  `json:"created_at"`
-	Date        string  `json:"date"`
-	Status      string  `json:"status"`
-	PatientName string  `json:"patient_name"`
-	PatientId   string  `json:"patient_id"`
-	NurseName   string  `json:"nurse_name"`
+	ID             string  `json:"id"`
+	Description    string  `json:"description"`
+	Reason         string  `json:"reason"`
+	VisitType      string  `json:"visit_type"`
+	VisitValue     float64 `json:"visit_value"`
+	CreatedAt      string  `json:"created_at"`
+	Date           string  `json:"date"`
+	Status         string  `json:"status"`
+	PatientName    string  `json:"patient_name"`
+	PatientId      string  `json:"patient_id"`
+	NurseName      string  `json:"nurse_name"`
+	PatientImageID string  `json:"patient_image_id"`
 }
 
 type PatientProfileResponseDTO struct {
-	ID          primitive.ObjectID `json:"id"`
-	Name        string             `json:"name"`
-	Email       string             `json:"email"`
-	Phone       string             `json:"phone"`
-	Address     string             `json:"address"`
-	Cpf         string             `json:"cpf"`
-	Password    string             `json:"password"`
-	Hidden      bool               `json:"hidden"`
-	Role        string             `json:"role"`
-	FirstAccess bool               `json:"first_access"`
-	CreatedAt   time.Time          `json:"created_at"`
-	TempCode    int                `json:"temp_code"`
-	UpdatedAt   time.Time          `json:"updated_at"`
-	ProfileImageID     string             `json:"profile_image_id"`
+	ID             primitive.ObjectID `json:"id"`
+	Name           string             `json:"name"`
+	Email          string             `json:"email"`
+	Phone          string             `json:"phone"`
+	Address        string             `json:"address"`
+	Cpf            string             `json:"cpf"`
+	Password       string             `json:"password"`
+	Hidden         bool               `json:"hidden"`
+	Role           string             `json:"role"`
+	FirstAccess    bool               `json:"first_access"`
+	CreatedAt      time.Time          `json:"created_at"`
+	TempCode       int                `json:"temp_code"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+	ProfileImageID string             `json:"profile_image_id"`
 }
 
 type StatsDTO struct {
