@@ -118,7 +118,6 @@ func (s *nurseService) ConfirmOrCancelVisit(nurseId, visitId, reason string) (st
 		visit.CancelReason = reason
 		visit.Status = "PENDING"
 		response = "Visita cancelada com sucesso."
-
 		utils.SendEmailVisitCanceledWithReason("komatsuhenry@gmail.com", visit.NurseName, visit.VisitDate.Format("02/01/2006 15:04"), reason)
 	} else if visit.Status == "PENDING" {
 		visit.CancelReason = ""

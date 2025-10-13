@@ -9,6 +9,7 @@ import (
 	userDTO "medassist/internal/user/dto"
 	"medassist/utils"
 	"time"
+	"go.mongodb.org/mongo-driver/bson"
 
 	"fmt"
 	"strings"
@@ -25,6 +26,7 @@ type UserService interface {
 	FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, error)
 	UpdateUser(userId string, updates map[string]interface{}) (adminDTO.UserTypeResponse, error)
 	DeleteUser(patientId string) error
+	ConfirmVisitService(visitId , patientId string) error
 }
 
 type userService struct {
@@ -160,33 +162,31 @@ func (h *userService) FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, e
 	var allVisitsDto []userDTO.AllVisitsDto
 
 	for _, visit := range visits {
-		if visit.Status == "CONFIRMED" {
-			nurse, err := h.nurseRepository.FindNurseById(visit.NurseId)
-			if err != nil {
-				return nil, err
-			}
-
-			visit, err := h.visitRepository.FindVisitById(visit.ID.Hex())
-			if err != nil {
-				return nil, err
-			}
-
-			allVisitsDto = append(allVisitsDto, userDTO.AllVisitsDto{
-				ID:          visit.ID.Hex(),
-				Description: visit.Description,
-				Reason:      visit.Reason,
-				VisitType:   visit.VisitType,
-				CreatedAt:   visit.CreatedAt.Format("02/01/2006 15:04"),
-				Date:        visit.VisitDate.Format("02/01/2006 15:04"),
-				Status:      visit.Status,
-				Nurse: userDTO.NurseDto{
-					ID:             nurse.ID.Hex(),
-					Name:           nurse.Name,
-					Specialization: nurse.Specialization,
-					Image:          nurse.ProfileImageID.Hex(),
-				},
-			})
+		nurse, err := h.nurseRepository.FindNurseById(visit.NurseId)
+		if err != nil {
+			return nil, err
 		}
+
+		visit, err := h.visitRepository.FindVisitById(visit.ID.Hex())
+		if err != nil {
+			return nil, err
+		}
+
+		allVisitsDto = append(allVisitsDto, userDTO.AllVisitsDto{
+			ID:          visit.ID.Hex(),
+			Description: visit.Description,
+			Reason:      visit.Reason,
+			VisitType:   visit.VisitType,
+			CreatedAt:   visit.CreatedAt.Format("02/01/2006 15:04"),
+			Date:        visit.VisitDate.Format("02/01/2006 15:04"),
+			Status:      visit.Status,
+			Nurse: userDTO.NurseDto{
+				ID:             nurse.ID.Hex(),
+				Name:           nurse.Name,
+				Specialization: nurse.Specialization,
+				Image:          nurse.ProfileImageID.Hex(),
+			},
+		})
 	}
 
 	return allVisitsDto, nil
@@ -243,6 +243,36 @@ func (s *userService) DeleteUser(patientId string) error {
 	err := s.userRepository.DeleteUser(patientId)
 	if err != nil {
 		return fmt.Errorf("erro ao deletar visita: %w", err)
+	}
+
+	return nil
+}
+
+func (s *userService) ConfirmVisitService(visitId, patientId string) error{
+	visit, err := s.visitRepository.FindVisitById(visitId)
+	if err != nil{
+		return fmt.Errorf("Erro ao buscar visita")
+	}
+
+	if visit.PatientId != patientId{
+		return fmt.Errorf("Visita pertence à outro paciente.")
+	}
+
+	// logica de liberar o dinheiro retido para o enfermeiro
+
+	if visit.Status != "CONFIRMED"{
+		return fmt.Errorf("O status da visita deve estar com status confirmada para ser completada.")
+	}
+
+	visitUpdate := bson.M{
+		"status":    "COMPLETED",
+		"updated_at": time.Now(),
+	}
+
+	//salve user com status true/false
+	visit, err = s.visitRepository.UpdateVisitFields(visitId, visitUpdate)
+	if err != nil{
+		return fmt.Errorf("Erro ao atualizar status de visita: %w", err )
 	}
 
 	return nil

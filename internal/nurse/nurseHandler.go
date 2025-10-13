@@ -84,7 +84,7 @@ func (h *NurseHandler) ConfirmOrCancelVisit(c *gin.Context){
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
-	fmt.Println("antes service")
+
 	response, err := h.nurseService.ConfirmOrCancelVisit(nurseId, visitId, reason.Reason)
 	if err != nil{
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
