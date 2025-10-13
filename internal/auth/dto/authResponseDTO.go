@@ -3,7 +3,7 @@ package dto
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type AuthUser struct {
-	ID               primitive.ObjectID `bson:"_id" json:"_id"`
+	ID               primitive.ObjectID `bson:"id" json:"id"`
 	Name             string             `bson:"name" json:"name"`
 	Email            string             `bson:"email" json:"email"`
 	Password         string             `bson:"password" json:"password"`

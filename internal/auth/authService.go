@@ -353,6 +353,7 @@ func (s *authService) ValidateUserCode(inputCodeDto dto.InputCodeDto) (string, d
 
 	return "", dto.AuthUser{}, fmt.Errorf("erro ao validar código de usuário.")
 }
+
 func (s *authService) FirstLoginAdmin() error {
 
 	adminPassword := os.Getenv("ADMIN_PASSWORD")
