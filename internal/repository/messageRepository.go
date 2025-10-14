@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"medassist/internal/model"
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -11,6 +13,7 @@ import (
 
 type MessageRepository interface {
 	FindMessagesBetween(userID, otherUserID primitive.ObjectID) ([]model.Message, error)
+	Save(message *model.Message) error
 }
 
 type messageRepositoryImpl struct {
@@ -25,7 +28,7 @@ func NewMessageRepository(db *mongo.Database) MessageRepository {
 
 func (r *messageRepositoryImpl) FindMessagesBetween(userID, otherUserID primitive.ObjectID) ([]model.Message, error) {
 	var messages []model.Message
-	ctx := context.TODO() 
+	ctx := context.TODO()
 
 	filter := bson.M{
 		"$or": []bson.M{
@@ -40,11 +43,21 @@ func (r *messageRepositoryImpl) FindMessagesBetween(userID, otherUserID primitiv
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx) 
+	defer cursor.Close(ctx)
 
 	if err = cursor.All(ctx, &messages); err != nil {
 		return nil, err
 	}
 
 	return messages, nil
+}
+
+func (r *messageRepositoryImpl) Save(message *model.Message) error {
+	ctx := context.TODO()
+	// Define o ID e o Timestamp antes de inserir
+	message.ID = primitive.NewObjectID()
+	message.Timestamp = time.Now()
+
+	_, err := r.collection.InsertOne(ctx, message)
+	return err
 }

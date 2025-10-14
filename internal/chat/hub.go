@@ -2,29 +2,24 @@
 
 package chat
 
-// Hub mantém o conjunto de clientes ativos e transmite mensagens para os clientes.
+import "medassist/internal/repository" // <-- ADICIONE ESTA IMPORTAÇÃO
+
 type Hub struct {
-	// Clientes registrados. Usamos um map onde a chave é o ponteiro para o cliente
-	// e o valor é um booleano. O booleano 'true' indica que o cliente está ativo.
-	clients map[*Client]bool
-
-	// Mensagens de entrada dos clientes.
-	broadcast chan []byte
-
-	// Canal para registrar solicitações de clientes.
-	register chan *Client
-
-	// Canal para cancelar o registro de solicitações de clientes.
+	clients    map[*Client]bool
+	broadcast  chan []byte
+	register   chan *Client
 	unregister chan *Client
+	msgRepo    repository.MessageRepository // <-- ADICIONE ESTA LINHA
 }
 
 // NewHub cria uma nova instância do Hub.
-func NewHub() *Hub {
+func NewHub(msgRepo repository.MessageRepository) *Hub { // <-- ALTERE O PARÂMETRO
 	return &Hub{
 		broadcast:  make(chan []byte),
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clients:    make(map[*Client]bool),
+		msgRepo:    msgRepo, // <-- ATRIBUA AQUI
 	}
 }
 

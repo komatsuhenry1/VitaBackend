@@ -22,12 +22,12 @@ type Container struct {
 func NewContainer() *Container {
 	// Inicializa o banco de dados
 	db := config.GetMongoDB()
-	hub := chat.NewHub()
 	// Construtores: repository → service → handler
 	userRepository := repository.NewUserRepository(db)
 	nurseRepository := repository.NewNurseRepository(db)
 	visitRepository := repository.NewVisitRepository(db)
 	messageRepository := repository.NewMessageRepository(db)
+	hub := chat.NewHub(messageRepository)
 	
 	authService := auth.NewAuthService(userRepository, nurseRepository)
 	adminService := admin.NewAdminService(userRepository, nurseRepository, visitRepository)
