@@ -89,6 +89,7 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 			Status:      visit.Status,
 			PatientName: visit.PatientName,
 			PatientImageID:   patient.ProfileImageID.Hex(),
+			PatientId: visit.PatientId,
 			NurseName:   visit.NurseName,
 		}
 

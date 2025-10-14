@@ -278,7 +278,7 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 		return "", user, nil
 	}
 
-	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Hidden, time.Hour*168)
+	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role,  authUser.Name, authUser.Hidden, time.Hour*168)
 	if err != nil {
 		return "", dto.AuthUser{}, fmt.Errorf("erro ao gerar token: %w", err)
 	}
@@ -343,7 +343,7 @@ func (s *authService) ValidateUserCode(inputCodeDto dto.InputCodeDto) (string, d
 
 	if inputCodeDto.Code == authUser.TempCode {
 		hourExp := time.Hour * 168
-		token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Hidden, hourExp)
+		token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role,  authUser.Name, authUser.Hidden, hourExp)
 		if err != nil {
 			return "", dto.AuthUser{}, fmt.Errorf("erro ao gerar token")
 		}
@@ -403,7 +403,7 @@ func (s *authService) SendEmailForgotPassword(forgotPasswordRequestDTO dto.Forgo
 
 	expiration := time.Minute * 15
 
-	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Hidden, expiration)
+	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role,  authUser.Name, authUser.Hidden, expiration)
 	if err != nil {
 		return fmt.Errorf("erro ao gerar token: %w", err)
 	}

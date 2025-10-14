@@ -10,12 +10,13 @@ import (
 	"github.com/golang-jwt/jwt/v5"
 )
 
-func GenerateToken(userId string, userRole string, userHidden bool, expiration time.Duration) (string, error) {
+func GenerateToken(userId string, userRole string, userName string, userHidden bool, expiration time.Duration) (string, error) {
 	expiresAt := time.Now().Add(expiration).Unix()
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":    userId,
 		"role":   userRole,
+		"name":   userName, // <-- ADICIONE ESTA LINHA
 		"hidden": userHidden,
 		"exp":    expiresAt,
 	})
