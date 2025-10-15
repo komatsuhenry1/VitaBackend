@@ -56,7 +56,7 @@ type NurseRegisterRequestDTO struct {
 	Cpf             string `json:"cpf"`
 	PixKey          string `json:"pix_key"`
 	Password        string `json:"password"`
-	LicenseNumber   string `json:"license_number"`
+	Coren           string `json:"coren"`
 	Specialization  string `json:"specialization"`
 	Department      string `json:"department"`
 	YearsExperience int    `json:"years_experience"`
@@ -84,7 +84,7 @@ func (u *NurseRegisterRequestDTO) Validate() error {
 	if u.Password == "" {
 		return utils.ErrParamIsRequired("password", "string")
 	}
-	if u.LicenseNumber == "" {
+	if u.Coren == "" {
 		return utils.ErrParamIsRequired("license_number", "string")
 	}
 	if u.Specialization == "" {
@@ -122,9 +122,9 @@ type UpdatedPasswordByNewPassword struct {
 }
 
 type ValidateTokenDTO struct {
-    Token string `json:"token" binding:"required"`
+	Token string `json:"token" binding:"required"`
 }
 type ResetPasswordDTO struct {
-    Token       string `json:"token" binding:"required"`
-    NewPassword string `json:"newPassword" binding:"required"`
+	Token       string `json:"token" binding:"required"`
+	NewPassword string `json:"newPassword" binding:"required"`
 }

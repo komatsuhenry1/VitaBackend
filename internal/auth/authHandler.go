@@ -69,7 +69,7 @@ func (h *AuthHandler) NurseRegister(c *gin.Context) {
 	nurseRequestDTO.Cpf = c.PostForm("cpf")
 	nurseRequestDTO.PixKey = c.PostForm("pix_key")
 	nurseRequestDTO.Password = c.PostForm("password")
-	nurseRequestDTO.LicenseNumber = c.PostForm("license_number")
+	nurseRequestDTO.Coren = c.PostForm("coren")
 	nurseRequestDTO.Specialization = c.PostForm("specialization")
 	nurseRequestDTO.Department = c.PostForm("department")
 	nurseRequestDTO.YearsExperience = yearsExp

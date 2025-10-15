@@ -47,7 +47,7 @@ type NurseTypeResponse struct {
 	PixKey           string  `json:"pix_key"`
 	Password         string  `json:"password"`
 	VerificationSeal bool    `json:"verification_seal"`
-	LicenseNumber    string  `json:"license_number"` // registro profissional
+	Coren            string  `json:"coren"`          // registro profissional
 	Specialization   string  `json:"specialization"` // área (ex: pediatrics, geriatrics, ER)
 	Shift            string  `json:"shift"`          // manhã, tarde, noite
 	Department       string  `json:"department"`     // setor/hospital onde trabalha

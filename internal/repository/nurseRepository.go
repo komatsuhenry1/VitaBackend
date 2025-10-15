@@ -25,6 +25,7 @@ type NurseRepository interface {
 	FindNurseByEmail(email string) (dto.AuthUser, error)
 	FindNurseByCpf(cpf string) (model.Nurse, error)
 	FindNurseById(id string) (model.Nurse, error)
+	FindNurseByCoren(coren string) (model.Nurse, error) 
 	CreateNurse(nurse *model.Nurse) error
 	FindAllNurses() ([]model.Nurse, error)
 	FindAllNursesNotVerified() ([]model.Nurse, error)
@@ -114,7 +115,6 @@ func (r *nurseRepository) UpdatePasswordByNurseID(userID string, hashedPassword 
 	return nil
 }
 
-
 func (r *nurseRepository) UpdatePasswordLoggedByNurseID(userID string, hashedPassword string, twoFactor bool) error {
 	objID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
@@ -141,6 +141,20 @@ func (r *nurseRepository) FindNurseByCpf(cpf string) (model.Nurse, error) {
 
 	var nurse model.Nurse
 	err := r.collection.FindOne(r.ctx, bson.M{"cpf": cpf}).Decode(&nurse)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nurse, fmt.Errorf("enfermeiro(a) não encontrado")
+		}
+		return nurse, err
+	}
+
+	return nurse, nil
+}
+
+func (r *nurseRepository) FindNurseByCoren(coren string) (model.Nurse, error) {
+
+	var nurse model.Nurse
+	err := r.collection.FindOne(r.ctx, bson.M{"coren": coren}).Decode(&nurse)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
 			return nurse, fmt.Errorf("enfermeiro(a) não encontrado")

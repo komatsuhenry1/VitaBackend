@@ -96,7 +96,7 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		Available:      nurse.Online,
 		Location:       nurse.Address,
 		Phone:          nurse.Phone,
-		LicenseNumber:  nurse.LicenseNumber,
+		Coren:  nurse.Coren,
 		Bio:            nurse.Bio,
 		Qualifications: qualifications,
 		Services:       services,

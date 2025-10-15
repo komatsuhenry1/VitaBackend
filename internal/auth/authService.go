@@ -125,12 +125,17 @@ func (s *authService) NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO,
 	// Verifica se usuário existe (sem erro se não achar)
 	_, err = s.nurseRepository.FindNurseByEmail(normalizedEmail)
 	if err == nil {
-		return model.Nurse{}, fmt.Errorf("Por favor, tente outro email.")
+		return model.Nurse{}, fmt.Errorf("Email já cadastrado. Por favor, tente outro email.")
 	}
 
 	_, err = s.nurseRepository.FindNurseByCpf(nurseRequestDTO.Cpf)
 	if err == nil {
-		return model.Nurse{}, fmt.Errorf("Por favor, tente outro CPF.")
+		return model.Nurse{}, fmt.Errorf("CPF já cadastrado. Por favor, tente outro CPF.")
+	}
+
+	_, err = s.nurseRepository.FindNurseByCoren(nurseRequestDTO.Coren)
+	if err == nil {
+		return model.Nurse{}, fmt.Errorf("Coren já cadastrado. Por favor, tente outro Coren.")
 	}
 
 	hashedPassword, err := utils.HashPassword(nurseRequestDTO.Password)
@@ -151,7 +156,7 @@ func (s *authService) NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO,
 		PixKey:           nurseRequestDTO.PixKey,
 		VerificationSeal: false,
 
-		LicenseNumber:   nurseRequestDTO.LicenseNumber,
+		Coren:           nurseRequestDTO.Coren,
 		Specialization:  nurseRequestDTO.Specialization,
 		Department:      nurseRequestDTO.Department,
 		YearsExperience: nurseRequestDTO.YearsExperience,
@@ -288,45 +293,45 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 
 func (s *authService) SendCodeToEmail(emailAuthRequestDTO dto.EmailAuthRequestDTO) (dto.CodeResponseDTO, error) {
 
-    authUser, err := s.findAuthUserByEmail(emailAuthRequestDTO.Email)
-    if err != nil {
-        // O erro "email não cadastrado" da sua função findAuthUserByEmail será retornado aqui.
-        return dto.CodeResponseDTO{}, err
-    }
+	authUser, err := s.findAuthUserByEmail(emailAuthRequestDTO.Email)
+	if err != nil {
+		// O erro "email não cadastrado" da sua função findAuthUserByEmail será retornado aqui.
+		return dto.CodeResponseDTO{}, err
+	}
 
 	fmt.Println("=======")
 	fmt.Println(authUser.ID)
 	fmt.Println("=======")
 
-    code, err := utils.GenerateAuthCode()
-    if err != nil {
-        return dto.CodeResponseDTO{}, fmt.Errorf("Erro ao gerar código de verificação: %w", err)
-    }
+	code, err := utils.GenerateAuthCode()
+	if err != nil {
+		return dto.CodeResponseDTO{}, fmt.Errorf("Erro ao gerar código de verificação: %w", err)
+	}
 
-    switch authUser.Role {
-    case "NURSE":
-        err = s.nurseRepository.UpdateTempCode(authUser.ID.Hex(), code)
-    default:
-        err = s.userRepository.UpdateTempCode(authUser.ID.Hex(), code)
-    }
+	switch authUser.Role {
+	case "NURSE":
+		err = s.nurseRepository.UpdateTempCode(authUser.ID.Hex(), code)
+	default:
+		err = s.userRepository.UpdateTempCode(authUser.ID.Hex(), code)
+	}
 
-    if err != nil {
-        return dto.CodeResponseDTO{}, fmt.Errorf("Erro ao atualizar código de verificação: %w", err)
-    }
+	if err != nil {
+		return dto.CodeResponseDTO{}, fmt.Errorf("Erro ao atualizar código de verificação: %w", err)
+	}
 
-    // O envio do email continua o mesmo.
-    err = utils.SendAuthCode(emailAuthRequestDTO.Email, code)
-    if err != nil {
-        // Boa prática: envolver o erro original para não perder o contexto.
-        return dto.CodeResponseDTO{}, fmt.Errorf("erro ao enviar codigo de verificacao: %w", err)
-    }
+	// O envio do email continua o mesmo.
+	err = utils.SendAuthCode(emailAuthRequestDTO.Email, code)
+	if err != nil {
+		// Boa prática: envolver o erro original para não perder o contexto.
+		return dto.CodeResponseDTO{}, fmt.Errorf("erro ao enviar codigo de verificacao: %w", err)
+	}
 
-    // O retorno do DTO continua o mesmo.
-    codeResponseDTO := dto.CodeResponseDTO{
-        Code: code,
-    }
+	// O retorno do DTO continua o mesmo.
+	codeResponseDTO := dto.CodeResponseDTO{
+		Code: code,
+	}
 
-    return codeResponseDTO, nil
+	return codeResponseDTO, nil
 }
 
 func (s *authService) findAuthUserByEmail(email string) (dto.AuthUser, error) {

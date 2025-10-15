@@ -217,7 +217,7 @@ func (s *nurseService) NurseDashboardData(nurseId string) (dto.NurseDashboardDat
 		Name:            nurse.Name,
 		Email:           nurse.Email,
 		Phone:           nurse.Phone,
-		Coren:           nurse.LicenseNumber,
+		Coren:           nurse.Coren,
 		ExperienceYears: nurse.YearsExperience,
 		Department:      nurse.Department,
 		Bio:             nurse.Bio,

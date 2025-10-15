@@ -34,7 +34,7 @@ type NurseProfileResponseDTO struct {
 	Price          float64           `json:"price"`
 	Shift          string            `json:"shift"`
 	Department     string            `json:"department"`
-	LicenseNumber  string            `json:"license_number"`
+	Coren          string            `json:"coren"`
 	Phone          string            `json:"phone"`
 	Image          string            `json:"image"`
 	Available      bool              `json:"available"`

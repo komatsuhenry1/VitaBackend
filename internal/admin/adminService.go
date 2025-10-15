@@ -234,7 +234,7 @@ func (s *adminService) UserLists() (dto.UserListsResponse, error) {
 			FirstAccess:      nurse.FirstAccess,
 			Role:             nurse.Role,
 			VerificationSeal: nurse.VerificationSeal,
-			LicenseNumber:    nurse.LicenseNumber,
+			Coren:            nurse.Coren,
 			Specialization:   nurse.Specialization,
 			Shift:            nurse.Shift,
 			Department:       nurse.Department,
