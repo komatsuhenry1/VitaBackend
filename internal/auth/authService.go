@@ -233,40 +233,40 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 
 	// O resto das validações continua igual
 	if authUser.Role == "NURSE" && !authUser.VerificationSeal {
-		return "", dto.AuthUser{}, fmt.Errorf("a conta ainda não foi verificada")
+		return "", dto.AuthUser{}, fmt.Errorf("A conta ainda não foi verificada.")
 	}
 
 	if authUser.Hidden {
-		return "", dto.AuthUser{}, fmt.Errorf("usuário não permitido para login")
+		return "", dto.AuthUser{}, fmt.Errorf("Usuário não permitido para login.")
 	}
 	if !utils.ComparePassword(authUser.Password, loginRequestDTO.Password) {
-		return "", dto.AuthUser{}, fmt.Errorf("credenciais incorretas")
+		return "", dto.AuthUser{}, fmt.Errorf("Credenciais inválidas. Tente novamente.")
 	}
 
 	if authUser.TwoFactor {
 		//gera o codigo
 		code, err := utils.GenerateAuthCode()
 		if err != nil {
-			return "", dto.AuthUser{}, fmt.Errorf("erro ao gerar codigo de verificacao: %w", err)
+			return "", dto.AuthUser{}, fmt.Errorf("Erro ao gerar código de verificação: %w", err)
 		}
 
 		// atualiza o campo temp_code no db
 		if authUser.Role == "PATIENT" {
 			err = s.userRepository.UpdateTempCode(authUser.ID.Hex(), code)
 			if err != nil {
-				return "", dto.AuthUser{}, fmt.Errorf("erro ao atualizar codigo de verificacao de paciente: %w", err)
+				return "", dto.AuthUser{}, fmt.Errorf("Erro ao atualizar codigo de verificacao de paciente: %w", err)
 			}
 		} else {
 			err = s.nurseRepository.UpdateTempCode(authUser.ID.Hex(), code)
 			if err != nil {
-				return "", dto.AuthUser{}, fmt.Errorf("erro ao atualizar codigo de verificacao de enfermeiro: %w", err)
+				return "", dto.AuthUser{}, fmt.Errorf("Erro ao atualizar codigo de verificacao de enfermeiro: %w", err)
 			}
 		}
 
 		//manda para o email
 		err = utils.SendAuthCode(authUser.Email, code)
 		if err != nil {
-			return "", dto.AuthUser{}, fmt.Errorf("erro ao enviar email com código de verificação: %w", err)
+			return "", dto.AuthUser{}, fmt.Errorf("Erro ao enviar email com código de verificação: %w", err)
 		}
 
 		user := dto.AuthUser{
