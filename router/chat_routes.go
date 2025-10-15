@@ -15,5 +15,6 @@ func SetupChatRoutes(api *gin.RouterGroup, container *di.Container) {
 
 	{
 		chatGroup.GET("/messages/:nurseId", handler.GetMessagesHistory)
+		chatGroup.GET("/conversations", middleware.AuthNurse(), handler.GetConversations)
 	}
 }
