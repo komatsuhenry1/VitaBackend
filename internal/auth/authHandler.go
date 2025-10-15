@@ -2,11 +2,11 @@ package auth
 
 import (
 	"fmt"
+	"log"
 	"medassist/internal/auth/dto"
 	"medassist/utils"
 	"net/http"
 	"strconv"
-	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -120,7 +120,7 @@ func (h *AuthHandler) LoginUser(c *gin.Context) {
 	utils.SendSuccessResponse(c, "Usuário logado com sucesso.",
 		gin.H{
 			"token": token,
-			"user": authUser,
+			"user":  authUser,
 		})
 }
 
@@ -151,7 +151,7 @@ func (h *AuthHandler) ValidateCode(c *gin.Context) {
 
 	token, authUser, err := h.authService.ValidateUserCode(inputCodeDto)
 	if err != nil {
-		utils.SendErrorResponse(c, "Código inválido.", http.StatusBadRequest)
+		utils.SendErrorResponse(c, "Código inválido.", http.StatusOK)
 		return
 	}
 
@@ -159,7 +159,7 @@ func (h *AuthHandler) ValidateCode(c *gin.Context) {
 		gin.H{
 			"token": token,
 			"user": gin.H{
-				"_id":               authUser.ID,
+				"_id":              authUser.ID,
 				"name":             authUser.Name,
 				"email":            authUser.Email,
 				"role":             authUser.Role,
@@ -187,7 +187,6 @@ func (h *AuthHandler) SendEmailForgotPassword(c *gin.Context) {
 	}
 
 	log.Printf("Recebida solicitação de redefinição de senha para o DTO: %+v\n", email)
-
 
 	err := h.authService.SendEmailForgotPassword(email)
 	if err != nil {

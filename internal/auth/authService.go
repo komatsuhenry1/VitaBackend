@@ -270,15 +270,15 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 		}
 
 		user := dto.AuthUser{
-			Email: authUser.Email,
+			Email:     authUser.Email,
 			TwoFactor: authUser.TwoFactor,
-			Role: authUser.Role,
+			Role:      authUser.Role,
 		}
 
 		return "", user, nil
 	}
 
-	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role,  authUser.Name, authUser.Hidden, time.Hour*168)
+	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Name, authUser.Hidden, time.Hour*168)
 	if err != nil {
 		return "", dto.AuthUser{}, fmt.Errorf("erro ao gerar token: %w", err)
 	}
@@ -288,36 +288,45 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 
 func (s *authService) SendCodeToEmail(emailAuthRequestDTO dto.EmailAuthRequestDTO) (dto.CodeResponseDTO, error) {
 
-	//busca o usuario pelo email
-	user, err := s.userRepository.FindUserByEmail(emailAuthRequestDTO.Email)
-	if err != nil {
-		return dto.CodeResponseDTO{}, fmt.Errorf("erro ao criar usuário: %w", err)
-	}
+    authUser, err := s.findAuthUserByEmail(emailAuthRequestDTO.Email)
+    if err != nil {
+        // O erro "email não cadastrado" da sua função findAuthUserByEmail será retornado aqui.
+        return dto.CodeResponseDTO{}, err
+    }
 
-	//gera o codigo
-	code, err := utils.GenerateAuthCode()
-	if err != nil {
-		return dto.CodeResponseDTO{}, fmt.Errorf("erro ao criar usuário: %w", err)
-	}
+	fmt.Println("=======")
+	fmt.Println(authUser.ID)
+	fmt.Println("=======")
 
-	// atualiza o campo temp_code no db
-	err = s.userRepository.UpdateTempCode(user.ID.Hex(), code)
-	if err != nil {
-		return dto.CodeResponseDTO{}, fmt.Errorf("erro ao criar usuário: %w", err)
-	}
+    code, err := utils.GenerateAuthCode()
+    if err != nil {
+        return dto.CodeResponseDTO{}, fmt.Errorf("Erro ao gerar código de verificação: %w", err)
+    }
 
-	//manda para o email
-	err = utils.SendAuthCode(emailAuthRequestDTO.Email, code)
-	if err != nil {
-		return dto.CodeResponseDTO{}, fmt.Errorf("erro ao enviar codigo de verificacao")
-	}
+    switch authUser.Role {
+    case "NURSE":
+        err = s.nurseRepository.UpdateTempCode(authUser.ID.Hex(), code)
+    default:
+        err = s.userRepository.UpdateTempCode(authUser.ID.Hex(), code)
+    }
 
-	//retorna o code para o dto
-	codeResponseDTO := dto.CodeResponseDTO{
-		Code: code,
-	}
+    if err != nil {
+        return dto.CodeResponseDTO{}, fmt.Errorf("Erro ao atualizar código de verificação: %w", err)
+    }
 
-	return codeResponseDTO, nil
+    // O envio do email continua o mesmo.
+    err = utils.SendAuthCode(emailAuthRequestDTO.Email, code)
+    if err != nil {
+        // Boa prática: envolver o erro original para não perder o contexto.
+        return dto.CodeResponseDTO{}, fmt.Errorf("erro ao enviar codigo de verificacao: %w", err)
+    }
+
+    // O retorno do DTO continua o mesmo.
+    codeResponseDTO := dto.CodeResponseDTO{
+        Code: code,
+    }
+
+    return codeResponseDTO, nil
 }
 
 func (s *authService) findAuthUserByEmail(email string) (dto.AuthUser, error) {
@@ -343,7 +352,7 @@ func (s *authService) ValidateUserCode(inputCodeDto dto.InputCodeDto) (string, d
 
 	if inputCodeDto.Code == authUser.TempCode {
 		hourExp := time.Hour * 168
-		token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role,  authUser.Name, authUser.Hidden, hourExp)
+		token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Name, authUser.Hidden, hourExp)
 		if err != nil {
 			return "", dto.AuthUser{}, fmt.Errorf("erro ao gerar token")
 		}
@@ -403,7 +412,7 @@ func (s *authService) SendEmailForgotPassword(forgotPasswordRequestDTO dto.Forgo
 
 	expiration := time.Minute * 15
 
-	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role,  authUser.Name, authUser.Hidden, expiration)
+	token, err := utils.GenerateToken(authUser.ID.Hex(), authUser.Role, authUser.Name, authUser.Hidden, expiration)
 	if err != nil {
 		return fmt.Errorf("erro ao gerar token: %w", err)
 	}
