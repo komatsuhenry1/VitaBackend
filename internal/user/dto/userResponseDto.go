@@ -11,6 +11,10 @@ type AllNursesListDto struct {
 	Image           string  `json:"image"`
 	Available       bool    `json:"available"`
 	Location        string  `json:"location"`
+	City            string  `json:"city"`
+	UF              string  `json:"uf"`
+	Neighborhood    string  `json:"neighborhood"`
+	Street          string  `json:"street"`
 }
 
 type ReviewDTO struct {

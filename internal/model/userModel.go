@@ -13,7 +13,7 @@ type User struct {
 	Phone string             `bson:"phone" json:"phone" binding:"required,phone"`
 
 	Address      string `bson:"address" json:"address" binding:"required,address"`
-	CEP          string `json:"cep"`
+	CEP          string `bson:"cep" json:"cep" binding:"required,address"`
 	Street       string `bson:"street" json:"street" binding:"required"`
 	Number       string `bson:"number" json:"number" binding:"required"`
 	Complement   string `bson:"complement" json:"complement"`

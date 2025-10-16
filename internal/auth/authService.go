@@ -67,17 +67,17 @@ func (s *authService) UserRegister(registerRequestDTO dto.UserRegisterRequestDTO
 	}
 	_, err = s.userRepository.FindUserByEmail(normalizedEmail)
 	if err == nil {
-		return model.User{}, fmt.Errorf("O usuário com o email '%s' já existe", normalizedEmail)
+		return model.User{}, fmt.Errorf("O usuário com o email '%s' já existe.", normalizedEmail)
 	}
 
-	_, err = s.userRepository.FindUserByCpf(registerRequestDTO.Cpf)
-	if err == nil {
-		return model.User{}, fmt.Errorf("O usuário com o CPF '%s' já existe", registerRequestDTO.Cpf)
-	}
+	// _, err = s.userRepository.FindUserByCpf(registerRequestDTO.Cpf)
+	// if err == nil {
+	// 	return model.User{}, fmt.Errorf("O usuário com o CPF '%s' já existe.", registerRequestDTO.Cpf)
+	// }
 
 	hashedPassword, err := utils.HashPassword(registerRequestDTO.Password)
 	if err != nil {
-		return model.User{}, fmt.Errorf("Erro ao criptografar senha: %w", err)
+		return model.User{}, fmt.Errorf("Erro ao criptografar senha: %w.", err)
 	}
 
 	user := model.User{

@@ -18,7 +18,7 @@ import (
 )
 
 type UserService interface {
-	GetAllNurses() ([]userDTO.AllNursesListDto, error)
+	GetAllNurses(patientId string) ([]userDTO.AllNursesListDto, error)
 	GetFileByID(ctx context.Context, id primitive.ObjectID) (*dto.FileData, error)
 	ContactUsMessage(contactUsDto userDTO.ContactUsDTO) error
 	GetNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
@@ -39,8 +39,12 @@ func NewUserService(userRepository repository.UserRepository, nurseRepository re
 	return &userService{userRepository: userRepository, nurseRepository: nurseRepository, visitRepository: visitRepository}
 }
 
-func (s *userService) GetAllNurses() ([]userDTO.AllNursesListDto, error) {
-	nurses, err := s.nurseRepository.GetAllNurses()
+func (s *userService) GetAllNurses(patientId string) ([]userDTO.AllNursesListDto, error) {
+	patient, err := s.userRepository.FindUserById(patientId)
+	if err != nil{
+		return []userDTO.AllNursesListDto{}, fmt.Errorf("Erro ao buscar id de paciente.")
+	}
+	nurses, err := s.nurseRepository.GetAllNurses(patient.City)
 	if err != nil {
 		return nil, err
 	}

@@ -25,7 +25,7 @@ type NurseRepository interface {
 	FindNurseByEmail(email string) (dto.AuthUser, error)
 	FindNurseByCpf(cpf string) (model.Nurse, error)
 	FindNurseById(id string) (model.Nurse, error)
-	FindNurseByCoren(coren string) (model.Nurse, error) 
+	FindNurseByCoren(coren string) (model.Nurse, error)
 	CreateNurse(nurse *model.Nurse) error
 	FindAllNurses() ([]model.Nurse, error)
 	FindAllNursesNotVerified() ([]model.Nurse, error)
@@ -37,7 +37,7 @@ type NurseRepository interface {
 	UpdatePasswordByNurseID(userID string, hashedPassword string) error
 	UpdatePasswordLoggedByNurseID(userID string, hashedPassword string, twoFactor bool) error
 	GetIdsNursesPendents() ([]string, error)
-	GetAllNurses() ([]userDTO.AllNursesListDto, error)
+	GetAllNurses(patientCity string) ([]userDTO.AllNursesListDto, error)
 	UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error)
 	DeleteNurse(id string) error
 }
@@ -332,33 +332,28 @@ func (r *nurseRepository) FindAllNursesNotVerified() ([]model.Nurse, error) {
 	return nurses, nil
 }
 
-func (r *nurseRepository) GetAllNurses() ([]userDTO.AllNursesListDto, error) {
+func (r *nurseRepository) GetAllNurses(patientCity string) ([]userDTO.AllNursesListDto, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.M{"hidden": false, "verification_seal": true}
+	filter := bson.M{"hidden": false, "verification_seal": true, "city": patientCity}
 
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
 		fmt.Printf("Erro ao buscar enfermeiros no MongoDB: %v", err)
 		return nil, err
 	}
-	// Garante que o cursor será fechado no final da função
 	defer cursor.Close(ctx)
 
-	// Onde vamos armazenar o resultado final
 	var nursesDto []userDTO.AllNursesListDto
 
-	// Itera sobre cada documento retornado pelo MongoDB
 	for cursor.Next(ctx) {
 		var nurseModel model.Nurse
-		// Decodifica o documento BSON para o nosso struct Nurse
 		if err := cursor.Decode(&nurseModel); err != nil {
 			fmt.Printf("Erro ao decodificar enfermeiro: %v", err)
-			continue // Pula para o próximo em caso de erro de decodificação
+			continue
 		}
 
-		// Mapeia os campos do Model para o DTO
 		nurseDto := userDTO.AllNursesListDto{
 			ID:              nurseModel.ID.Hex(), // Convertendo o ObjectID para string
 			Name:            nurseModel.Name,
@@ -370,9 +365,14 @@ func (r *nurseRepository) GetAllNurses() ([]userDTO.AllNursesListDto, error) {
 			Department:      nurseModel.Department,
 			Available:       nurseModel.Online,  // Mapeando o campo 'Online' para 'Available'
 			Location:        nurseModel.Address, // Mapeando o campo 'Address' para 'Location'
+			City:            nurseModel.City,
+			UF:              nurseModel.UF,
+			Neighborhood:    nurseModel.Neighborhood,
+			Street:          nurseModel.Street,
 		}
 
 		nursesDto = append(nursesDto, nurseDto)
+		fmt.Println("len", len(nursesDto))
 	}
 
 	// Verifica se houve algum erro durante a iteração do cursor

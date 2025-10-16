@@ -26,7 +26,18 @@ func (h *UserHandler) UserDashboard(c *gin.Context){
 }
 
 func (h *UserHandler) GetAllNurses(c *gin.Context){
-	nurses, err := h.userService.GetAllNurses()
+	claims, exists := c.Get("claims")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
+		return
+	}
+	patientId, ok := claims.(jwt.MapClaims)["sub"].(string)
+	if !ok {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
+		return
+	}
+
+	nurses, err := h.userService.GetAllNurses(patientId)
 	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusInternalServerError)
 		return
