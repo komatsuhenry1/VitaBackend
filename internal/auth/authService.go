@@ -44,9 +44,27 @@ func (s *authService) UserRegister(registerRequestDTO dto.UserRegisterRequestDTO
 
 	normalizedEmail, err := utils.EmailRegex(registerRequestDTO.Email)
 	if err != nil {
-		return model.User{}, fmt.Errorf("email invalido")
+		return model.User{}, err
 	}
 
+	normalizedCPF, err := utils.ValidateCPF(registerRequestDTO.Cpf)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	normalizedPhone, err := utils.ValidatePhone(registerRequestDTO.Phone)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	normalizedCEP, err := utils.ValidateCEP(registerRequestDTO.CEP)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	if err := utils.ValidatePasswordRegex(registerRequestDTO.Password); err != nil {
+		return model.User{}, err
+	}
 	_, err = s.userRepository.FindUserByEmail(normalizedEmail)
 	if err == nil {
 		return model.User{}, fmt.Errorf("O usuário com o email '%s' já existe", normalizedEmail)
@@ -65,11 +83,11 @@ func (s *authService) UserRegister(registerRequestDTO dto.UserRegisterRequestDTO
 	user := model.User{
 		ID:    primitive.NewObjectID(),
 		Name:  registerRequestDTO.Name,
-		Cpf:   registerRequestDTO.Cpf,
-		Phone: registerRequestDTO.Phone,
+		Cpf:   normalizedCPF,
+		Phone: normalizedPhone,
 		// address recebe a rua mais o número
 		Address:      fmt.Sprint(registerRequestDTO.Street, ", ", registerRequestDTO.Number),
-		CEP:          registerRequestDTO.CEP,
+		CEP:          normalizedCEP,
 		Street:       registerRequestDTO.Street,
 		Number:       registerRequestDTO.Number,
 		Complement:   registerRequestDTO.Complement,
@@ -127,7 +145,31 @@ func (s *authService) NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO,
 
 	normalizedEmail, err := utils.EmailRegex(nurseRequestDTO.Email)
 	if err != nil {
-		return model.Nurse{}, fmt.Errorf("email invalido")
+		return model.Nurse{}, err
+	}
+
+	normalizedCPF, err := utils.ValidateCPF(nurseRequestDTO.Cpf)
+	if err != nil {
+		return model.Nurse{}, err
+	}
+
+	normalizedPhone, err := utils.ValidatePhone(nurseRequestDTO.Phone)
+	if err != nil {
+		return model.Nurse{}, err
+	}
+
+	normalizedCEP, err := utils.ValidateCEP(nurseRequestDTO.CEP)
+	if err != nil {
+		return model.Nurse{}, err
+	}
+
+	normalizedCoren, err := utils.ValidateCoren(nurseRequestDTO.Coren)
+	if err != nil {
+		return model.Nurse{}, err
+	}
+
+	if err := utils.ValidatePasswordRegex(nurseRequestDTO.Password); err != nil {
+		return model.Nurse{}, err
 	}
 
 	// Verifica se usuário existe (sem erro se não achar)
@@ -156,15 +198,15 @@ func (s *authService) NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO,
 	nurse := model.Nurse{
 		ID:               primitive.NewObjectID(),
 		Name:             nurseRequestDTO.Name,
-		Cpf:              nurseRequestDTO.Cpf,
-		Phone:            nurseRequestDTO.Phone,
+		Cpf:              normalizedCPF,
+		Phone:            normalizedPhone,
 		Email:            normalizedEmail,
 		Password:         hashedPassword,
 		PixKey:           nurseRequestDTO.PixKey,
 		VerificationSeal: false,
 
 		Address:      fmt.Sprint(nurseRequestDTO.Street, ", ", nurseRequestDTO.Number),
-		CEP:          nurseRequestDTO.CEP,
+		CEP:          normalizedCEP,
 		Street:       nurseRequestDTO.Street,
 		Number:       nurseRequestDTO.Number,
 		Complement:   nurseRequestDTO.Complement,
@@ -172,7 +214,7 @@ func (s *authService) NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO,
 		City:         nurseRequestDTO.City,
 		UF:           nurseRequestDTO.UF,
 
-		Coren:           nurseRequestDTO.Coren,
+		Coren:           normalizedCoren,
 		Specialization:  nurseRequestDTO.Specialization,
 		Department:      nurseRequestDTO.Department,
 		YearsExperience: nurseRequestDTO.YearsExperience,
