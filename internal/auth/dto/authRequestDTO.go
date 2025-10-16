@@ -18,9 +18,17 @@ func (u *LoginRequestDTO) Validate() error {
 }
 
 type UserRegisterRequestDTO struct {
-	Email    string `json:"email"`
-	Phone    string `json:"phone"`
-	Address  string `json:"address"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
+
+	CEP          string `json:"cep"`
+	Street       string `json:"street"`
+	Number       string `json:"number"`
+	Complement   string `json:"complement"`
+	Neighborhood string `json:"neighborhood"`
+	City         string `json:"city"`
+	UF           string `json:"uf"`
+
 	Name     string `json:"name"`
 	Cpf      string `json:"cpf"`
 	Password string `json:"password"`
@@ -36,9 +44,6 @@ func (u *UserRegisterRequestDTO) Validate() error {
 	if u.Phone == "" {
 		return utils.ErrParamIsRequired("phone", "string")
 	}
-	if u.Address == "" {
-		return utils.ErrParamIsRequired("address", "string")
-	}
 	if u.Cpf == "" {
 		return utils.ErrParamIsRequired("cpf", "string")
 	}
@@ -49,10 +54,18 @@ func (u *UserRegisterRequestDTO) Validate() error {
 }
 
 type NurseRegisterRequestDTO struct {
-	Name            string `json:"name"`
-	Email           string `json:"email"`
-	Phone           string `json:"phone"`
-	Address         string `json:"address"`
+	Name  string `json:"name"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
+
+	CEP          string `json:"cep"`
+	Street       string `json:"street"`
+	Number       string `json:"number"`
+	Complement   string `json:"complement"`
+	Neighborhood string `json:"neighborhood"`
+	City         string `json:"city"`
+	UF           string `json:"uf"`
+
 	Cpf             string `json:"cpf"`
 	PixKey          string `json:"pix_key"`
 	Password        string `json:"password"`
@@ -75,8 +88,23 @@ func (u *NurseRegisterRequestDTO) Validate() error {
 	if u.Phone == "" {
 		return utils.ErrParamIsRequired("phone", "string")
 	}
-	if u.Address == "" {
-		return utils.ErrParamIsRequired("address", "string")
+	if u.CEP == "" {
+		return utils.ErrParamIsRequired("cep", "string")
+	}
+	if u.Street == "" {
+		return utils.ErrParamIsRequired("street", "string")
+	}
+	if u.Number == "" {
+		return utils.ErrParamIsRequired("number", "string")
+	}
+	if u.Neighborhood == "" {
+		return utils.ErrParamIsRequired("neighborhood", "string")
+	}
+	if u.City == "" {
+		return utils.ErrParamIsRequired("city", "string")
+	}
+	if u.UF == "" {
+		return utils.ErrParamIsRequired("uf", "string")
 	}
 	if u.Cpf == "" {
 		return utils.ErrParamIsRequired("cpf", "string")
@@ -85,7 +113,7 @@ func (u *NurseRegisterRequestDTO) Validate() error {
 		return utils.ErrParamIsRequired("password", "string")
 	}
 	if u.Coren == "" {
-		return utils.ErrParamIsRequired("license_number", "string")
+		return utils.ErrParamIsRequired("coren", "string")
 	}
 	if u.Specialization == "" {
 		return utils.ErrParamIsRequired("specialization", "string")

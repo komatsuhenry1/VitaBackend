@@ -7,11 +7,20 @@ import (
 )
 
 type User struct {
-	ID             primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name           string             `bson:"name" json:"name" binding:"required"`
-	Email          string             `bson:"email" json:"email" binding:"required,email"`
-	Phone          string             `bson:"phone" json:"phone" binding:"required,phone"`
-	Address        string             `bson:"address" json:"address" binding:"required,address"`
+	ID    primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name  string             `bson:"name" json:"name" binding:"required"`
+	Email string             `bson:"email" json:"email" binding:"required,email"`
+	Phone string             `bson:"phone" json:"phone" binding:"required,phone"`
+
+	Address      string `bson:"address" json:"address" binding:"required,address"`
+	CEP          string `json:"cep"`
+	Street       string `bson:"street" json:"street" binding:"required"`
+	Number       string `bson:"number" json:"number" binding:"required"`
+	Complement   string `bson:"complement" json:"complement"`
+	Neighborhood string `bson:"neighborhood" json:"neighborhood" binding:"required"`
+	City         string `bson:"city" json:"city" binding:"required"`
+	UF           string `bson:"uf" json:"uf" binding:"required"`
+
 	Cpf            string             `bson:"cpf" json:"cpf" binding:"required"`
 	Password       string             `bson:"password" json:"password" binding:"required"`
 	TwoFactor      int                `bson:"two_factor" json:"two_factor"`

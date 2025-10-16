@@ -26,23 +26,23 @@ func (h *AuthHandler) UserRegister(c *gin.Context) {
 	userRequestDTO.Name = c.PostForm("name")
 	userRequestDTO.Email = c.PostForm("email")
 	userRequestDTO.Phone = c.PostForm("phone")
-	userRequestDTO.Address = c.PostForm("address")
+	userRequestDTO.Neighborhood = c.PostForm("neighborhood")
+	userRequestDTO.City = c.PostForm("city")
+	userRequestDTO.UF = c.PostForm("uf")
+	userRequestDTO.Complement = c.PostForm("complement")
+	userRequestDTO.Number = c.PostForm("number")
+	userRequestDTO.Street = c.PostForm("street")
+	userRequestDTO.CEP = c.PostForm("cep")
 	userRequestDTO.Cpf = c.PostForm("cpf")
 	userRequestDTO.Password = c.PostForm("password")
 
-	// 2. Processar a parte de multipart/form-data para pegar os arquivos
 	form, err := c.MultipartForm()
 	if err != nil {
-		// Se não for um multipart form, pode ser que nenhum arquivo foi enviado, o que é ok.
-		// Vamos tratar o `form` como nulo ou vazio na camada de serviço.
-		// Se o erro for outro (ex: form mal formatado), ele será pego.
-		// Para simplificar, vamos assumir que o erro aqui indica um problema.
 		utils.SendErrorResponse(c, "Erro ao processar formulário multipart: "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	files := form.File // Pega o mapa de todos os arquivos
+	files := form.File
 
-	// 3. Chamar o serviço com o DTO e os arquivos
 	createdUser, err := h.authService.UserRegister(userRequestDTO, files)
 	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
@@ -65,7 +65,15 @@ func (h *AuthHandler) NurseRegister(c *gin.Context) {
 	nurseRequestDTO.Name = c.PostForm("name")
 	nurseRequestDTO.Email = c.PostForm("email")
 	nurseRequestDTO.Phone = c.PostForm("phone")
-	nurseRequestDTO.Address = c.PostForm("address")
+
+	nurseRequestDTO.CEP = c.PostForm("cep")
+	nurseRequestDTO.Street = c.PostForm("street")
+	nurseRequestDTO.Number = c.PostForm("number")
+	nurseRequestDTO.Complement = c.PostForm("complement")
+	nurseRequestDTO.Neighborhood = c.PostForm("neighborhood")
+	nurseRequestDTO.City = c.PostForm("city")
+	nurseRequestDTO.UF = c.PostForm("uf")
+
 	nurseRequestDTO.Cpf = c.PostForm("cpf")
 	nurseRequestDTO.PixKey = c.PostForm("pix_key")
 	nurseRequestDTO.Password = c.PostForm("password")
@@ -100,7 +108,7 @@ func (h *AuthHandler) NurseRegister(c *gin.Context) {
 		return
 	}
 
-	utils.SendSuccessResponse(c, "usuário criado com sucesso", gin.H{"nurse": createdNurse})
+	utils.SendSuccessResponse(c, "Cadastro de enfermeiro solicitado com sucesso.", gin.H{"nurse": createdNurse})
 }
 
 func (h *AuthHandler) LoginUser(c *gin.Context) {

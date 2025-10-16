@@ -11,12 +11,20 @@ type Nurse struct {
 	Name             string             `bson:"name" json:"name" binding:"required"`
 	Email            string             `bson:"email" json:"email" binding:"required,email"`
 	Phone            string             `bson:"phone" json:"phone" binding:"required,phone"`
-	Address          string             `bson:"address" json:"address" binding:"required,address"`
 	Cpf              string             `bson:"cpf" json:"cpf" binding:"required"`
 	PixKey           string             `bson:"pix_key" json:"pix_key" binding:"required"`
 	Password         string             `bson:"password" json:"password" binding:"required"`
 	TwoFactor        int                `bson:"two_factor" json:"two_factor"`
 	VerificationSeal bool               `bson:"verification_seal" json:"verification_seal" binding:"required"`
+
+	Address      string `bson:"address" json:"address" binding:"required,address"`
+	CEP          string `json:"cep"`
+	Street       string `bson:"street" json:"street" binding:"required"`
+	Number       string `bson:"number" json:"number" binding:"required"`
+	Complement   string `bson:"complement" json:"complement"`
+	Neighborhood string `bson:"neighborhood" json:"neighborhood" binding:"required"`
+	City         string `bson:"city" json:"city" binding:"required"`
+	UF           string `bson:"uf" json:"uf" binding:"required"`
 
 	Coren           string `bson:"coren" json:"coren" binding:"required"` // registro profissional
 	Specialization  string `bson:"specialization" json:"specialization"`  // área (ex: pediatrics, geriatrics, ER)
@@ -28,11 +36,11 @@ type Nurse struct {
 	Price  float64 `bson:"price" json:"price"`
 	Bio    string  `bson:"bio" json:"bio"`
 
-	LicenseDocumentID     primitive.ObjectID `bson:"license_document_id,omitempty"`
-	QualificationsID      primitive.ObjectID `bson:"qualifications_id,omitempty"`
-	GeneralRegisterID     primitive.ObjectID `bson:"general_register_id,omitempty"`
-	ResidenceComprovantId primitive.ObjectID `bson:"residence_comprovante_id,omitempty"`
-	ProfileImageID        primitive.ObjectID `bson:"profile_image_id,omitempty"`
+	LicenseDocumentID     primitive.ObjectID `bson:"license_document_id" json:"license_document_id" binding:"required"`
+	QualificationsID      primitive.ObjectID `bson:"qualifications_id" json:"qualifications_id" binding:"required"`
+	GeneralRegisterID     primitive.ObjectID `bson:"general_register_id" json:"general_register_id" binding:"required"`
+	ResidenceComprovantId primitive.ObjectID `bson:"residence_comprovant_id" json:"residence_comprovant_id" binding:"required"`
+	ProfileImageID        primitive.ObjectID `bson:"profile_image_id" json:"profile_image_id" binding:"required"`
 
 	Hidden      bool      `bson:"hidden" json:"hidden"`
 	Role        string    `bson:"role" json:"role" binding:"required"`
