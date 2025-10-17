@@ -9,6 +9,7 @@ import (
 	userDTO "medassist/internal/user/dto"
 	"medassist/utils"
 	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 
 	"fmt"
@@ -26,7 +27,7 @@ type UserService interface {
 	FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, error)
 	UpdateUser(userId string, updates map[string]interface{}) (adminDTO.UserTypeResponse, error)
 	DeleteUser(patientId string) error
-	ConfirmVisitService(visitId , patientId string) error
+	ConfirmVisitService(visitId, patientId string) error
 }
 
 type userService struct {
@@ -41,7 +42,7 @@ func NewUserService(userRepository repository.UserRepository, nurseRepository re
 
 func (s *userService) GetAllNurses(patientId string) ([]userDTO.AllNursesListDto, error) {
 	patient, err := s.userRepository.FindUserById(patientId)
-	if err != nil{
+	if err != nil {
 		return []userDTO.AllNursesListDto{}, fmt.Errorf("Erro ao buscar id de paciente.")
 	}
 	nurses, err := s.nurseRepository.GetAllNurses(patient.City)
@@ -100,7 +101,8 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		Available:      nurse.Online,
 		Location:       nurse.Address,
 		Phone:          nurse.Phone,
-		Coren:  nurse.Coren,
+		Online:         nurse.Online,
+		Coren:          nurse.Coren,
 		Bio:            nurse.Bio,
 		Qualifications: qualifications,
 		Services:       services,
@@ -252,31 +254,31 @@ func (s *userService) DeleteUser(patientId string) error {
 	return nil
 }
 
-func (s *userService) ConfirmVisitService(visitId, patientId string) error{
+func (s *userService) ConfirmVisitService(visitId, patientId string) error {
 	visit, err := s.visitRepository.FindVisitById(visitId)
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("Erro ao buscar visita")
 	}
 
-	if visit.PatientId != patientId{
+	if visit.PatientId != patientId {
 		return fmt.Errorf("Visita pertence à outro paciente.")
 	}
 
 	// logica de liberar o dinheiro retido para o enfermeiro
 
-	if visit.Status != "CONFIRMED"{
+	if visit.Status != "CONFIRMED" {
 		return fmt.Errorf("O status da visita deve estar com status confirmada para ser completada.")
 	}
 
 	visitUpdate := bson.M{
-		"status":    "COMPLETED",
+		"status":     "COMPLETED",
 		"updated_at": time.Now(),
 	}
 
 	//salve user com status true/false
 	visit, err = s.visitRepository.UpdateVisitFields(visitId, visitUpdate)
-	if err != nil{
-		return fmt.Errorf("Erro ao atualizar status de visita: %w", err )
+	if err != nil {
+		return fmt.Errorf("Erro ao atualizar status de visita: %w", err)
 	}
 
 	return nil

@@ -679,107 +679,10 @@ func SendEmailForgotPassword(toEmail, id, token string) error {
 	return sendEmailWithSendGrid(toEmail, subject, plainTextContent, htmlContent, "")
 }
 
-// func SendEmailForgotPassword(toEmail, id, token string) error {
-// 	link := os.Getenv("FRONTEND_URL") + "/reset-password?token=" + token
-// 	subject := "🔐 Recuperação de senha - MEDASSIST"
-// 	htmlContent := fmt.Sprintf(`... seu HTML aqui ...`, toEmail, link) // Mantenha seu HTML original
-// 	plainTextContent := fmt.Sprintf("Para criar uma nova senha, acesse o seguinte link: %s", link)
-
-// 	// A chamada agora passa "" para o campo replyToEmail
-// 	return sendEmailWithSendGrid(toEmail, subject, plainTextContent, htmlContent, "")
-// }
-
-// func SendEmailRegistrationRejected(email, description string) error {
-// 	m := gomail.NewMessage()
-// 	m.SetHeader("From", os.Getenv("EMAIL_SENDER"))
-// 	m.SetHeader("To", email)
-// 	m.SetHeader("Subject", "❌ Cadastro Rejeitado - MEDASSIST")
-
-// 	html := fmt.Sprintf(`
-// 	<!DOCTYPE html>
-// 	<html lang="pt-BR">
-// 	<head>
-// 	<meta charset="UTF-8">
-// 	<title>Cadastro Rejeitado - MEDASSIST</title>
-// 	<style>
-// 	body {
-// 		background-color: #f9f9f9;
-// 		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-// 		color: #333333;
-// 		padding: 0;
-// 		margin: 0;
-// 	}
-// 	.container {
-// 		max-width: 600px;
-// 		margin: 40px auto;
-// 		background-color: #ffffff;
-// 		border-radius: 10px;
-// 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-// 		padding: 30px 40px;
-// 	}
-// 	h2 {
-// 		color: #E53935;
-// 		text-align: center;
-// 	}
-// 	p {
-// 		line-height: 1.6;
-// 		font-size: 15px;
-// 	}
-// 	.code-box {
-// 		background-color: #f1f1f1;
-// 		border-radius: 6px;
-// 		padding: 10px;
-// 		font-family: monospace;
-// 		font-size: 14px;
-// 		color: #333333;
-// 		margin: 10px 0;
-// 	}
-// 	.footer {
-// 		margin-top: 30px;
-// 		font-size: 12px;
-// 		color: #999999;
-// 		text-align: center;
-// 	}
-// 	</style>
-// 	</head>
-// 	<body>
-// 	<div class="container">
-// 		<h2>❌ Cadastro Rejeitado</h2>
-// 		<p>Olá,</p>
-// 		<p>Infelizmente, sua solicitação de cadastro no sistema foi rejeitada.</p>
-
-// 		<p>Motivo:</p>
-// 		<div class="code-box">%s</div>
-
-// 		<p>Se você acredita que isso foi um engano, entre em contato com o suporte para mais informações.</p>
-
-// 		<div class="footer">
-// 			<p>MEDASSIST - Este é um e-mail automático, por favor não responda.</p>
-// 		</div>
-// 	</div>
-// 	</body>
-// 	</html>
-// 	`, description)
-
-// 	m.SetBody("text/html", html)
-
-// 	d := gomail.NewDialer(
-// 		"smtp.gmail.com",
-// 		587,
-// 		os.Getenv("EMAIL_SENDER"),
-// 		os.Getenv("EMAIL_PASSWORD"),
-// 	)
-
-// 	if err := d.DialAndSend(m); err != nil {
-// 		return err
-// 	}
-
-// 	return nil
-// }
 
 func SendEmailRegistrationRejected(email, description string) error {
 	subject := "❌ Cadastro Rejeitado - MEDASSIST"
-	htmlContent := fmt.Sprintf(`... seu HTML aqui ...`, description) // Mantenha seu HTML original
+	htmlContent := fmt.Sprintf(`html de pedido de cadastro rejeitado`, description) 
 	plainTextContent := fmt.Sprintf("Sua solicitação de cadastro foi rejeitada. Motivo: %s", description)
 
 	return sendEmailWithSendGrid(email, subject, plainTextContent, htmlContent, "")
@@ -872,7 +775,7 @@ func SendEmailRegistrationRejected(email, description string) error {
 
 func SendEmailApprovedNurse(email string) error {
 	subject := "✅ Cadastro Aprovado - MEDASSIST"
-	htmlContent := `... seu HTML aqui ...` // Mantenha seu HTML original (sem Sprintf, pois não há variáveis)
+	htmlContent := `html de pedido de cadastro aprovado` // Mantenha seu HTML original (sem Sprintf, pois não há variáveis)
 	plainTextContent := "Sua solicitação de cadastro no sistema foi analisada e aprovada."
 
 	return sendEmailWithSendGrid(email, subject, plainTextContent, htmlContent, "")
@@ -981,7 +884,7 @@ func SendContactUsEmail(contactUsDto dto.ContactUsDTO) error {
 	// O destinatário deste email é a sua central de contato
 	recipientEmail := os.Getenv("EMAIL_CENTRAL_CONTACT")
 	subject := fmt.Sprintf("Novo Contato: %s", contactUsDto.Subject)
-	htmlContent := fmt.Sprintf(`... seu HTML aqui ...`, contactUsDto.Name, contactUsDto.Email, contactUsDto.Phone, contactUsDto.Subject, contactUsDto.Message) // Mantenha seu HTML original
+	htmlContent := fmt.Sprintf(`HTML  de contact us recebido`, contactUsDto.Name, contactUsDto.Email, contactUsDto.Phone, contactUsDto.Subject, contactUsDto.Message) // Mantenha seu HTML original
 	plainTextContent := fmt.Sprintf(
 		"Nova mensagem de %s (%s):\n\n%s",
 		contactUsDto.Name,

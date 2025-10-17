@@ -178,10 +178,10 @@ func (s *authService) NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO,
 		return model.Nurse{}, fmt.Errorf("Email já cadastrado. Por favor, tente outro email.")
 	}
 
-	_, err = s.nurseRepository.FindNurseByCpf(nurseRequestDTO.Cpf)
-	if err == nil {
-		return model.Nurse{}, fmt.Errorf("CPF já cadastrado. Por favor, tente outro CPF.")
-	}
+	// _, err = s.nurseRepository.FindNurseByCpf(nurseRequestDTO.Cpf)
+	// if err == nil {
+	// 	return model.Nurse{}, fmt.Errorf("CPF já cadastrado. Por favor, tente outro CPF.")
+	// }
 
 	_, err = s.nurseRepository.FindNurseByCoren(nurseRequestDTO.Coren)
 	if err == nil {
