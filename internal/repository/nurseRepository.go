@@ -355,20 +355,24 @@ func (r *nurseRepository) GetAllNurses(patientCity string) ([]userDTO.AllNursesL
 		}
 
 		nurseDto := userDTO.AllNursesListDto{
-			ID:              nurseModel.ID.Hex(), // Convertendo o ObjectID para string
-			Name:            nurseModel.Name,
-			Specialization:  nurseModel.Specialization,
-			YearsExperience: nurseModel.YearsExperience,
-			Price:           0,
-			Image:           nurseModel.ProfileImageID.Hex(),
-			Shift:           nurseModel.Shift,
-			Department:      nurseModel.Department,
-			Available:       nurseModel.Online,  // Mapeando o campo 'Online' para 'Available'
-			Location:        nurseModel.Address, // Mapeando o campo 'Address' para 'Location'
-			City:            nurseModel.City,
-			UF:              nurseModel.UF,
-			Neighborhood:    nurseModel.Neighborhood,
-			Street:          nurseModel.Street,
+			ID:                     nurseModel.ID.Hex(), // Convertendo o ObjectID para string
+			Name:                   nurseModel.Name,
+			Specialization:         nurseModel.Specialization,
+			YearsExperience:        nurseModel.YearsExperience,
+			Price:                  float32(nurseModel.Price),
+			Image:                  nurseModel.ProfileImageID.Hex(),
+			Shift:                  nurseModel.Shift,
+			Department:             nurseModel.Department,
+			Available:              nurseModel.Online,  // Mapeando o campo 'Online' para 'Available'
+			Location:               nurseModel.Address, // Mapeando o campo 'Address' para 'Location'
+			City:                   nurseModel.City,
+			UF:                     nurseModel.UF,
+			Neighborhood:           nurseModel.Neighborhood,
+			Street:                 nurseModel.Street,
+			MaxPatientsPerDay:      nurseModel.MaxPatientsPerDay,
+			DaysAvailable:          nurseModel.DaysAvailable,
+			Services:               nurseModel.Services,
+			AvailableNeighborhoods: nurseModel.AvailableNeighborhoods,
 		}
 
 		nursesDto = append(nursesDto, nurseDto)

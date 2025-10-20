@@ -1,20 +1,24 @@
 package dto
 
 type AllNursesListDto struct {
-	ID              string  `json:"id"`
-	Name            string  `json:"name"`
-	Specialization  string  `json:"specialization"`
-	YearsExperience int     `json:"years_experience"`
-	Price           float32 `json:"price"`
-	Shift           string  `json:"shift"`
-	Department      string  `json:"department"`
-	Image           string  `json:"image"`
-	Available       bool    `json:"available"`
-	Location        string  `json:"location"`
-	City            string  `json:"city"`
-	UF              string  `json:"uf"`
-	Neighborhood    string  `json:"neighborhood"`
-	Street          string  `json:"street"`
+	ID                     string   `json:"id"`
+	Name                   string   `json:"name"`
+	Specialization         string   `json:"specialization"`
+	YearsExperience        int      `json:"years_experience"`
+	Price                  float32  `json:"price"`
+	Shift                  string   `json:"shift"`
+	Department             string   `json:"department"`
+	Image                  string   `json:"image"`
+	Available              bool     `json:"available"`
+	Location               string   `json:"location"`
+	City                   string   `json:"city"`
+	UF                     string   `json:"uf"`
+	Neighborhood           string   `json:"neighborhood"`
+	Street                 string   `json:"street"`
+	MaxPatientsPerDay      int      `json:"max_patients_per_day"`
+	DaysAvailable          []string `json:"days_available"`
+	Services               []string `json:"services"`
+	AvailableNeighborhoods []string `json:"available_neighborhoods"`
 }
 
 type ReviewDTO struct {
