@@ -1,13 +1,14 @@
 package nurse
 
 import (
+	"fmt"
+	"medassist/internal/nurse/dto"
 	"medassist/utils"
 	"net/http"
+	"strings"
+
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
-	"medassist/internal/nurse/dto"
-	"fmt"
-	"strings"
 )
 
 type NurseHandler struct {
@@ -18,11 +19,11 @@ func NewNurseHandler(nurseService NurseService) *NurseHandler {
 	return &NurseHandler{nurseService: nurseService}
 }
 
-func (h *NurseHandler) NurseDashboard(c *gin.Context){
+func (h *NurseHandler) NurseDashboard(c *gin.Context) {
 	nurseId := utils.GetUserId(c)
 
 	dashboardData, err := h.nurseService.NurseDashboardData(nurseId)
-	if err != nil{
+	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -30,7 +31,7 @@ func (h *NurseHandler) NurseDashboard(c *gin.Context){
 	utils.SendSuccessResponse(c, "Dados de enfermeiro carregados com sucesso.", dashboardData)
 }
 
-func (h *NurseHandler) ChangeOnlineNurse(c *gin.Context){
+func (h *NurseHandler) ChangeOnlineNurse(c *gin.Context) {
 	nurseId := utils.GetUserId(c) // pega pelo token
 
 	//VALIDACAO DE ROLE
@@ -59,12 +60,12 @@ func (h *NurseHandler) ChangeOnlineNurse(c *gin.Context){
 	utils.SendSuccessResponse(c, "Serviço ativado com sucesso.", nurseStatus)
 }
 
-func (h *NurseHandler) GetAllVisits(c *gin.Context){
+func (h *NurseHandler) GetAllVisits(c *gin.Context) {
 	//pega o id pelo token
 	nurseId := utils.GetUserId(c)
 
 	visits, err := h.nurseService.GetAllVisits(nurseId)
-	if err != nil{
+	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -72,7 +73,7 @@ func (h *NurseHandler) GetAllVisits(c *gin.Context){
 	utils.SendSuccessResponse(c, "Visitas [PENDENTE/MARCADAS/CONCLUIDAS] listadas com sucesso.", visits)
 }
 
-func (h *NurseHandler) ConfirmOrCancelVisit(c *gin.Context){
+func (h *NurseHandler) ConfirmOrCancelVisit(c *gin.Context) {
 	nurseId := utils.GetUserId(c) // pega o id do user pela req
 
 	fmt.Println("nurseiD", nurseId)
@@ -86,28 +87,28 @@ func (h *NurseHandler) ConfirmOrCancelVisit(c *gin.Context){
 	}
 
 	response, err := h.nurseService.ConfirmOrCancelVisit(nurseId, visitId, reason.Reason)
-	if err != nil{
+	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
-	}	
+	}
 	fmt.Println("response", response)
-	
+
 	utils.SendSuccessResponse(c, "Status da visita alterado com sucesso.", response)
 }
 
-func (h *NurseHandler) GetPatientProfile(c *gin.Context){
+func (h *NurseHandler) GetPatientProfile(c *gin.Context) {
 
 	patientId := c.Param("id")
 
 	patientProfile, err := h.nurseService.GetPatientProfile(patientId)
-	if err != nil{
-		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)	
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 	}
 
 	utils.SendSuccessResponse(c, "Perfil do paciente listado com sucesso.", patientProfile)
 
 }
 
-func (h *NurseHandler) UpdateNurseProfile(c *gin.Context){
+func (h *NurseHandler) UpdateNurseProfile(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
@@ -148,7 +149,7 @@ func (h *NurseHandler) UpdateNurseProfile(c *gin.Context){
 	utils.SendSuccessResponse(c, "Usuário atualizado com sucesso.", user)
 }
 
-func (h *NurseHandler) DeleteNurseProfile(c *gin.Context){
+func (h *NurseHandler) DeleteNurseProfile(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
@@ -161,10 +162,22 @@ func (h *NurseHandler) DeleteNurseProfile(c *gin.Context){
 	}
 
 	err := h.nurseService.DeleteNurse(nurseId)
-	if err != nil{
+	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 	}
 
 	utils.SendSuccessResponse(c, "Usuário deletado com sucesso.", http.StatusOK)
 
+}
+
+func (h *NurseHandler) GetAvailabilityInfo(c *gin.Context) {
+	nurseId := utils.GetUserId(c)
+
+	nurseInfo, err := h.nurseService.GetAvailabilityInfo(nurseId)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Informações de disponibilidade carregadas com sucesso.", nurseInfo)
 }

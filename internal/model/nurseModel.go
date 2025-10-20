@@ -7,15 +7,18 @@ import (
 )
 
 type Nurse struct {
-	ID               primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Name             string             `bson:"name" json:"name" binding:"required"`
-	Email            string             `bson:"email" json:"email" binding:"required,email"`
-	Phone            string             `bson:"phone" json:"phone" binding:"required,phone"`
-	Cpf              string             `bson:"cpf" json:"cpf" binding:"required"`
-	PixKey           string             `bson:"pix_key" json:"pix_key" binding:"required"`
-	Password         string             `bson:"password" json:"password" binding:"required"`
-	TwoFactor        int                `bson:"two_factor" json:"two_factor"`
-	VerificationSeal bool               `bson:"verification_seal" json:"verification_seal" binding:"required"`
+	ID                primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Name              string             `bson:"name" json:"name" binding:"required"`
+	Email             string             `bson:"email" json:"email" binding:"required,email"`
+	Phone             string             `bson:"phone" json:"phone" binding:"required,phone"`
+	Cpf               string             `bson:"cpf" json:"cpf" binding:"required"`
+	PixKey            string             `bson:"pix_key" json:"pix_key" binding:"required"`
+	Password          string             `bson:"password" json:"password" binding:"required"`
+	TwoFactor         int                `bson:"two_factor" json:"two_factor"`
+	VerificationSeal  bool               `bson:"verification_seal" json:"verification_seal" binding:"required"`
+	MaxPatientsPerDay int                `bson:"max_patients_per_day" json:"max_patients_per_day"`
+	DaysAvailable     []string           `bson:"days_available" json:"days_available"`
+	Services          []string           `bson:"services" json:"services"`
 
 	Address      string `bson:"address" json:"address" binding:"required,address"`
 	CEP          string `json:"cep"`

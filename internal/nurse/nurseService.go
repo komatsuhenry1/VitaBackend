@@ -21,6 +21,7 @@ type NurseService interface {
 	NurseDashboardData(nurseId string) (dto.NurseDashboardDataResponseDTO, error)
 	UpdateNurseFields(id string, updates map[string]interface{}) (dto.NurseUpdateResponseDTO, error)
 	DeleteNurse(nurseId string) error
+	GetAvailabilityInfo(nurseId string) (dto.AvailabilityResponseDTO, error)
 
 }
 
@@ -287,4 +288,24 @@ func (s *nurseService) DeleteNurse(nurseId string) error {
 	}
 
 	return nil
+}
+
+func (s *nurseService) GetAvailabilityInfo(nurseId string) (dto.AvailabilityResponseDTO, error) {
+	nurse, err := s.nurseRepository.FindNurseById(nurseId)
+	if err != nil {
+		return dto.AvailabilityResponseDTO{}, fmt.Errorf("erro ao buscar enfermeiro: %w", err)
+	}
+
+	availabilityResponseDto := dto.AvailabilityResponseDTO{
+		Online:         nurse.Online,
+		StartTime: nurse.StartTime,
+		EndTime: nurse.EndTime,
+		Specialization: nurse.Specialization,
+		Price: nurse.Price,
+		MaxPatientsPerDay: nurse.MaxPatientsPerDay,
+		DaysAvailable: nurse.DaysAvailable,
+		Services: nurse.Services,
+	}
+
+	return availabilityResponseDto, nil
 }
