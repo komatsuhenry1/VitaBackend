@@ -22,7 +22,6 @@ type NurseService interface {
 	UpdateNurseFields(id string, updates map[string]interface{}) (dto.NurseUpdateResponseDTO, error)
 	DeleteNurse(nurseId string) error
 	GetAvailabilityInfo(nurseId string) (dto.AvailabilityResponseDTO, error)
-
 }
 
 type nurseService struct {
@@ -68,30 +67,29 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 	if err != nil {
 	}
 
-	
 	pendingVisits := make([]dto.VisitDto, 0)
 	confirmedVisits := make([]dto.VisitDto, 0)
 	completedVisits := make([]dto.VisitDto, 0)
-	
+
 	for _, visit := range visits {
 		patient, err := s.userRepository.FindUserById(visit.PatientId)
-		if err != nil{
+		if err != nil {
 			return dto.NurseVisitsListsDto{}, err
 		}
 		fmt.Println(patient.ProfileImageID)
 		visitDto := dto.VisitDto{
-			ID:          visit.ID.Hex(),
-			Description: visit.Description,
-			Reason:      visit.Reason,
-			VisitType:   visit.VisitType,
-			VisitValue:  visit.VisitValue,
-			CreatedAt:   visit.CreatedAt.Format("02/01/2006 15:04"),
-			Date:        visit.VisitDate.Format("02/01/2006 15:04"),
-			Status:      visit.Status,
-			PatientName: visit.PatientName,
-			PatientImageID:   patient.ProfileImageID.Hex(),
-			PatientId: visit.PatientId,
-			NurseName:   visit.NurseName,
+			ID:             visit.ID.Hex(),
+			Description:    visit.Description,
+			Reason:         visit.Reason,
+			VisitType:      visit.VisitType,
+			VisitValue:     visit.VisitValue,
+			CreatedAt:      visit.CreatedAt.Format("02/01/2006 15:04"),
+			Date:           visit.VisitDate.Format("02/01/2006 15:04"),
+			Status:         visit.Status,
+			PatientName:    visit.PatientName,
+			PatientImageID: patient.ProfileImageID.Hex(),
+			PatientId:      visit.PatientId,
+			NurseName:      visit.NurseName,
 		}
 
 		switch visit.Status {
@@ -297,14 +295,15 @@ func (s *nurseService) GetAvailabilityInfo(nurseId string) (dto.AvailabilityResp
 	}
 
 	availabilityResponseDto := dto.AvailabilityResponseDTO{
-		Online:         nurse.Online,
-		StartTime: nurse.StartTime,
-		EndTime: nurse.EndTime,
-		Specialization: nurse.Specialization,
-		Price: nurse.Price,
-		MaxPatientsPerDay: nurse.MaxPatientsPerDay,
-		DaysAvailable: nurse.DaysAvailable,
-		Services: nurse.Services,
+		Online:                 nurse.Online,
+		StartTime:              nurse.StartTime,
+		EndTime:                nurse.EndTime,
+		Specialization:         nurse.Specialization,
+		Price:                  nurse.Price,
+		MaxPatientsPerDay:      nurse.MaxPatientsPerDay,
+		DaysAvailable:          nurse.DaysAvailable,
+		Services:               nurse.Services,
+		AvailableNeighborhoods: nurse.AvailableNeighborhoods,
 	}
 
 	return availabilityResponseDto, nil

@@ -88,12 +88,13 @@ type NurseUpdateResponseDTO struct {
 }
 
 type AvailabilityResponseDTO struct {
-	Online            bool     `json:"online"`
-	StartTime         string   `json:"start_time"`
-	EndTime           string   `json:"end_time"`
-	Specialization    string   `json:"specialization"`
-	Price             float64  `json:"price"`
-	MaxPatientsPerDay int      `json:"max_patients_per_day"`
-	DaysAvailable     []string `json:"days_available"`
-	Services          []string `json:"services"`
+	Online                 bool     `json:"online"`
+	StartTime              string   `json:"start_time"`
+	EndTime                string   `json:"end_time"`
+	Specialization         string   `json:"specialization"`
+	Price                  float64  `json:"price"`
+	MaxPatientsPerDay      int      `json:"max_patients_per_day"`
+	DaysAvailable          []string `json:"days_available"`
+	Services               []string `json:"services"`
+	AvailableNeighborhoods []string `json:"available_neighborhoods"`
 }
