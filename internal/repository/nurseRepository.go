@@ -40,6 +40,7 @@ type NurseRepository interface {
 	GetAllNurses(patientCity string) ([]userDTO.AllNursesListDto, error)
 	UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error)
 	DeleteNurse(id string) error
+	GetAllOnlineNurses(patientCity string) ([]userDTO.AllNursesListDto, error)
 }
 
 type nurseRepository struct {
@@ -337,6 +338,67 @@ func (r *nurseRepository) GetAllNurses(patientCity string) ([]userDTO.AllNursesL
 	defer cancel()
 
 	filter := bson.M{"hidden": false, "verification_seal": true, "city": patientCity}
+
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		fmt.Printf("Erro ao buscar enfermeiros no MongoDB: %v", err)
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var nursesDto []userDTO.AllNursesListDto
+
+	for cursor.Next(ctx) {
+		var nurseModel model.Nurse
+		if err := cursor.Decode(&nurseModel); err != nil {
+			fmt.Printf("Erro ao decodificar enfermeiro: %v", err)
+			continue
+		}
+
+		if nurseModel.MaxPatientsPerDay == 0 ||
+			len(nurseModel.DaysAvailable) == 0 ||
+			len(nurseModel.Services) == 0 ||
+			len(nurseModel.AvailableNeighborhoods) == 0 {
+			continue
+		}
+
+		nurseDto := userDTO.AllNursesListDto{
+			ID:                     nurseModel.ID.Hex(),
+			Name:                   nurseModel.Name,
+			Specialization:         nurseModel.Specialization,
+			YearsExperience:        nurseModel.YearsExperience,
+			Price:                  float32(nurseModel.Price),
+			Image:                  nurseModel.ProfileImageID.Hex(),
+			Shift:                  nurseModel.Shift,
+			Department:             nurseModel.Department,
+			Available:              nurseModel.Online,
+			Location:               nurseModel.Address,
+			City:                   nurseModel.City,
+			UF:                     nurseModel.UF,
+			Neighborhood:           nurseModel.Neighborhood,
+			Street:                 nurseModel.Street,
+			MaxPatientsPerDay:      nurseModel.MaxPatientsPerDay,
+			DaysAvailable:          nurseModel.DaysAvailable,
+			Services:               nurseModel.Services,
+			AvailableNeighborhoods: nurseModel.AvailableNeighborhoods,
+		}
+
+		nursesDto = append(nursesDto, nurseDto)
+	}
+
+	if err := cursor.Err(); err != nil {
+		fmt.Printf("Erro no cursor do MongoDB: %v", err)
+		return nil, err
+	}
+
+	return nursesDto, nil
+}
+
+func (r *nurseRepository) GetAllOnlineNurses(patientCity string) ([]userDTO.AllNursesListDto, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	filter := bson.M{"hidden": false, "verification_seal": true, "city": patientCity, "online": true}
 
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {

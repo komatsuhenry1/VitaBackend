@@ -222,3 +222,15 @@ func (h *UserHandler) ConfirmVisitService(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, "Serviço concluído com sucesso.", http.StatusOK)
 }
+
+func (h *UserHandler) GetOnlineNurses(c *gin.Context) {
+	userId := utils.GetUserId(c)
+
+	response, err := h.userService.GetOnlineNurses(userId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Lista de enfermeiros online listada com sucesso.", response)
+}

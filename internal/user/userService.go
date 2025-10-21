@@ -28,6 +28,7 @@ type UserService interface {
 	UpdateUser(userId string, updates map[string]interface{}) (adminDTO.UserTypeResponse, error)
 	DeleteUser(patientId string) error
 	ConfirmVisitService(visitId, patientId string) error
+	GetOnlineNurses(userId string) ([]userDTO.AllNursesListDto, error)
 }
 
 type userService struct {
@@ -284,4 +285,18 @@ func (s *userService) ConfirmVisitService(visitId, patientId string) error {
 	}
 
 	return nil
+}
+
+func (s *userService) GetOnlineNurses(userId string) ([]userDTO.AllNursesListDto, error) {
+	patient, err := s.userRepository.FindUserById(userId)
+	if err != nil {
+		return []userDTO.AllNursesListDto{}, nil
+	}
+
+	onlineNurses, err := s.nurseRepository.GetAllOnlineNurses(patient.City)
+	if err != nil {
+		return []userDTO.AllNursesListDto{}, nil
+	}
+	
+	return onlineNurses, nil
 }
