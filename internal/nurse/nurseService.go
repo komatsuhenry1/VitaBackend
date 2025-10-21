@@ -5,6 +5,7 @@ import (
 	"medassist/internal/model"
 	"medassist/internal/nurse/dto"
 	"medassist/internal/repository"
+	userDTO "medassist/internal/user/dto"
 	"medassist/utils"
 	"time"
 
@@ -22,6 +23,7 @@ type NurseService interface {
 	UpdateNurseFields(id string, updates map[string]interface{}) (dto.NurseUpdateResponseDTO, error)
 	DeleteNurse(nurseId string) error
 	GetAvailabilityInfo(nurseId string) (dto.AvailabilityResponseDTO, error)
+	GetNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
 }
 
 type nurseService struct {
@@ -243,6 +245,50 @@ func (s *nurseService) NurseDashboardData(nurseId string) (dto.NurseDashboardDat
 
 }
 
+func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error) {
+	nurse, err := h.nurseRepository.FindNurseById(nurseId)
+	if err != nil {
+		return userDTO.NurseProfileResponseDTO{}, err
+	}
+
+	reviews := []userDTO.ReviewDTO{{ // funcao na repo que retorna uma lista de reviews
+		Patient: "paciente name",
+		Rating:  4.5,
+		Comment: "Review comment",
+		Date:    "Review date",
+	}}
+
+	availability := []userDTO.AvailabilityDTO{{ // funcao na repository que retorna lista de avalability
+		Day:   "19/09/2010",
+		Hours: "10:00",
+	}}
+
+	nurseProfile := userDTO.NurseProfileResponseDTO{
+		ID:             nurse.ID.Hex(),
+		Name:           nurse.Name,
+		Specialization: nurse.Specialization,
+		Experience:     nurse.YearsExperience,
+		Rating:         nurse.Rating,
+		Price:          nurse.Price,
+		Shift:          nurse.Shift,
+		Department:     nurse.Department,
+		Image:          nurse.ProfileImageID.Hex(),
+		Available:      nurse.Online,
+		Location:       nurse.Address,
+		Phone:          nurse.Phone,
+		Online:         nurse.Online,
+		Coren:          nurse.Coren,
+		Bio:            nurse.Bio,
+		Qualifications: nurse.Qualifications,
+		Services:       nurse.Services,
+		Reviews:        reviews,
+		Availability:   availability,
+		ProfileImageID: nurse.ProfileImageID.Hex(),
+	}
+
+	return nurseProfile, nil
+}
+
 func (s *nurseService) UpdateNurseFields(id string, updates map[string]interface{}) (dto.NurseUpdateResponseDTO, error) {
 	if emailRaw, ok := updates["email"]; ok {
 		email, ok := emailRaw.(string)
@@ -304,6 +350,7 @@ func (s *nurseService) GetAvailabilityInfo(nurseId string) (dto.AvailabilityResp
 		DaysAvailable:          nurse.DaysAvailable,
 		Services:               nurse.Services,
 		AvailableNeighborhoods: nurse.AvailableNeighborhoods,
+		Qualifications:         nurse.Qualifications,
 	}
 
 	return availabilityResponseDto, nil

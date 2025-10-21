@@ -19,5 +19,6 @@ func SetupNurseRoutes(r *gin.RouterGroup, container *di.Container) {
 		nurse.PATCH("/update", middleware.AuthNurse(), container.NurseHandler.UpdateNurseProfile)
 		nurse.DELETE("/delete", middleware.AuthNurse(), container.NurseHandler.DeleteNurseProfile)
 		nurse.GET("/availability", middleware.AuthNurse(), container.NurseHandler.GetAvailabilityInfo)
+		nurse.GET("/dashboard_info/:id", middleware.AuthNurse(), container.NurseHandler.NurseDashboardData)
 	}
 }

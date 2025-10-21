@@ -20,6 +20,7 @@ type Nurse struct {
 	DaysAvailable          []string           `bson:"days_available" json:"days_available"`
 	Services               []string           `bson:"services" json:"services"`
 	AvailableNeighborhoods []string           `bson:"available_neighborhoods" json:"available_neighborhoods"`
+	Qualifications         []string           `bson:"qualifications" json:"qualifications"`
 
 	Address      string `bson:"address" json:"address" binding:"required,address"`
 	CEP          string `json:"cep"`

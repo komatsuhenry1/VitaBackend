@@ -97,4 +97,5 @@ type AvailabilityResponseDTO struct {
 	DaysAvailable          []string `json:"days_available"`
 	Services               []string `json:"services"`
 	AvailableNeighborhoods []string `json:"available_neighborhoods"`
+	Qualifications         []string `json:"qualifications"`
 }

@@ -354,8 +354,15 @@ func (r *nurseRepository) GetAllNurses(patientCity string) ([]userDTO.AllNursesL
 			continue
 		}
 
+		if nurseModel.MaxPatientsPerDay == 0 ||
+			len(nurseModel.DaysAvailable) == 0 ||
+			len(nurseModel.Services) == 0 ||
+			len(nurseModel.AvailableNeighborhoods) == 0 {
+			continue
+		}
+
 		nurseDto := userDTO.AllNursesListDto{
-			ID:                     nurseModel.ID.Hex(), // Convertendo o ObjectID para string
+			ID:                     nurseModel.ID.Hex(),
 			Name:                   nurseModel.Name,
 			Specialization:         nurseModel.Specialization,
 			YearsExperience:        nurseModel.YearsExperience,
@@ -363,8 +370,8 @@ func (r *nurseRepository) GetAllNurses(patientCity string) ([]userDTO.AllNursesL
 			Image:                  nurseModel.ProfileImageID.Hex(),
 			Shift:                  nurseModel.Shift,
 			Department:             nurseModel.Department,
-			Available:              nurseModel.Online,  // Mapeando o campo 'Online' para 'Available'
-			Location:               nurseModel.Address, // Mapeando o campo 'Address' para 'Location'
+			Available:              nurseModel.Online,
+			Location:               nurseModel.Address,
 			City:                   nurseModel.City,
 			UF:                     nurseModel.UF,
 			Neighborhood:           nurseModel.Neighborhood,
@@ -376,10 +383,8 @@ func (r *nurseRepository) GetAllNurses(patientCity string) ([]userDTO.AllNursesL
 		}
 
 		nursesDto = append(nursesDto, nurseDto)
-		fmt.Println("len", len(nursesDto))
 	}
 
-	// Verifica se houve algum erro durante a iteração do cursor
 	if err := cursor.Err(); err != nil {
 		fmt.Printf("Erro no cursor do MongoDB: %v", err)
 		return nil, err

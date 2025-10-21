@@ -31,6 +31,17 @@ func (h *NurseHandler) NurseDashboard(c *gin.Context) {
 	utils.SendSuccessResponse(c, "Dados de enfermeiro carregados com sucesso.", dashboardData)
 }
 
+func (h *NurseHandler) NurseDashboardData(c *gin.Context) {
+	nurseId := c.Param("id")
+
+	nurseProfile, err := h.nurseService.GetNurseProfile(nurseId)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+	utils.SendSuccessResponse(c, "Perfil completo de enfermeiro(a) listado com sucesso", nurseProfile)
+}
+
 func (h *NurseHandler) ChangeOnlineNurse(c *gin.Context) {
 	nurseId := utils.GetUserId(c) // pega pelo token
 

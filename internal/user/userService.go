@@ -73,8 +73,12 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		return userDTO.NurseProfileResponseDTO{}, err
 	}
 
-	qualifications := []string{"Pediatria", "Geriatria", "UTI"}
-	services := []string{"Servico 1 ", "Servico 2", "Servico 3"}
+	if nurse.MaxPatientsPerDay == 0 ||
+		len(nurse.DaysAvailable) == 0 ||
+		len(nurse.Services) == 0 ||
+		len(nurse.AvailableNeighborhoods) == 0 {
+		return userDTO.NurseProfileResponseDTO{}, fmt.Errorf("O enfermeiro ainda não preencheu os dados necessários para ser visto por pacientes.")
+	}
 
 	reviews := []userDTO.ReviewDTO{{ // funcao na repo que retorna uma lista de reviews
 		Patient: "paciente name",
@@ -104,15 +108,14 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		Online:         nurse.Online,
 		Coren:          nurse.Coren,
 		Bio:            nurse.Bio,
-		Qualifications: qualifications,
-		Services:       services,
+		Qualifications: nurse.Qualifications,
+		Services:       nurse.Services,
 		Reviews:        reviews,
 		Availability:   availability,
 		ProfileImageID: nurse.ProfileImageID.Hex(),
 	}
 
 	return nurseProfile, nil
-
 }
 
 func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO.CreateVisitDto) error {
