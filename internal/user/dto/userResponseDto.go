@@ -1,5 +1,7 @@
 package dto
 
+import "medassist/internal/model"
+
 type AllNursesListDto struct {
 	ID                     string   `json:"id"`
 	Name                   string   `json:"name"`
@@ -46,9 +48,9 @@ type NurseProfileResponseDTO struct {
 	Coren          string            `json:"coren"`
 	Phone          string            `json:"phone"`
 	Image          string            `json:"image"`
-	Available      bool              `json:"available"`
 	Location       string            `json:"location"`
 	Bio            string            `json:"bio"`
+	Schedule       []model.Visit     `json:"schedules"`
 	Qualifications []string          `json:"qualifications"`
 	ProfileImageID string            `json:"profile_image_id"`
 	Services       []string          `json:"services"`

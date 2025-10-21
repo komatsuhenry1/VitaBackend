@@ -32,7 +32,7 @@ func (h *NurseHandler) NurseDashboard(c *gin.Context) {
 }
 
 func (h *NurseHandler) NurseDashboardData(c *gin.Context) {
-	nurseId := c.Param("id")
+	nurseId := utils.GetUserId(c)
 
 	nurseProfile, err := h.nurseService.GetNurseProfile(nurseId)
 	if err != nil {

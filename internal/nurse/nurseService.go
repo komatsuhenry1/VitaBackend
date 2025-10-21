@@ -263,6 +263,12 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 		Hours: "10:00",
 	}}
 
+	schedule, err := h.visitRepository.FindAllVisitsForNurse(nurseId)
+	if err != nil {
+		return userDTO.NurseProfileResponseDTO{}, err
+	}
+
+
 	nurseProfile := userDTO.NurseProfileResponseDTO{
 		ID:             nurse.ID.Hex(),
 		Name:           nurse.Name,
@@ -273,7 +279,6 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 		Shift:          nurse.Shift,
 		Department:     nurse.Department,
 		Image:          nurse.ProfileImageID.Hex(),
-		Available:      nurse.Online,
 		Location:       nurse.Address,
 		Phone:          nurse.Phone,
 		Online:         nurse.Online,
@@ -284,6 +289,7 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 		Reviews:        reviews,
 		Availability:   availability,
 		ProfileImageID: nurse.ProfileImageID.Hex(),
+		Schedule: schedule,
 	}
 
 	return nurseProfile, nil

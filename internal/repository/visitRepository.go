@@ -1,32 +1,33 @@
 package repository
 
-import(
-	"go.mongodb.org/mongo-driver/mongo"
+import (
 	"context"
-	"medassist/internal/model"
-	"go.mongodb.org/mongo-driver/bson"
-	"strings"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"errors"
 	"fmt"
+	"medassist/internal/model"
 	"medassist/utils"
+	"strings"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-type VisitRepository interface{
+type VisitRepository interface {
 	CreateVisit(visit model.Visit) error
 	FindAllVisitsForPatient(patientId string) ([]model.Visit, error)
 	FindAllVisitsForNurse(nurseId string) ([]model.Visit, error)
+	FindAllPendingVisitsForNurse(nurseId string) ([]model.Visit, error)
 	FindAllVisits() ([]model.Visit, error)
 	FindVisitById(id string) (model.Visit, error)
 	UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit, error)
 	DeleteVisit(visitId string) error
 }
 
-type visitRepository struct{
+type visitRepository struct {
 	collection *mongo.Collection
 	ctx        context.Context
-
 }
 
 func NewVisitRepository(db *mongo.Database) VisitRepository {
@@ -43,6 +44,20 @@ func (r *visitRepository) CreateVisit(visit model.Visit) error {
 
 func (r *visitRepository) FindAllVisitsForNurse(nurseId string) ([]model.Visit, error) {
 	cursor, err := r.collection.Find(r.ctx, bson.M{"nurse_id": nurseId})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var visits []model.Visit
+	if err := cursor.All(context.TODO(), &visits); err != nil {
+		return nil, err
+	}
+	return visits, nil
+}
+
+func (r *visitRepository) FindAllPendingVisitsForNurse(nurseId string) ([]model.Visit, error) {
+	cursor, err := r.collection.Find(r.ctx, bson.M{"nurse_id": nurseId, "status": "PENDING"})
 	if err != nil {
 		return nil, err
 	}
@@ -89,7 +104,7 @@ func (r *visitRepository) FindVisitById(id string) (model.Visit, error) {
 	return visit, nil
 }
 
-func (r *visitRepository) UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit,error) {
+func (r *visitRepository) UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit, error) {
 	cleanUpdates := bson.M{}
 
 	for key, value := range updates {
