@@ -268,6 +268,16 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 		return userDTO.NurseProfileResponseDTO{}, err
 	}
 
+	var totalEarnings float64 = 0.0
+	var totalPatients int = 0
+
+	for _, visit := range schedule {
+		if visit.Status == "COMPLETED" {
+			totalPatients += 1
+			totalEarnings += visit.VisitValue
+		}
+	}
+	// =======================================================
 
 	nurseProfile := userDTO.NurseProfileResponseDTO{
 		ID:             nurse.ID.Hex(),
@@ -289,7 +299,9 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 		Reviews:        reviews,
 		Availability:   availability,
 		ProfileImageID: nurse.ProfileImageID.Hex(),
-		Schedule: schedule,
+		Schedule:       schedule,
+		TotalPatients:  totalPatients,
+		Earnings:       totalEarnings,
 	}
 
 	return nurseProfile, nil

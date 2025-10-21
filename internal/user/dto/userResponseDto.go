@@ -51,6 +51,8 @@ type NurseProfileResponseDTO struct {
 	Location       string            `json:"location"`
 	Bio            string            `json:"bio"`
 	Schedule       []model.Visit     `json:"schedules"`
+	TotalPatients  int               `json:"total_patients"`
+	Earnings       float64           `json:"earnings"`
 	Qualifications []string          `json:"qualifications"`
 	ProfileImageID string            `json:"profile_image_id"`
 	Services       []string          `json:"services"`
