@@ -17,6 +17,8 @@ type AllNursesListDto struct {
 	UF                     string   `json:"uf"`
 	Neighborhood           string   `json:"neighborhood"`
 	Street                 string   `json:"street"`
+	Latitude               float64  `json:"latitude"`
+	Longitude              float64  `json:"longitude"`
 	MaxPatientsPerDay      int      `json:"max_patients_per_day"`
 	DaysAvailable          []string `json:"days_available"`
 	Services               []string `json:"services"`

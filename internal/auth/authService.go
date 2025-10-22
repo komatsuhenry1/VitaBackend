@@ -104,6 +104,20 @@ func (s *authService) UserRegister(registerRequestDTO dto.UserRegisterRequestDTO
 		UpdatedAt:    time.Now(),
 	}
 
+	lat, lon, err := utils.GetCoordsFromAddress(
+		registerRequestDTO.Street,
+		registerRequestDTO.Number,
+		registerRequestDTO.City,
+		registerRequestDTO.UF,
+	)
+
+	if err != nil {
+		fmt.Printf("Aviso: Falha ao obter coordenadas para paciente %s: %v\n", user.Email, err)
+	} else {
+		user.Latitude = lat
+		user.Longitude = lon
+	}
+
 	if fileHeaders, ok := files["image_profile"]; ok && len(fileHeaders) > 0 {
 		fileHeader := fileHeaders[0] // Pegamos apenas o primeiro arquivo
 
@@ -229,6 +243,20 @@ func (s *authService) NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO,
 		EndTime:     nurseRequestDTO.EndTime,
 		CreatedAt:   time.Now(),
 		UpdatedAt:   time.Now(),
+	}
+
+	lat, lon, err := utils.GetCoordsFromAddress(
+		nurseRequestDTO.Street,
+		nurseRequestDTO.Number,
+		nurseRequestDTO.Neighborhood,
+		nurseRequestDTO.City,
+	)
+
+	if err != nil {
+		fmt.Printf("Aviso: Falha ao obter coordenadas para enfermeiro %s: %v\n", nurse.Email, err)
+	} else {
+		nurse.Latitude = lat
+		nurse.Longitude = lon
 	}
 
 	// faz o upload de todos os arquivos e preenche os IDs no objeto nurse

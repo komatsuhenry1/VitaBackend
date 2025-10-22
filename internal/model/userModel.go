@@ -12,14 +12,16 @@ type User struct {
 	Email string             `bson:"email" json:"email" binding:"required,email"`
 	Phone string             `bson:"phone" json:"phone" binding:"required,phone"`
 
-	Address      string `bson:"address" json:"address" binding:"required,address"`
-	CEP          string `bson:"cep" json:"cep" binding:"required,address"`
-	Street       string `bson:"street" json:"street" binding:"required"`
-	Number       string `bson:"number" json:"number" binding:"required"`
-	Complement   string `bson:"complement" json:"complement"`
-	Neighborhood string `bson:"neighborhood" json:"neighborhood" binding:"required"`
-	City         string `bson:"city" json:"city" binding:"required"`
-	UF           string `bson:"uf" json:"uf" binding:"required"`
+	Address      string  `bson:"address" json:"address" binding:"required,address"`
+	CEP          string  `bson:"cep" json:"cep" binding:"required,address"`
+	Street       string  `bson:"street" json:"street" binding:"required"`
+	Number       string  `bson:"number" json:"number" binding:"required"`
+	Complement   string  `bson:"complement" json:"complement"`
+	Neighborhood string  `bson:"neighborhood" json:"neighborhood" binding:"required"`
+	City         string  `bson:"city" json:"city" binding:"required"`
+	UF           string  `bson:"uf" json:"uf" binding:"required"`
+	Latitude     float64 `bson:"latitude" json:"latitude"`
+	Longitude    float64 `bson:"longitude" json:"longitude"`
 
 	Cpf            string             `bson:"cpf" json:"cpf" binding:"required"`
 	Password       string             `bson:"password" json:"password" binding:"required"`

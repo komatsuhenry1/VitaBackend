@@ -22,14 +22,16 @@ type Nurse struct {
 	AvailableNeighborhoods []string           `bson:"available_neighborhoods" json:"available_neighborhoods"`
 	Qualifications         []string           `bson:"qualifications" json:"qualifications"`
 
-	Address      string `bson:"address" json:"address" binding:"required,address"`
-	CEP          string `json:"cep"`
-	Street       string `bson:"street" json:"street" binding:"required"`
-	Number       string `bson:"number" json:"number" binding:"required"`
-	Complement   string `bson:"complement" json:"complement"`
-	Neighborhood string `bson:"neighborhood" json:"neighborhood" binding:"required"`
-	City         string `bson:"city" json:"city" binding:"required"`
-	UF           string `bson:"uf" json:"uf" binding:"required"`
+	Address      string  `bson:"address" json:"address" binding:"required,address"`
+	CEP          string  `json:"cep"`
+	Street       string  `bson:"street" json:"street" binding:"required"`
+	Number       string  `bson:"number" json:"number" binding:"required"`
+	Complement   string  `bson:"complement" json:"complement"`
+	Neighborhood string  `bson:"neighborhood" json:"neighborhood" binding:"required"`
+	City         string  `bson:"city" json:"city" binding:"required"`
+	UF           string  `bson:"uf" json:"uf" binding:"required"`
+	Latitude     float64 `bson:"latitude" json:"latitude"`
+	Longitude    float64 `bson:"longitude" json:"longitude"`
 
 	Coren           string `bson:"coren" json:"coren" binding:"required"` // registro profissional
 	Specialization  string `bson:"specialization" json:"specialization"`  // área (ex: pediatrics, geriatrics, ER)
