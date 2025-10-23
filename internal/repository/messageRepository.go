@@ -15,7 +15,8 @@ import (
 type MessageRepository interface {
 	FindMessagesBetween(userID, otherUserID primitive.ObjectID) ([]model.Message, error)
 	Save(message *model.Message) error
-	GetConversationsForUser(userID primitive.ObjectID) ([]dto.ConversationDTO, error)
+	GetConversationsForNurse(userID primitive.ObjectID) ([]dto.ConversationDTO, error)
+	GetConversationsForPatient(userID primitive.ObjectID) ([]dto.ConversationDTO, error)
 }
 
 type messageRepositoryImpl struct {
@@ -64,7 +65,7 @@ func (r *messageRepositoryImpl) Save(message *model.Message) error {
 	return err
 }
 
-func (r *messageRepositoryImpl) GetConversationsForUser(userID primitive.ObjectID) ([]dto.ConversationDTO, error) {
+func (r *messageRepositoryImpl) GetConversationsForNurse(userID primitive.ObjectID) ([]dto.ConversationDTO, error) {
 	ctx := context.TODO()
 	var conversations []dto.ConversationDTO
 
@@ -126,5 +127,71 @@ func (r *messageRepositoryImpl) GetConversationsForUser(userID primitive.ObjectI
 	}
 
 	return conversations, nil
+}
+
+
+func (r *messageRepositoryImpl) GetConversationsForPatient(userID primitive.ObjectID) ([]dto.ConversationDTO, error) {
+    ctx := context.TODO()
+    var conversations []dto.ConversationDTO
+
+    pipeline := mongo.Pipeline{
+        // Etapa 1: Encontra todas as mensagens onde o usuário é remetente OU destinatário
+        {{"$match", bson.M{
+            "$or": []bson.M{
+                {"sender_id": userID},
+                {"receiver_id": userID},
+            },
+        }}},
+        // Etapa 2: Ordena as mensagens da mais nova para a mais antiga
+        {{"$sort", bson.M{"timestamp": -1}}},
+        // Etapa 3: Agrupa as mensagens por conversa (pela outra pessoa)
+        {{"$group", bson.M{
+            "_id": bson.M{
+                "$cond": bson.M{
+                    "if":   bson.M{"$eq": []interface{}{"$sender_id", userID}},
+                    "then": "$receiver_id",
+                    "else": "$sender_id",
+                },
+            },
+            "last_message":           bson.M{"$first": "$content"},
+            "last_message_timestamp": bson.M{"$first": "$timestamp"},
+        }}},
+
+        // --- MUDANÇA AQUI ---
+        // Etapa 4: Faz um "join" com a coleção de ENFERMEIROS
+        {{"$lookup", bson.M{
+            "from":         "nurses", // O nome da sua coleção de enfermeiros
+            "localField":   "_id",
+            "foreignField": "_id",
+            "as":           "partnerInfo",
+        }}},
+        // --- FIM DA MUDANÇA ---
+
+        // Etapa 5: Desconstrói o array 'partnerInfo'
+        {{"$unwind", "$partnerInfo"}},
+        // Etapa 6: Projeta o resultado final
+        {{"$project", bson.M{
+            "_id":                    0,
+            "partner_id":             "$_id",
+            "partner_name":           "$partnerInfo.name",
+            "partner_image_id":       "$partnerInfo.profile_image_id", // Certifique-se que este é o nome do campo no seu model Nurse
+            "last_message":           "$last_message",
+            "last_message_timestamp": "$last_message_timestamp",
+        }}},
+        // Etapa 7: Ordena as conversas pela mais recente
+        {{"$sort", bson.M{"last_message_timestamp": -1}}},
+    }
+
+    cursor, err := r.collection.Aggregate(ctx, pipeline)
+    if err != nil {
+        return nil, err
+    }
+    defer cursor.Close(ctx)
+
+    if err = cursor.All(ctx, &conversations); err != nil {
+        return nil, err
+    }
+
+    return conversations, nil
 }
 

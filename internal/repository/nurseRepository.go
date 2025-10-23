@@ -40,7 +40,7 @@ type NurseRepository interface {
 	GetAllNurses(patientCity string) ([]userDTO.AllNursesListDto, error)
 	UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error)
 	DeleteNurse(id string) error
-	GetAllOnlineNurses(patientCity string) ([]userDTO.AllNursesListDto, error)
+	GetAllOnlineNurses(patientCity string, latitude float64, longitude float64) ([]userDTO.AllNursesListDto, error)
 }
 
 type nurseRepository struct {
@@ -394,7 +394,7 @@ func (r *nurseRepository) GetAllNurses(patientCity string) ([]userDTO.AllNursesL
 	return nursesDto, nil
 }
 
-func (r *nurseRepository) GetAllOnlineNurses(patientCity string) ([]userDTO.AllNursesListDto, error) {
+func (r *nurseRepository) GetAllOnlineNurses(patientCity string, latitude float64, longitude float64) ([]userDTO.AllNursesListDto, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -423,6 +423,11 @@ func (r *nurseRepository) GetAllOnlineNurses(patientCity string) ([]userDTO.AllN
 			continue
 		}
 
+		patientLocation := userDTO.Location{
+			Latitude:  latitude,
+			Longitude: longitude,
+		}
+
 		nurseDto := userDTO.AllNursesListDto{
 			ID:                     nurseModel.ID.Hex(),
 			Name:                   nurseModel.Name,
@@ -437,6 +442,9 @@ func (r *nurseRepository) GetAllOnlineNurses(patientCity string) ([]userDTO.AllN
 			City:                   nurseModel.City,
 			UF:                     nurseModel.UF,
 			Neighborhood:           nurseModel.Neighborhood,
+			Latitude:               nurseModel.Latitude,
+			Longitude:              nurseModel.Longitude,
+			PatientLocation:        patientLocation,
 			Street:                 nurseModel.Street,
 			MaxPatientsPerDay:      nurseModel.MaxPatientsPerDay,
 			DaysAvailable:          nurseModel.DaysAvailable,

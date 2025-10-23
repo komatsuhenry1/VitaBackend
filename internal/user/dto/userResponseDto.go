@@ -2,11 +2,17 @@ package dto
 
 import "medassist/internal/model"
 
+type Location struct {
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+}
+
 type AllNursesListDto struct {
 	ID                     string   `json:"id"`
 	Name                   string   `json:"name"`
 	Specialization         string   `json:"specialization"`
 	YearsExperience        int      `json:"years_experience"`
+	PatientLocation        Location `json:"patient_location"`
 	Price                  float32  `json:"price"`
 	Shift                  string   `json:"shift"`
 	Department             string   `json:"department"`

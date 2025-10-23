@@ -48,7 +48,7 @@ func ServeWs(hub *Hub, c *gin.Context) {
 	go client.readPump()
 }
 
-func (h *ChatHandler) GetConversations(c *gin.Context) {
+func (h *ChatHandler) GetNurseConversations(c *gin.Context) {
 	// Pega o ID do enfermeiro logado a partir do contexto (do middleware)
 	userIDCtx, exists := c.Get("userId")
 	if !exists {
@@ -63,7 +63,7 @@ func (h *ChatHandler) GetConversations(c *gin.Context) {
 	}
 
 	// Chama a nova função do repositório
-	conversations, err := h.msgRepo.GetConversationsForUser(userID)
+	conversations, err := h.msgRepo.GetConversationsForNurse(userID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Erro ao buscar conversas"})
 		return
@@ -79,3 +79,33 @@ func (h *ChatHandler) GetConversations(c *gin.Context) {
 	})
 }
 
+func (h *ChatHandler) GetPatientConversations(c *gin.Context) {
+    // Pega o ID do paciente logado a partir do contexto
+    userIDCtx, exists := c.Get("userId")
+    if !exists {
+        c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "Usuário não autenticado"})
+        return
+    }
+    userIDStr := userIDCtx.(string)
+    userID, err := primitive.ObjectIDFromHex(userIDStr)
+    if err != nil {
+        c.JSON(http.StatusUnauthorized, gin.H{"success": false, "error": "ID de usuário inválido"})
+        return
+    }
+
+    // Chama a nova função do repositório para pacientes
+    conversations, err := h.msgRepo.GetConversationsForPatient(userID)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{"success": false, "error": "Erro ao buscar conversas"})
+        return
+    }
+
+    if conversations == nil {
+        conversations = make([]dto.ConversationDTO, 0)
+    }
+
+    c.JSON(http.StatusOK, gin.H{
+        "success": true,
+        "data":    conversations,
+    })
+}

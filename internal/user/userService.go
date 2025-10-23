@@ -293,10 +293,13 @@ func (s *userService) GetOnlineNurses(userId string) ([]userDTO.AllNursesListDto
 		return []userDTO.AllNursesListDto{}, nil
 	}
 
-	onlineNurses, err := s.nurseRepository.GetAllOnlineNurses(patient.City)
+	latitude := patient.Latitude
+	longitude := patient.Longitude
+
+	onlineNurses, err := s.nurseRepository.GetAllOnlineNurses(patient.City, latitude, longitude)
 	if err != nil {
 		return []userDTO.AllNursesListDto{}, nil
 	}
-	
+
 	return onlineNurses, nil
 }
