@@ -67,18 +67,34 @@ func (s *nurseService) UpdateAvailablityNursingService(nurseId string) (model.Nu
 func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, error) {
 	visits, err := s.visitRepository.FindAllVisitsForNurse(nurseId)
 	if err != nil {
+		// Retorna um DTO vazio em caso de erro
+		return dto.NurseVisitsListsDto{}, err
 	}
 
 	pendingVisits := make([]dto.VisitDto, 0)
 	confirmedVisits := make([]dto.VisitDto, 0)
 	completedVisits := make([]dto.VisitDto, 0)
 
+	// --- MUDANÇA: Criar a nova lista ---
+	visitsToday := make([]dto.VisitDto, 0)
+
+	// --- MUDANÇA: Lógica para definir o dia de "hoje" ---
+	location, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		location = time.UTC
+	}
+	now := time.Now().In(location)
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
+	tomorrowStart := todayStart.Add(24 * time.Hour)
+	// --- FIM DA MUDANÇA ---
+
 	for _, visit := range visits {
+		// Sua lógica de FindUserById está correta, pois ela aceita string
 		patient, err := s.userRepository.FindUserById(visit.PatientId)
 		if err != nil {
 			return dto.NurseVisitsListsDto{}, err
 		}
-		fmt.Println(patient.ProfileImageID)
+
 		visitDto := dto.VisitDto{
 			ID:             visit.ID.Hex(),
 			Description:    visit.Description,
@@ -102,12 +118,21 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 		case "COMPLETED":
 			completedVisits = append(completedVisits, visitDto)
 		}
+
+		visitDate := visit.VisitDate.In(location)
+		isValidStatus := visit.Status == "CONFIRMED" || visit.Status == "PENDING"
+		isToday := (visitDate.Equal(todayStart) || visitDate.After(todayStart)) && visitDate.Before(tomorrowStart)
+
+		if isValidStatus && isToday {
+			visitsToday = append(visitsToday, visitDto)
+		}
 	}
 
 	allVisitsDto := dto.NurseVisitsListsDto{
-		Pending:   pendingVisits,
-		Confirmed: confirmedVisits,
-		Completed: completedVisits,
+		Pending:     pendingVisits,
+		Confirmed:   confirmedVisits,
+		Completed:   completedVisits,
+		VisitsToday: visitsToday, // Adiciona o novo campo
 	}
 
 	return allVisitsDto, nil

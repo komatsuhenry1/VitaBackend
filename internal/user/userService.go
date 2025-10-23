@@ -24,7 +24,7 @@ type UserService interface {
 	ContactUsMessage(contactUsDto userDTO.ContactUsDTO) error
 	GetNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
 	VisitSolicitation(userId string, createVisitDto userDTO.CreateVisitDto) error
-	FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, error)
+	FindAllVisits(patientId string) (userDTO.VisitsResponseDto, error)
 	UpdateUser(userId string, updates map[string]interface{}) (adminDTO.UserTypeResponse, error)
 	DeleteUser(patientId string) error
 	ConfirmVisitService(visitId, patientId string) error
@@ -162,26 +162,40 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 	return nil
 }
 
-func (h *userService) FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, error) {
-	visits, err := h.visitRepository.FindAllVisitsForPatient(patientId)
-	if err != nil {
-		return nil, err
+func (h *userService) FindAllVisits(patientId string) (userDTO.VisitsResponseDto, error) {
+
+	responseDto := userDTO.VisitsResponseDto{
+		AllVisits:   make([]userDTO.AllVisitsDto, 0),
+		VisitsToday: make([]userDTO.AllVisitsDto, 0),
 	}
 
-	var allVisitsDto []userDTO.AllVisitsDto
+	visits, err := h.visitRepository.FindAllVisitsForPatient(patientId)
+	if err != nil {
+		return userDTO.VisitsResponseDto{}, err
+	}
+
+	location, err := time.LoadLocation("America/Sao_Paulo")
+	if err != nil {
+		// Se falhar, usa UTC como padrão
+		location = time.UTC
+	}
+
+	now := time.Now().In(location)
+	// todayStart é hoje, à meia-noite (00:00:00)
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
+	// tomorrowStart é amanhã, à meia-noite (00:00:00)
+	tomorrowStart := todayStart.Add(24 * time.Hour)
+	// --- FIM DA MUDANÇA ---
 
 	for _, visit := range visits {
+		// Busca os dados do enfermeiro (esta ainda é uma chamada N+1,
+		// mas vamos manter por enquanto para focar na sua solicitação)
 		nurse, err := h.nurseRepository.FindNurseById(visit.NurseId)
 		if err != nil {
-			return nil, err
+			return userDTO.VisitsResponseDto{}, err
 		}
 
-		visit, err := h.visitRepository.FindVisitById(visit.ID.Hex())
-		if err != nil {
-			return nil, err
-		}
-
-		allVisitsDto = append(allVisitsDto, userDTO.AllVisitsDto{
+		visitDto := userDTO.AllVisitsDto{
 			ID:          visit.ID.Hex(),
 			Description: visit.Description,
 			Reason:      visit.Reason,
@@ -195,12 +209,22 @@ func (h *userService) FindAllVisits(patientId string) ([]userDTO.AllVisitsDto, e
 				Specialization: nurse.Specialization,
 				Image:          nurse.ProfileImageID.Hex(),
 			},
-		})
+		}
+
+		responseDto.AllVisits = append(responseDto.AllVisits, visitDto)
+
+		visitDate := visit.VisitDate.In(location) // Garante que a data da visita está no mesmo fuso
+		isConfirmed := visit.Status == "CONFIRMED"
+		// Verifica se a data da visita está entre hoje (00:00) e amanhã (00:00)
+		isToday := (visitDate.Equal(todayStart) || visitDate.After(todayStart)) && visitDate.Before(tomorrowStart)
+
+		if isConfirmed && isToday {
+			responseDto.VisitsToday = append(responseDto.VisitsToday, visitDto)
+		}
 	}
 
-	return allVisitsDto, nil
+	return responseDto, nil
 }
-
 func (s *userService) UpdateUser(userId string, updates map[string]interface{}) (adminDTO.UserTypeResponse, error) {
 
 	if emailRaw, ok := updates["email"]; ok {

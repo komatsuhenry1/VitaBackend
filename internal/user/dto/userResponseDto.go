@@ -85,3 +85,8 @@ type AllVisitsDto struct {
 	Status      string   `json:"status"`
 	Nurse       NurseDto `json:"nurse"`
 }
+
+type VisitsResponseDto struct {
+	AllVisits   []AllVisitsDto `json:"all_visits"`
+	VisitsToday []AllVisitsDto `json:"visits_today"`
+}
