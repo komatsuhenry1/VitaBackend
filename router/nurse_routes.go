@@ -20,5 +20,6 @@ func SetupNurseRoutes(r *gin.RouterGroup, container *di.Container) {
 		nurse.DELETE("/delete", middleware.AuthNurse(), container.NurseHandler.DeleteNurseProfile)
 		nurse.GET("/availability", middleware.AuthNurse(), container.NurseHandler.GetAvailabilityInfo)
 		nurse.GET("/dashboard_info", middleware.AuthNurse(), container.NurseHandler.NurseDashboardData)
+		nurse.GET("/visit-info/:id", middleware.AuthNurse(), container.NurseHandler.GetNurseVisitInfo)
 	}
 }

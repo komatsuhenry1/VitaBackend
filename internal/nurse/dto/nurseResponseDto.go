@@ -100,3 +100,42 @@ type AvailabilityResponseDTO struct {
 	AvailableNeighborhoods []string `json:"available_neighborhoods"`
 	Qualifications         []string `json:"qualifications"`
 }
+
+type VisitInfoDto struct {
+	ID               string   `json:"id"`
+	Status           string   `json:"status"`
+	PatientId        string   `json:"patient_id"`
+	PatientName      string   `json:"patient_name"`
+	Description      string   `json:"description"`
+	Reason           string   `json:"reason"`
+	CancelReason     string  `json:"cancel_reason,omitempty"`
+	VisitValue       float64  `json:"visit_value"`
+	VisitType        string   `json:"visit_type"`
+	VisitDate        string   `json:"visit_date"`  
+	CreatedAt        string   `json:"created_at"`      
+	UpdatedAt        string   `json:"updated_at"`   
+}
+
+type PatientInfoDto struct {
+	ID             string   `json:"id"`
+	Name           string   `json:"name"`
+	Email          string   `json:"email"`
+	Phone          string   `json:"phone"`      
+	CEP            string   `json:"cep"`       
+	Street         string   `json:"street"`
+	Number         string   `json:"number"`
+	Complement     string   `json:"complement"`
+	Neighborhood   string   `json:"neighborhood"`
+	City           string   `json:"city"`
+	UF             string   `json:"uf"`
+	Latitude       float64  `json:"latitude"`     
+	Longitude      float64  `json:"longitude"`  
+	Cpf            string   `json:"cpf"`        
+	ProfileImageID string  `json:"profile_image_id,omitempty"`
+}
+
+
+type NurseVisitInfo struct {
+	Visit   VisitInfoDto   `json:"visit"`
+	Patient PatientInfoDto `json:"patient"`
+}

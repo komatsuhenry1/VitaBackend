@@ -194,3 +194,19 @@ func (h *NurseHandler) GetAvailabilityInfo(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, "Informações de disponibilidade carregadas com sucesso.", nurseInfo)
 }
+
+func (h *NurseHandler) GetNurseVisitInfo(c *gin.Context) {
+	nurseId := utils.GetUserId(c)
+
+	visitId := c.Param("id")
+
+	visitInfo, err := h.nurseService.GetNurseVisitInfo(nurseId, visitId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Informações de visita para enfermeiro(a) listadas com sucesso.", visitInfo)
+
+
+}

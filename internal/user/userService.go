@@ -342,12 +342,16 @@ func (s *userService) GetPatientVisitInfo(patientId, visitId string) (userDTO.Pa
 		return userDTO.PatientVisitInfo{}, fmt.Errorf("O atendimento aindão não foi confirmado pelo enfermeiro(a).")
 	}
 
-    today := time.Now()
-    visitDate := visit.VisitDate
+	if visit.PatientId != patientId {
+		return userDTO.PatientVisitInfo{}, fmt.Errorf("Essa visita é pertencente à outro paciente.")
+	}
 
-    if today.Year() != visitDate.Year() || today.Month() != visitDate.Month() || today.Day() != visitDate.Day() {
-        return userDTO.PatientVisitInfo{}, fmt.Errorf("Esta visita não está agendada para hoje.")
-    }
+	today := time.Now()
+	visitDate := visit.VisitDate
+
+	if today.Year() != visitDate.Year() || today.Month() != visitDate.Month() || today.Day() != visitDate.Day() {
+		return userDTO.PatientVisitInfo{}, fmt.Errorf("Esta visita não está agendada para hoje.")
+	}
 
 	nurse, err := s.nurseRepository.FindNurseById(visit.NurseId)
 	if err != nil {
