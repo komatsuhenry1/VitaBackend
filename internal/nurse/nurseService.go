@@ -25,6 +25,7 @@ type NurseService interface {
 	GetAvailabilityInfo(nurseId string) (dto.AvailabilityResponseDTO, error)
 	GetNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
 	GetNurseVisitInfo(nurseId, visitId string) (dto.NurseVisitInfo, error)
+	VisitServiceConfirmation(nurseId, visitId, confirmationCode string) error
 }
 
 type nurseService struct {
@@ -461,4 +462,46 @@ func (s nurseService) GetNurseVisitInfo(nurseId, visitId string) (dto.NurseVisit
 	}
 
 	return visitInfo, nil
+}
+
+func (s *nurseService) VisitServiceConfirmation(nurseId, visitId, confirmationCode string) error {
+
+	visit, err := s.visitRepository.FindVisitById(visitId)
+	if err != nil {
+		return fmt.Errorf("Erro ao buscar id da visita.")
+	}
+
+	if visit.Status != "CONFIRMED" {
+		return fmt.Errorf("O atendimento aindão não foi confirmado pelo enfermeiro(a).")
+	}
+
+	if visit.NurseId != nurseId {
+		return fmt.Errorf("Essa visita é pertencente à outro enfermeiro.")
+	}
+
+	//validacao de so conseguir confirmar servico no dia da visita
+	// today := time.Now()
+	// visitDate := visit.VisitDate
+
+	// if today.Year() != visitDate.Year() || today.Month() != visitDate.Month() || today.Day() != visitDate.Day() {
+	// 	return fmt.Errorf("Esta visita não está agendada para hoje.")
+	// }
+
+	if visit.ConfirmationCode != confirmationCode {
+		return fmt.Errorf("Código de confirmação inválido.")
+	}
+
+	visitUpdates := bson.M{
+		"status":     "COMPLETED",
+		"updated_at": time.Now(),
+	}
+
+	_, err = s.visitRepository.UpdateVisitFields(visitId, visitUpdates)
+	if err != nil {
+		return fmt.Errorf("Erro ao atualizar status da visita para completar serviço.")
+	}
+
+	//logica de liberar dinheiro retido para enfermerio
+
+	return nil
 }

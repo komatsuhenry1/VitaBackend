@@ -201,12 +201,44 @@ func (h *NurseHandler) GetNurseVisitInfo(c *gin.Context) {
 	visitId := c.Param("id")
 
 	visitInfo, err := h.nurseService.GetNurseVisitInfo(nurseId, visitId)
-	if err != nil{
+	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	utils.SendSuccessResponse(c, "Informações de visita para enfermeiro(a) listadas com sucesso.", visitInfo)
 
+}
 
+func (h *NurseHandler) VisitServiceConfirmation(c *gin.Context) {
+	nurseId := utils.GetUserId(c)
+
+	visitId := c.Param("id")
+
+	var requestBody map[string]interface{}
+
+	if err := c.ShouldBindJSON(&requestBody); err != nil {
+		c.JSON(400, gin.H{"error": "Erro ao processar JSON"})
+		return
+	}
+
+	confirmationCode, exists := requestBody["confirmation_code"]
+	if !exists {
+		c.JSON(400, gin.H{"error": "Campo confirmation_code é obrigatório"})
+		return
+	}
+
+	codeStr, ok := confirmationCode.(string)
+	if !ok {
+		c.JSON(400, gin.H{"error": "confirmation_code deve ser uma string"})
+		return
+	}
+
+	err := h.nurseService.VisitServiceConfirmation(nurseId, visitId, codeStr)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Serviço completado com sucesso.", http.StatusOK)
 }
