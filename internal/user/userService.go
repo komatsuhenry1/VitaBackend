@@ -176,20 +176,14 @@ func (h *userService) FindAllVisits(patientId string) (userDTO.VisitsResponseDto
 
 	location, err := time.LoadLocation("America/Sao_Paulo")
 	if err != nil {
-		// Se falhar, usa UTC como padrão
 		location = time.UTC
 	}
 
 	now := time.Now().In(location)
-	// todayStart é hoje, à meia-noite (00:00:00)
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
-	// tomorrowStart é amanhã, à meia-noite (00:00:00)
 	tomorrowStart := todayStart.Add(24 * time.Hour)
-	// --- FIM DA MUDANÇA ---
 
 	for _, visit := range visits {
-		// Busca os dados do enfermeiro (esta ainda é uma chamada N+1,
-		// mas vamos manter por enquanto para focar na sua solicitação)
 		nurse, err := h.nurseRepository.FindNurseById(visit.NurseId)
 		if err != nil {
 			return userDTO.VisitsResponseDto{}, err
@@ -215,7 +209,6 @@ func (h *userService) FindAllVisits(patientId string) (userDTO.VisitsResponseDto
 
 		visitDate := visit.VisitDate.In(location) // Garante que a data da visita está no mesmo fuso
 		isConfirmed := visit.Status == "CONFIRMED"
-		// Verifica se a data da visita está entre hoje (00:00) e amanhã (00:00)
 		isToday := (visitDate.Equal(todayStart) || visitDate.After(todayStart)) && visitDate.Before(tomorrowStart)
 
 		if isConfirmed && isToday {

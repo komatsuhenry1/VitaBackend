@@ -75,10 +75,8 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 	confirmedVisits := make([]dto.VisitDto, 0)
 	completedVisits := make([]dto.VisitDto, 0)
 
-	// --- MUDANÇA: Criar a nova lista ---
 	visitsToday := make([]dto.VisitDto, 0)
 
-	// --- MUDANÇA: Lógica para definir o dia de "hoje" ---
 	location, err := time.LoadLocation("America/Sao_Paulo")
 	if err != nil {
 		location = time.UTC
@@ -86,10 +84,8 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 	now := time.Now().In(location)
 	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, location)
 	tomorrowStart := todayStart.Add(24 * time.Hour)
-	// --- FIM DA MUDANÇA ---
 
 	for _, visit := range visits {
-		// Sua lógica de FindUserById está correta, pois ela aceita string
 		patient, err := s.userRepository.FindUserById(visit.PatientId)
 		if err != nil {
 			return dto.NurseVisitsListsDto{}, err
@@ -120,7 +116,7 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 		}
 
 		visitDate := visit.VisitDate.In(location)
-		isValidStatus := visit.Status == "CONFIRMED" || visit.Status == "PENDING"
+		isValidStatus := visit.Status == "CONFIRMED"
 		isToday := (visitDate.Equal(todayStart) || visitDate.After(todayStart)) && visitDate.Before(tomorrowStart)
 
 		if isValidStatus && isToday {
