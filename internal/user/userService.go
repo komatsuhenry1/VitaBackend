@@ -30,6 +30,7 @@ type UserService interface {
 	DeleteUser(patientId string) error
 	ConfirmVisitService(visitId, patientId string) error
 	GetOnlineNurses(userId string) ([]userDTO.AllNursesListDto, error)
+	GetPatientVisitInfo(patientId, visitId string) (userDTO.PatientVisitInfo, error)
 }
 
 type userService struct {
@@ -331,12 +332,60 @@ func (s *userService) GetOnlineNurses(userId string) ([]userDTO.AllNursesListDto
 	return onlineNurses, nil
 }
 
-// func (s *userService) GetPatientVisitInfo(patientId string) (userDTO.PatientVisitInfo, error) {
-// 	patient, err := s.userRepository.FindUserById(patientId)
-// 	if err != nil {
-// 		return userDTO.PatientVisitInfo{}, err
-// 	}
+func (s *userService) GetPatientVisitInfo(patientId, visitId string) (userDTO.PatientVisitInfo, error) {
+	visit, err := s.visitRepository.FindVisitById(visitId)
+	if err != nil {
+		return userDTO.PatientVisitInfo{}, fmt.Errorf("Erro ao buscar id da visita.")
+	}
 
-// 	visit, err := s.visitRepository.FindVisitById()
+	if visit.Status != "CONFIRMED" {
+		return userDTO.PatientVisitInfo{}, fmt.Errorf("O atendimento aindão não foi confirmado pelo enfermeiro(a).")
+	}
 
-// }
+    today := time.Now()
+    visitDate := visit.VisitDate
+
+    if today.Year() != visitDate.Year() || today.Month() != visitDate.Month() || today.Day() != visitDate.Day() {
+        return userDTO.PatientVisitInfo{}, fmt.Errorf("Esta visita não está agendada para hoje.")
+    }
+
+	nurse, err := s.nurseRepository.FindNurseById(visit.NurseId)
+	if err != nil {
+		return userDTO.PatientVisitInfo{}, fmt.Errorf("Erro ao buscar id de enfermeiro(a).")
+	}
+
+	visitDto := userDTO.VisitInfoDto{
+		ID:               visit.ID.Hex(),
+		Status:           visit.Status,
+		Description:      visit.Description,
+		Reason:           visit.Reason,
+		CancelReason:     visit.CancelReason,
+		NurseId:          visit.NurseId,
+		NurseName:        visit.NurseName,
+		VisitValue:       visit.VisitValue,
+		VisitType:        visit.VisitType,
+		VisitDate:        visit.VisitDate.String(),
+		CreatedAt:        visit.CreatedAt.String(),
+		UpdatedAt:        visit.UpdatedAt.String(),
+		ConfirmationCode: visit.ConfirmationCode,
+	}
+
+	nurseDto := userDTO.NurseInfoDto{
+		ID:              nurse.ID.Hex(),
+		Name:            nurse.Name,
+		Email:           nurse.Email,
+		Phone:           nurse.Phone,
+		Specialization:  nurse.Specialization,
+		YearsExperience: nurse.YearsExperience,
+		Rating:          nurse.Rating,
+		Coren:           nurse.Coren,
+		ProfileImageID:  nurse.ProfileImageID.Hex(),
+	}
+
+	patientVisitInfo := userDTO.PatientVisitInfo{
+		Visit: visitDto,
+		Nurse: nurseDto,
+	}
+
+	return patientVisitInfo, nil
+}

@@ -90,3 +90,36 @@ type VisitsResponseDto struct {
 	AllVisits   []AllVisitsDto `json:"all_visits"`
 	VisitsToday []AllVisitsDto `json:"visits_today"`
 }
+
+type PatientVisitInfo struct {
+	Visit VisitInfoDto `json:"visit"`
+	Nurse NurseInfoDto `json:"nurse"`
+}
+
+type VisitInfoDto struct {
+	ID               string  `json:"id"`
+	Status           string  `json:"status"`
+	Description      string  `json:"description"`
+	Reason           string  `json:"reason"`
+	CancelReason     string `json:"cancel_reason"` 
+	NurseId          string  `json:"nurse_id"`     
+	NurseName        string  `json:"nurse_name"` 
+	VisitValue       float64 `json:"visit_value"`
+	VisitType        string  `json:"visit_type"`
+	VisitDate        string  `json:"visit_date"`        
+	CreatedAt        string  `json:"created_at"`        
+	UpdatedAt        string  `json:"updated_at"`     
+	ConfirmationCode string  `json:"confirmation_code"`
+}
+
+type NurseInfoDto struct {
+	ID              string  `json:"id"`
+	Name            string  `json:"name"`
+	Email           string  `json:"email"`
+	Phone           string  `json:"phone"`
+	Specialization  string  `json:"specialization"`
+	YearsExperience int     `json:"years_experience"`
+	Rating          float64 `json:"rating"`
+	Coren           string  `json:"coren"`
+	ProfileImageID  string `json:"profile_image_id"`
+}

@@ -235,14 +235,16 @@ func (h *UserHandler) GetOnlineNurses(c *gin.Context) {
 	utils.SendSuccessResponse(c, "Lista de enfermeiros online listada com sucesso.", response)
 }
 
-// func (h *UserHandler) GetPatientVisitInfo(c *gin.Context) {
-// 	patientId := utils.GetUserId(c)
+func (h *UserHandler) GetPatientVisitInfo(c *gin.Context) {
+	patientId := utils.GetUserId(c)
 
-// 	visitInfo, err := h.userService.GetPatientVisitInfo(patientId)
-// 	if err != nil{
-// 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
-// 		return
-// 	}
+	visitId := c.Param("id")
 
-// 	utils.SendSuccessResponse(c, "Informações de visita para paciente listadas com sucesso.", visitInfo)
-// }
+	visitInfo, err := h.userService.GetPatientVisitInfo(patientId, visitId)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Informações de visita para paciente listadas com sucesso.", visitInfo)
+}
