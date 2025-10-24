@@ -8,6 +8,7 @@ import (
 	"medassist/internal/repository"
 	userDTO "medassist/internal/user/dto"
 	"medassist/utils"
+	"strconv"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -129,9 +130,17 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 		return err
 	}
 
+	confirmationCode, err := utils.GenerateAuthCode()
+	if err != nil {
+		return fmt.Errorf("Erro ao gerar codigo de confirmação: %w", err)
+	}
+
+	fmt.Println("confirmationCode", confirmationCode)
+
 	visit := model.Visit{
-		ID:     primitive.NewObjectID(),
-		Status: "PENDING",
+		ID:               primitive.NewObjectID(),
+		Status:           "PENDING",
+		ConfirmationCode: strconv.Itoa(confirmationCode),
 
 		PatientId:    patientId,
 		PatientName:  patient.Name,
@@ -218,6 +227,7 @@ func (h *userService) FindAllVisits(patientId string) (userDTO.VisitsResponseDto
 
 	return responseDto, nil
 }
+
 func (s *userService) UpdateUser(userId string, updates map[string]interface{}) (adminDTO.UserTypeResponse, error) {
 
 	if emailRaw, ok := updates["email"]; ok {

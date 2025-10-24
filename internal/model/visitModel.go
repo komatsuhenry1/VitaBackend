@@ -7,8 +7,9 @@ import (
 )
 
 type Visit struct {
-	ID     primitive.ObjectID `bson:"_id,omitempty" json:"id"`
-	Status string             `bson:"status" json:"status" binding:"required"`
+	ID               primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+	Status           string             `bson:"status" json:"status" binding:"required"`
+	ConfirmationCode string             `bson:"confirmation_code" json:"confirmation_code"`
 
 	PatientId    string `bson:"patient_id" json:"patient_id" binding:"required"`
 	PatientName  string `bson:"patient_name" json:"patient_name" binding:"required"`
