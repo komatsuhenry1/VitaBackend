@@ -90,11 +90,13 @@ func (h *NurseHandler) ConfirmOrCancelVisit(c *gin.Context) {
 	fmt.Println("nurseiD", nurseId)
 
 	visitId := c.Param("id")
-	fmt.Println("antes binfing")
+	// permite que o campo 'reason' venha vazio
 	var reason dto.CancelReason
 	if err := c.ShouldBindJSON(&reason); err != nil {
-		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
-		return
+		if err.Error() != "EOF" {
+			utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+			return
+		}
 	}
 
 	response, err := h.nurseService.ConfirmOrCancelVisit(nurseId, visitId, reason.Reason)

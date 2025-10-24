@@ -327,3 +327,13 @@ func (s *userService) GetOnlineNurses(userId string) ([]userDTO.AllNursesListDto
 
 	return onlineNurses, nil
 }
+
+// func (s *userService) GetPatientVisitInfo(patientId string) (userDTO.PatientVisitInfo, error) {
+// 	patient, err := s.userRepository.FindUserById(patientId)
+// 	if err != nil {
+// 		return userDTO.PatientVisitInfo{}, err
+// 	}
+
+// 	visit, err := s.visitRepository.FindVisitById()
+
+// }
