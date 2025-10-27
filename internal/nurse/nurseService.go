@@ -274,16 +274,6 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 		return userDTO.NurseProfileResponseDTO{}, err
 	}
 
-	reviews := []userDTO.ReviewDTO{{ // funcao na repo que retorna uma lista de reviews
-		Rating:  4,
-		Comment: "Review comment",
-	}}
-
-	availability := []userDTO.AvailabilityDTO{{ // funcao na repository que retorna lista de avalability
-		Day:   "19/09/2010",
-		Hours: "10:00",
-	}}
-
 	schedule, err := h.visitRepository.FindAllVisitsForNurse(nurseId)
 	if err != nil {
 		return userDTO.NurseProfileResponseDTO{}, err
@@ -317,8 +307,6 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 		Bio:            nurse.Bio,
 		Qualifications: nurse.Qualifications,
 		Services:       nurse.Services,
-		Reviews:        reviews,
-		Availability:   availability,
 		ProfileImageID: nurse.ProfileImageID.Hex(),
 		Schedule:       schedule,
 		TotalPatients:  totalPatients,

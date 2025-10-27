@@ -15,8 +15,8 @@ type Container struct {
 	UserHandler  *user.UserHandler
 	NurseHandler *nurse.NurseHandler
 	AdminHandler *admin.AdminHandler
-	ChatHub *chat.Hub
-	ChatHandler *chat.ChatHandler
+	ChatHub      *chat.Hub
+	ChatHandler  *chat.ChatHandler
 }
 
 func NewContainer() *Container {
@@ -29,7 +29,7 @@ func NewContainer() *Container {
 	messageRepository := repository.NewMessageRepository(db)
 	reviewRepository := repository.NewReviewRepository(db)
 	hub := chat.NewHub(messageRepository)
-	
+
 	authService := auth.NewAuthService(userRepository, nurseRepository)
 	adminService := admin.NewAdminService(userRepository, nurseRepository, visitRepository)
 	userService := user.NewUserService(userRepository, nurseRepository, visitRepository, reviewRepository)
@@ -41,13 +41,12 @@ func NewContainer() *Container {
 	nurseHandler := nurse.NewNurseHandler(nurseService)
 	chatHandler := chat.NewChatHandler(messageRepository)
 
-
 	return &Container{
 		AuthHandler:  authHandler,
 		AdminHandler: adminHandler,
 		UserHandler:  userHandler,
 		NurseHandler: nurseHandler,
-		ChatHub:     hub,
-		ChatHandler: chatHandler,
+		ChatHub:      hub,
+		ChatHandler:  chatHandler,
 	}
 }

@@ -4,6 +4,8 @@ import (
 	"context"
 	"medassist/internal/model"
 
+	"fmt"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -12,6 +14,7 @@ import (
 type ReviewRepository interface {
 	CreateReview(review model.Review) error
 	FindReviewByVisitId(visitId string) (model.Review, error)
+	FindAverageRatingByNurseId(nurseId string) (float64, error)
 }
 
 type reviewRepository struct {
@@ -50,4 +53,46 @@ func (r *reviewRepository) FindReviewByVisitId(visitId string) (model.Review, er
 	}
 
 	return review, nil
+}
+
+func (r *reviewRepository) FindAverageRatingByNurseId(nurseId string) (float64, error) {
+
+	objID, err := primitive.ObjectIDFromHex(nurseId)
+	if err != nil {
+		fmt.Printf("ID do enfermeiro(a) inválido: %s, erro: %v\n", nurseId, err)
+		return 0.0, nil
+	}
+
+	matchStage := bson.D{{Key: "$match", Value: bson.M{"nurse_id": objID}}}
+	groupStage := bson.D{
+		{Key: "$group", Value: bson.M{
+			"_id":           nil,
+			"averageRating": bson.M{"$avg": "$rating"}, // <- Nome é "averageRating"
+		}},
+	}
+
+	pipeline := mongo.Pipeline{matchStage, groupStage}
+
+	cursor, err := r.collection.Aggregate(r.ctx, pipeline)
+	if err != nil {
+		fmt.Printf("Erro ao agregar ratings: %v\n", err)
+		return 0.0, err
+	}
+	defer cursor.Close(r.ctx)
+
+	// MUDANÇA AQUI
+	var result struct {
+		// O nome na tag 'bson' deve ser idêntico ao nome no $group
+		AverageRating float64 `bson:"averageRating"`
+	}
+	// FIM DA MUDANÇA
+
+	if cursor.Next(r.ctx) {
+		if err = cursor.Decode(&result); err != nil {
+			fmt.Printf("Erro ao decodificar média de rating: %v\n", err)
+			return 0.0, err
+		}
+	}
+
+	return result.AverageRating, nil
 }

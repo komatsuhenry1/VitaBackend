@@ -42,28 +42,29 @@ type AvailabilityDTO struct {
 }
 
 type NurseProfileResponseDTO struct {
-	ID             string            `json:"id"`
-	Name           string            `json:"name"`
-	Specialization string            `json:"specialization"`
-	Experience     int               `json:"experience"`
-	Rating         float64           `json:"rating"`
-	Online         bool              `json:"online"`
-	Price          float64           `json:"price"`
-	Shift          string            `json:"shift"`
-	Department     string            `json:"department"`
-	Coren          string            `json:"coren"`
-	Phone          string            `json:"phone"`
-	Image          string            `json:"image"`
-	Location       string            `json:"location"`
-	Bio            string            `json:"bio"`
-	Schedule       []model.Visit     `json:"schedules"`
-	TotalPatients  int               `json:"total_patients"`
-	Earnings       float64           `json:"earnings"`
-	Qualifications []string          `json:"qualifications"`
-	ProfileImageID string            `json:"profile_image_id"`
-	Services       []string          `json:"services"`
-	Reviews        []ReviewDTO       `json:"reviews"`
-	Availability   []AvailabilityDTO `json:"availability"`
+	ID             string        `json:"id"`
+	Name           string        `json:"name"`
+	Specialization string        `json:"specialization"`
+	Experience     int           `json:"experience"`
+	Rating         float64       `json:"rating"`
+	Online         bool          `json:"online"`
+	Price          float64       `json:"price"`
+	Shift          string        `json:"shift"`
+	Department     string        `json:"department"`
+	Coren          string        `json:"coren"`
+	Phone          string        `json:"phone"`
+	Image          string        `json:"image"`
+	Location       string        `json:"location"`
+	Bio            string        `json:"bio"`
+	Schedule       []model.Visit `json:"schedules"`
+	TotalPatients  int           `json:"total_patients"`
+	Earnings       float64       `json:"earnings"`
+	Qualifications []string      `json:"qualifications"`
+	ProfileImageID string        `json:"profile_image_id"`
+	Services       []string      `json:"services"`
+	DaysAvailable  []string      `json:"days_available"`
+	StartTime      string        `json:"start_time"`
+	EndTime        string        `json:"end_time"`
 }
 
 type NurseDto struct {

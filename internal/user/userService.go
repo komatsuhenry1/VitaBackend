@@ -86,22 +86,20 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		return userDTO.NurseProfileResponseDTO{}, fmt.Errorf("O enfermeiro ainda não preencheu os dados necessários para ser visto por pacientes.")
 	}
 
-	reviews := []userDTO.ReviewDTO{{ // funcao na repo que retorna uma lista de reviews
-		Rating:  4,
-		Comment: "Review comment",
-	}}
+	rating, err := h.reviewRepository.FindAverageRatingByNurseId(nurseId)
+	if err != nil {
+		return userDTO.NurseProfileResponseDTO{}, err
+	}
 
-	availability := []userDTO.AvailabilityDTO{{ // funcao na repository que retorna lista de avalability
-		Day:   "19/09/2010",
-		Hours: "10:00",
-	}}
-
+	fmt.Println("====")
+	fmt.Println("avg: ", rating)
+	fmt.Println("====")
 	nurseProfile := userDTO.NurseProfileResponseDTO{
 		ID:             nurse.ID.Hex(),
 		Name:           nurse.Name,
 		Specialization: nurse.Specialization,
 		Experience:     nurse.YearsExperience,
-		Rating:         nurse.Rating,
+		Rating:         rating,
 		Price:          nurse.Price,
 		Shift:          nurse.Shift,
 		Department:     nurse.Department,
@@ -113,8 +111,9 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		Bio:            nurse.Bio,
 		Qualifications: nurse.Qualifications,
 		Services:       nurse.Services,
-		Reviews:        reviews,
-		Availability:   availability,
+		DaysAvailable:  nurse.DaysAvailable,
+		StartTime:      nurse.StartTime,
+		EndTime:        nurse.EndTime,
 		ProfileImageID: nurse.ProfileImageID.Hex(),
 	}
 
