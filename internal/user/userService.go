@@ -86,7 +86,6 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 	}
 
 	reviews := []userDTO.ReviewDTO{{ // funcao na repo que retorna uma lista de reviews
-		Patient: "paciente name",
 		Rating:  4,
 		Comment: "Review comment",
 	}}
@@ -339,20 +338,21 @@ func (s *userService) GetPatientVisitInfo(patientId, visitId string) (userDTO.Pa
 		return userDTO.PatientVisitInfo{}, fmt.Errorf("Erro ao buscar id da visita.")
 	}
 
-	if visit.Status != "CONFIRMED" {
-		return userDTO.PatientVisitInfo{}, fmt.Errorf("O atendimento aindão não foi confirmado pelo enfermeiro(a).")
-	}
+	// if visit.Status == "PENDING" {
+	// 	return userDTO.PatientVisitInfo{}, fmt.Errorf("O atendimento aindão não foi confirmado pelo enfermeiro(a).")
+	// }
 
 	if visit.PatientId != patientId {
 		return userDTO.PatientVisitInfo{}, fmt.Errorf("Essa visita é pertencente à outro paciente.")
 	}
 
-	today := time.Now()
-	visitDate := visit.VisitDate
+	// validacao de ver os dados da visita apenas no dia de hoje
+	// today := time.Now()
+	// visitDate := visit.VisitDate
 
-	if today.Year() != visitDate.Year() || today.Month() != visitDate.Month() || today.Day() != visitDate.Day() {
-		return userDTO.PatientVisitInfo{}, fmt.Errorf("Esta visita não está agendada para hoje.")
-	}
+	// if today.Year() != visitDate.Year() || today.Month() != visitDate.Month() || today.Day() != visitDate.Day() {
+	// 	return userDTO.PatientVisitInfo{}, fmt.Errorf("Esta visita não está agendada para hoje.")
+	// }
 
 	nurse, err := s.nurseRepository.FindNurseById(visit.NurseId)
 	if err != nil {
@@ -401,6 +401,8 @@ func (s *userService) AddReview(userId, visitId string, reviewDto userDTO.Review
 	if err != nil {
 		return fmt.Errorf("Erro ao buscar id da visita.")
 	}
+
+	//valida se a visita ja foi avaliada.
 
 	if visit.Status != "COMPLETED" {
 		return fmt.Errorf("A visita ainda não foi completada. Portanto não é possível deixar uma avaliação.")

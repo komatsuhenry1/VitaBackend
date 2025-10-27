@@ -275,7 +275,6 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 	}
 
 	reviews := []userDTO.ReviewDTO{{ // funcao na repo que retorna uma lista de reviews
-		Patient: "paciente name",
 		Rating:  4,
 		Comment: "Review comment",
 	}}
@@ -402,20 +401,16 @@ func (s nurseService) GetNurseVisitInfo(nurseId, visitId string) (dto.NurseVisit
 		return dto.NurseVisitInfo{}, fmt.Errorf("Erro ao buscar id da visita.")
 	}
 
-	if visit.Status != "CONFIRMED" {
-		return dto.NurseVisitInfo{}, fmt.Errorf("O atendimento aindão não foi confirmado pelo enfermeiro(a).")
-	}
-
 	if visit.NurseId != nurseId {
 		return dto.NurseVisitInfo{}, fmt.Errorf("Essa visita é pertencente à outro enfermeiro.")
 	}
 
-	today := time.Now()
-	visitDate := visit.VisitDate
+	// today := time.Now()
+	// visitDate := visit.VisitDate
 
-	if today.Year() != visitDate.Year() || today.Month() != visitDate.Month() || today.Day() != visitDate.Day() {
-		return dto.NurseVisitInfo{}, fmt.Errorf("Esta visita não está agendada para hoje.")
-	}
+	// if today.Year() != visitDate.Year() || today.Month() != visitDate.Month() || today.Day() != visitDate.Day() {
+	// 	return dto.NurseVisitInfo{}, fmt.Errorf("Esta visita não está agendada para hoje.")
+	// }
 
 	patient, err := s.userRepository.FindUserById(visit.PatientId)
 	if err != nil {

@@ -32,7 +32,6 @@ type AllNursesListDto struct {
 }
 
 type ReviewDTO struct {
-	Patient string `json:"patient"`
 	Rating  int    `json:"rating"`
 	Comment string `json:"comment"`
 }
