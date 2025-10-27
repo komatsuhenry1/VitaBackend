@@ -101,6 +101,7 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		Department:     nurse.Department,
 		Image:          nurse.ProfileImageID.Hex(),
 		Location:       nurse.Address,
+		Neighborhood:   nurse.Neighborhood,
 		Phone:          nurse.Phone,
 		Online:         nurse.Online,
 		Coren:          nurse.Coren,
