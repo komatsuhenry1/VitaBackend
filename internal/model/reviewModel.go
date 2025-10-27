@@ -1,0 +1,21 @@
+package model
+
+import (
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
+type Review struct {
+	ID primitive.ObjectID `bson:"_id,omitempty" json:"id"`
+
+	VisitId   primitive.ObjectID `bson:"visit_id" json:"visit_id"`
+	NurseId   primitive.ObjectID `bson:"nurse_id" json:"nurse_id"`
+	PatientId primitive.ObjectID `bson:"patient_id" json:"patient_id"`
+
+	Rating  int    `bson:"rating" json:"rating"`
+	Comment string `bson:"comment,omitempty" json:"comment,omitempty"`
+
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
+	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
+}

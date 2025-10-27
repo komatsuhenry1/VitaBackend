@@ -248,3 +248,23 @@ func (h *UserHandler) GetPatientVisitInfo(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, "Informações de visita para paciente listadas com sucesso.", visitInfo)
 }
+
+func (h *UserHandler) AddReview(c *gin.Context){
+	userId := utils.GetUserId(c)
+
+	visitId := c.Param("id")
+
+	var reviewDto dto.ReviewDTO
+	if err := c.ShouldBindJSON(&reviewDto); err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := h.userService.AddReview(userId, visitId, reviewDto)
+	if err != nil{
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Review adicionada com sucesso.", http.StatusOK)
+}

@@ -32,10 +32,9 @@ type AllNursesListDto struct {
 }
 
 type ReviewDTO struct {
-	Patient string  `json:"patient"`
-	Rating  float64 `json:"rating"`
-	Comment string  `json:"comment"`
-	Date    string  `json:"date"`
+	Patient string `json:"patient"`
+	Rating  int    `json:"rating"`
+	Comment string `json:"comment"`
 }
 
 type AvailabilityDTO struct {
@@ -101,14 +100,14 @@ type VisitInfoDto struct {
 	Status           string  `json:"status"`
 	Description      string  `json:"description"`
 	Reason           string  `json:"reason"`
-	CancelReason     string `json:"cancel_reason"` 
-	NurseId          string  `json:"nurse_id"`     
-	NurseName        string  `json:"nurse_name"` 
+	CancelReason     string  `json:"cancel_reason"`
+	NurseId          string  `json:"nurse_id"`
+	NurseName        string  `json:"nurse_name"`
 	VisitValue       float64 `json:"visit_value"`
 	VisitType        string  `json:"visit_type"`
-	VisitDate        string  `json:"visit_date"`        
-	CreatedAt        string  `json:"created_at"`        
-	UpdatedAt        string  `json:"updated_at"`     
+	VisitDate        string  `json:"visit_date"`
+	CreatedAt        string  `json:"created_at"`
+	UpdatedAt        string  `json:"updated_at"`
 	ConfirmationCode string  `json:"confirmation_code"`
 }
 
@@ -121,5 +120,5 @@ type NurseInfoDto struct {
 	YearsExperience int     `json:"years_experience"`
 	Rating          float64 `json:"rating"`
 	Coren           string  `json:"coren"`
-	ProfileImageID  string `json:"profile_image_id"`
+	ProfileImageID  string  `json:"profile_image_id"`
 }

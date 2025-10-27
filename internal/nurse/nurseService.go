@@ -276,9 +276,8 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 
 	reviews := []userDTO.ReviewDTO{{ // funcao na repo que retorna uma lista de reviews
 		Patient: "paciente name",
-		Rating:  4.5,
+		Rating:  4,
 		Comment: "Review comment",
-		Date:    "Review date",
 	}}
 
 	availability := []userDTO.AvailabilityDTO{{ // funcao na repository que retorna lista de avalability

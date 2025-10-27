@@ -31,16 +31,18 @@ type UserService interface {
 	ConfirmVisitService(visitId, patientId string) error
 	GetOnlineNurses(userId string) ([]userDTO.AllNursesListDto, error)
 	GetPatientVisitInfo(patientId, visitId string) (userDTO.PatientVisitInfo, error)
+	AddReview(userId, visitId string, reviewDto userDTO.ReviewDTO) error
 }
 
 type userService struct {
-	userRepository  repository.UserRepository
-	nurseRepository repository.NurseRepository
-	visitRepository repository.VisitRepository
+	userRepository   repository.UserRepository
+	nurseRepository  repository.NurseRepository
+	visitRepository  repository.VisitRepository
+	reviewRepository repository.ReviewRepository
 }
 
-func NewUserService(userRepository repository.UserRepository, nurseRepository repository.NurseRepository, visitRepository repository.VisitRepository) UserService {
-	return &userService{userRepository: userRepository, nurseRepository: nurseRepository, visitRepository: visitRepository}
+func NewUserService(userRepository repository.UserRepository, nurseRepository repository.NurseRepository, visitRepository repository.VisitRepository, reviewRepository repository.ReviewRepository) UserService {
+	return &userService{userRepository: userRepository, nurseRepository: nurseRepository, visitRepository: visitRepository, reviewRepository: reviewRepository}
 }
 
 func (s *userService) GetAllNurses(patientId string) ([]userDTO.AllNursesListDto, error) {
@@ -85,9 +87,8 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 
 	reviews := []userDTO.ReviewDTO{{ // funcao na repo que retorna uma lista de reviews
 		Patient: "paciente name",
-		Rating:  4.5,
+		Rating:  4,
 		Comment: "Review comment",
-		Date:    "Review date",
 	}}
 
 	availability := []userDTO.AvailabilityDTO{{ // funcao na repository que retorna lista de avalability
@@ -392,4 +393,49 @@ func (s *userService) GetPatientVisitInfo(patientId, visitId string) (userDTO.Pa
 	}
 
 	return patientVisitInfo, nil
+}
+
+func (s *userService) AddReview(userId, visitId string, reviewDto userDTO.ReviewDTO) error {
+
+	visit, err := s.visitRepository.FindVisitById(visitId)
+	if err != nil {
+		return fmt.Errorf("Erro ao buscar id da visita.")
+	}
+
+	if visit.Status != "COMPLETED" {
+		return fmt.Errorf("A visita ainda não foi completada. Portanto não é possível deixar uma avaliação.")
+	}
+
+	if visit.PatientId != userId {
+		return fmt.Errorf("Essa visita é pertencente à outro paciente.")
+	}
+
+	patientObjectID, err := primitive.ObjectIDFromHex(visit.PatientId)
+	if err != nil {
+		return fmt.Errorf("Erro ao converter patientId em objectID.")
+	}
+
+	nurseObjectID, err := primitive.ObjectIDFromHex(visit.NurseId)
+	if err != nil {
+		return fmt.Errorf("Erro ao converter nurseId em objectID.")
+	}
+
+	review := model.Review{
+		ID:        primitive.NewObjectID(),
+		VisitId:   visit.ID,
+		NurseId:   nurseObjectID,
+		PatientId: patientObjectID,
+		Rating:    reviewDto.Rating,
+		Comment:   reviewDto.Comment,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	err = s.reviewRepository.CreateReview(review)
+	if err != nil {
+		return fmt.Errorf("Erro ao criar review: %w", err)
+	}
+
+	return nil
+
 }
