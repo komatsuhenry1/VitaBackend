@@ -90,10 +90,6 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 	if err != nil {
 		return userDTO.NurseProfileResponseDTO{}, err
 	}
-
-	fmt.Println("====")
-	fmt.Println("avg: ", rating)
-	fmt.Println("====")
 	nurseProfile := userDTO.NurseProfileResponseDTO{
 		ID:             nurse.ID.Hex(),
 		Name:           nurse.Name,

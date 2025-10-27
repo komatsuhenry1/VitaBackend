@@ -368,6 +368,7 @@ func (s *nurseService) GetAvailabilityInfo(nurseId string) (dto.AvailabilityResp
 	}
 
 	availabilityResponseDto := dto.AvailabilityResponseDTO{
+		Bio:                    nurse.Bio,
 		Online:                 nurse.Online,
 		StartTime:              nurse.StartTime,
 		EndTime:                nurse.EndTime,

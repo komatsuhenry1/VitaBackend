@@ -89,6 +89,7 @@ type NurseUpdateResponseDTO struct {
 }
 
 type AvailabilityResponseDTO struct {
+	Bio                    string   `json:"bio"`
 	Online                 bool     `json:"online"`
 	StartTime              string   `json:"start_time"`
 	EndTime                string   `json:"end_time"`
