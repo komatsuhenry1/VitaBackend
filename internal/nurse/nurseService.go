@@ -29,13 +29,14 @@ type NurseService interface {
 }
 
 type nurseService struct {
-	userRepository  repository.UserRepository
-	nurseRepository repository.NurseRepository
-	visitRepository repository.VisitRepository
+	userRepository   repository.UserRepository
+	nurseRepository  repository.NurseRepository
+	visitRepository  repository.VisitRepository
+	reviewRepository repository.ReviewRepository
 }
 
-func NewNurseService(userRepository repository.UserRepository, nurseRepository repository.NurseRepository, visitRepository repository.VisitRepository) NurseService {
-	return &nurseService{userRepository: userRepository, nurseRepository: nurseRepository, visitRepository: visitRepository}
+func NewNurseService(userRepository repository.UserRepository, nurseRepository repository.NurseRepository, visitRepository repository.VisitRepository, reviewRepository repository.ReviewRepository) NurseService {
+	return &nurseService{userRepository: userRepository, nurseRepository: nurseRepository, visitRepository: visitRepository, reviewRepository: reviewRepository}
 }
 
 func (s *nurseService) UpdateAvailablityNursingService(nurseId string) (model.Nurse, error) {
@@ -130,7 +131,7 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 		Pending:     pendingVisits,
 		Confirmed:   confirmedVisits,
 		Completed:   completedVisits,
-		VisitsToday: visitsToday, // Adiciona o novo campo
+		VisitsToday: visitsToday,
 	}
 
 	return allVisitsDto, nil
@@ -290,12 +291,17 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 	}
 	// =======================================================
 
+	nurseRatingAvg, err := h.reviewRepository.FindAverageRatingByNurseId(nurseId)
+	if err != nil {
+		return userDTO.NurseProfileResponseDTO{}, fmt.Errorf("Erro ao buscar média de avaliação de enfermeiro(a).")
+	}
+
 	nurseProfile := userDTO.NurseProfileResponseDTO{
 		ID:             nurse.ID.Hex(),
 		Name:           nurse.Name,
 		Specialization: nurse.Specialization,
 		Experience:     nurse.YearsExperience,
-		Rating:         nurse.Rating,
+		Rating:         nurseRatingAvg,
 		Price:          nurse.Price,
 		Shift:          nurse.Shift,
 		Department:     nurse.Department,
@@ -368,6 +374,7 @@ func (s *nurseService) GetAvailabilityInfo(nurseId string) (dto.AvailabilityResp
 	}
 
 	availabilityResponseDto := dto.AvailabilityResponseDTO{
+		Department:             nurse.Department,
 		Bio:                    nurse.Bio,
 		Online:                 nurse.Online,
 		StartTime:              nurse.StartTime,
