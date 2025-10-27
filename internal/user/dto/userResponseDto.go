@@ -82,6 +82,7 @@ type AllVisitsDto struct {
 	Date        string   `json:"date"`
 	Status      string   `json:"status"`
 	Nurse       NurseDto `json:"nurse"`
+	Rating      int      `json:"rating"`
 }
 
 type VisitsResponseDto struct {

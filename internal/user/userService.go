@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"fmt"
 	"strings"
@@ -194,8 +195,28 @@ func (h *userService) FindAllVisits(patientId string) (userDTO.VisitsResponseDto
 	tomorrowStart := todayStart.Add(24 * time.Hour)
 
 	for _, visit := range visits {
+
+		// MUDANÇA: Agora checamos o tipo do erro
+		visitReview, err := h.reviewRepository.FindReviewByVisitId(visit.ID.Hex())
+		if err != nil {
+			// Se o erro NÃO FOR "documento não encontrado", é um erro real.
+			if err != mongo.ErrNoDocuments {
+				// É um erro inesperado (ex: DB offline), então paramos.
+				return userDTO.VisitsResponseDto{}, err
+			}
+			// Se o erro FOR "mongo.ErrNoDocuments", está tudo bem.
+			// 'visitReview' continuará sendo um 'model.Review{}' vazio (zero-value).
+			// 'visitReview.Rating' será 0 (ou 0.0), que é o que queremos.
+		}
+		// FIM DA MUDANÇA
+
+		fmt.Println("visitReview", visitReview)
+		fmt.Println("visitReview.Rating", visitReview.Rating)
+
 		nurse, err := h.nurseRepository.FindNurseById(visit.NurseId)
 		if err != nil {
+			// Este erro (enfermeiro(a) não encontrado) deve ser fatal,
+			// pois uma visita não pode existir sem um enfermeiro(a).
 			return userDTO.VisitsResponseDto{}, err
 		}
 
@@ -207,6 +228,9 @@ func (h *userService) FindAllVisits(patientId string) (userDTO.VisitsResponseDto
 			CreatedAt:   visit.CreatedAt.Format("02/01/2006 15:04"),
 			Date:        visit.VisitDate.Format("02/01/2006 15:04"),
 			Status:      visit.Status,
+			// Se 'visitReview' estiver vazio (devido ao ErrNoDocuments),
+			// 'visitReview.Rating' será o valor zero (ex: 0), que é o correto.
+			Rating: visitReview.Rating,
 			Nurse: userDTO.NurseDto{
 				ID:             nurse.ID.Hex(),
 				Name:           nurse.Name,
