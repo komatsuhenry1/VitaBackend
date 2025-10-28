@@ -265,6 +265,24 @@ func (h *UserHandler) AddReview(c *gin.Context){
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
+	
+	utils.SendSuccessResponse(c, "Review adicionada com sucesso.", http.StatusOK)
+}
+
+func (h *UserHandler) ImmediateVisitSolicitation(c *gin.Context) {
+	patientId := utils.GetUserId(c)
+	
+	var immediateVisitDto dto.ImmediateVisitDTO
+	if err := c.ShouldBindJSON(&immediateVisitDto); err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+	
+	err := h.userService.ImmediateVisitSolicitation(patientId, immediateVisitDto)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	utils.SendSuccessResponse(c, "Review adicionada com sucesso.", http.StatusOK)
 }

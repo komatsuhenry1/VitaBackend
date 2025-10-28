@@ -33,6 +33,7 @@ type UserService interface {
 	GetOnlineNurses(userId string) ([]userDTO.AllNursesListDto, error)
 	GetPatientVisitInfo(patientId, visitId string) (userDTO.PatientVisitInfo, error)
 	AddReview(userId, visitId string, reviewDto userDTO.ReviewDTO) error
+	ImmediateVisitSolicitation(patientId string, immediateVisitDto userDTO.ImmediateVisitDTO) error
 }
 
 type userService struct {
@@ -150,9 +151,10 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 		NurseId:   createVisitDto.NurseId,
 		NurseName: nurse.Name,
 
-		VisitType:  createVisitDto.VisitType,
-		VisitDate:  createVisitDto.VisitDate,
-		VisitValue: createVisitDto.VisitValue,
+		VisitType:        createVisitDto.VisitType,
+		VisitDate:        createVisitDto.VisitDate,
+		VisitValue:       createVisitDto.VisitValue,
+		VisitRequestType: "SCHEDULED",
 
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
@@ -460,4 +462,60 @@ func (s *userService) AddReview(userId, visitId string, reviewDto userDTO.Review
 
 	return nil
 
+}
+
+func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisitDto userDTO.ImmediateVisitDTO) error {
+	patient, err := s.userRepository.FindUserById(patientId)
+	if err != nil {
+		return fmt.Errorf("Erro ao buscar id de paciente.")
+	}
+
+	nurse, err := s.nurseRepository.FindNurseById(immediateVisitDto.NurseId)
+	if err != nil {
+		return fmt.Errorf("Erro ao buscar id de enfermeiro.")
+	}
+
+	codeInt, _ := utils.GenerateAuthCode()
+
+	code := strconv.Itoa(codeInt)
+
+	visit := model.Visit{
+		ID:               primitive.NewObjectID(),
+		Status:           "PENDING",
+		ConfirmationCode: code,
+
+		PatientId:    patient.ID.Hex(),
+		PatientName:  patient.Name,
+		PatientEmail: patient.Email,
+
+		CEP:          immediateVisitDto.CEP,
+		Street:       immediateVisitDto.Street,
+		Number:       immediateVisitDto.Number,
+		Complement:   immediateVisitDto.Complement,
+		Neighborhood: immediateVisitDto.Neighborhood,
+
+		Description: immediateVisitDto.Description,
+		Reason:      immediateVisitDto.Reason,
+
+		NurseId:   nurse.ID.Hex(),
+		NurseName: nurse.Name,
+
+		VisitValue: nurse.Price,
+
+		VisitRequestType: "IMMEDIATE",
+		VisitType:        immediateVisitDto.VisitType,
+		VisitDate:        time.Now(),
+
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	err = s.visitRepository.CreateVisit(visit)
+	if err != nil {
+		return err
+	}
+
+	utils.SendEmailVisitSolicitation(nurse.Email, patient.Name, immediateVisitDto.VisitDate.String(), visit.VisitValue, patient.Address)
+
+	return nil
 }

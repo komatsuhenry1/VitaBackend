@@ -15,6 +15,12 @@ type Visit struct {
 	PatientName  string `bson:"patient_name" json:"patient_name" binding:"required"`
 	PatientEmail string `bson:"patient_email" json:"patient_email" binding:"required"`
 
+	CEP          string `bson:"cep" json:"cep" binding:"required,address"`
+	Street       string `bson:"street" json:"street" binding:"required"`
+	Number       string `bson:"number" json:"number" binding:"required"`
+	Complement   string `bson:"complement" json:"complement"`
+	Neighborhood string `bson:"neighborhood" json:"neighborhood" binding:"required"`
+
 	Description  string `bson:"description" json:"description" binding:"required"`
 	Reason       string `bson:"reason" json:"reason" binding:"required"`
 	CancelReason string `bson:"cancel_reason" json:"cancel_reason"`
@@ -22,9 +28,10 @@ type Visit struct {
 	NurseId   string `bson:"nurse_id" json:"nurse_id" binding:"required"`
 	NurseName string `bson:"nurse_name" json:"nurse_name" binding:"required"`
 
-	VisitValue float64   `bson:"value" json:"value" binding:"required"`
-	VisitType  string    `bson:"visit_type" json:"visit_type" binding:"required"`
-	VisitDate  time.Time `bson:"visit_date" json:"visit_date" binding:"required"`
+	VisitValue       float64   `bson:"value" json:"value" binding:"required"`
+	VisitType        string    `bson:"visit_type" json:"visit_type" binding:"required"`
+	VisitRequestType string    `bson:"visit_request_type" json:"visit_request_type" binding:"required"`
+	VisitDate        time.Time `bson:"visit_date" json:"visit_date" binding:"required"`
 
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
