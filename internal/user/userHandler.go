@@ -278,11 +278,11 @@ func (h *UserHandler) ImmediateVisitSolicitation(c *gin.Context) {
 		return
 	}
 
-	err := h.userService.ImmediateVisitSolicitation(patientId, immediateVisitDto)
+	userId, err := h.userService.ImmediateVisitSolicitation(patientId, immediateVisitDto)
 	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	utils.SendSuccessResponse(c, "Visita imediata solicitada com sucesso.", http.StatusOK)
+	utils.SendSuccessResponse(c, "Visita imediata solicitada com sucesso.", gin.H{"patient_id": userId})
 }

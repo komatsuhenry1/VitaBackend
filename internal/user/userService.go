@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"encoding/json"
+	"log"
 	adminDTO "medassist/internal/admin/dto"
 	"medassist/internal/auth/dto"
 	"medassist/internal/model"
@@ -10,8 +12,6 @@ import (
 	"medassist/utils"
 	"strconv"
 	"time"
-	"encoding/json"
-	"log"
 
 	"fmt"
 	"medassist/internal/chat"
@@ -36,7 +36,7 @@ type UserService interface {
 	GetOnlineNurses(userId string) ([]userDTO.AllNursesListDto, error)
 	GetPatientVisitInfo(patientId, visitId string) (userDTO.PatientVisitInfo, error)
 	AddReview(userId, visitId string, reviewDto userDTO.ReviewDTO) error
-	ImmediateVisitSolicitation(patientId string, immediateVisitDto userDTO.ImmediateVisitDTO) error
+	ImmediateVisitSolicitation(patientId string, immediateVisitDto userDTO.ImmediateVisitDTO) (string, error)
 }
 
 type userService struct {
@@ -480,18 +480,18 @@ func (s *userService) AddReview(userId, visitId string, reviewDto userDTO.Review
 
 }
 
-func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisitDto userDTO.ImmediateVisitDTO) error {
+func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisitDto userDTO.ImmediateVisitDTO) (string, error) {
 	patient, err := s.userRepository.FindUserById(patientId)
 	if err != nil {
-		return fmt.Errorf("Erro ao buscar id de paciente.")
+		return "", fmt.Errorf("Erro ao buscar id de paciente.")
 	}
 
 	nurse, err := s.nurseRepository.FindNurseById(immediateVisitDto.NurseId)
 	if err != nil {
-		return fmt.Errorf("Erro ao buscar id de enfermeiro.")
+		return "", fmt.Errorf("Erro ao buscar id de enfermeiro.")
 	}
 	if !nurse.Online {
-		return fmt.Errorf("O(A) enfermeiro(a) %s não está online no momento e não pode receber solicitações imediatas", nurse.Name)
+		return "", fmt.Errorf("O(A) enfermeiro(a) %s não está online no momento e não pode receber solicitações imediatas", nurse.Name)
 	}
 
 	codeInt, _ := utils.GenerateAuthCode()
@@ -518,7 +518,7 @@ func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisi
 		NurseId:   nurse.ID.Hex(),
 		NurseName: nurse.Name,
 
-		VisitValue: nurse.Price, 
+		VisitValue: nurse.Price,
 
 		VisitRequestType: "IMMEDIATE",
 		VisitType:        immediateVisitDto.VisitType,
@@ -530,7 +530,8 @@ func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisi
 
 	err = s.visitRepository.CreateVisit(visit)
 	if err != nil {
-		return err
+		return "", fmt.Errorf("Erro ao criar visita: %w", err)
+
 	}
 
 	// ===================================================================
@@ -540,9 +541,10 @@ func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisi
 	// 6a. Montar o payload (o que o app do enfermeiro vai receber)
 	// (Você pode criar um DTO para isso)
 	type NotificationPayload struct {
-		Type        string  `json:"type"`        // Para o app saber que é uma nova chamada
-		VisitID     string  `json:"visit_id"`    // Para o enfermeiro aceitar/recusar
+		Type        string  `json:"type"`     // Para o app saber que é uma nova chamada
+		VisitID     string  `json:"visit_id"` // Para o enfermeiro aceitar/recusar
 		PatientName string  `json:"patient_name"`
+		PatientID   string  `json:"patient_id"`
 		Reason      string  `json:"reason"`
 		Value       float64 `json:"value"`
 		Address     string  `json:"address"` // Um endereço formatado
@@ -555,6 +557,7 @@ func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisi
 		VisitID:     visit.ID.Hex(),
 		PatientName: patient.Name,
 		Reason:      visit.Reason,
+		PatientID:   patient.ID.Hex(),
 		Value:       visit.VisitValue,
 		Address:     address,
 	}
@@ -578,5 +581,5 @@ func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisi
 	// Você pode manter isso, é uma boa garantia caso a notificação WS falhe.
 	utils.SendEmailVisitSolicitation(nurse.Email, patient.Name, immediateVisitDto.VisitDate.String(), visit.VisitValue, patient.Address) // (patient.Address parece ser um campo antigo, talvez usar o 'address' formatado?)
 
-	return nil
+	return patientId, nil
 }
