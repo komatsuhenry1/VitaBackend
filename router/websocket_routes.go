@@ -12,9 +12,7 @@ func SetupWebsocketRoutes(router *gin.Engine, container *di.Container) {
 	ws := router.Group("/ws")
 	{
 		ws.GET("/chat", func(c *gin.Context) {
-			chat.ServeWs(hub, c)
-			
+			chat.ServeWs(hub, c)	
 		})
 	}
-	
 }

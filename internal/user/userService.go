@@ -10,12 +10,15 @@ import (
 	"medassist/utils"
 	"strconv"
 	"time"
+	"encoding/json"
+	"log"
+
+	"fmt"
+	"medassist/internal/chat"
+	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-
-	"fmt"
-	"strings"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -41,10 +44,23 @@ type userService struct {
 	nurseRepository  repository.NurseRepository
 	visitRepository  repository.VisitRepository
 	reviewRepository repository.ReviewRepository
+	visitHub         *chat.Hub
 }
 
-func NewUserService(userRepository repository.UserRepository, nurseRepository repository.NurseRepository, visitRepository repository.VisitRepository, reviewRepository repository.ReviewRepository) UserService {
-	return &userService{userRepository: userRepository, nurseRepository: nurseRepository, visitRepository: visitRepository, reviewRepository: reviewRepository}
+func NewUserService(
+	userRepository repository.UserRepository,
+	nurseRepository repository.NurseRepository,
+	visitRepository repository.VisitRepository,
+	reviewRepository repository.ReviewRepository,
+	visitHub *chat.Hub,
+) UserService {
+	return &userService{
+		userRepository:   userRepository,
+		nurseRepository:  nurseRepository,
+		visitRepository:  visitRepository,
+		reviewRepository: reviewRepository,
+		visitHub:         visitHub,
+	}
 }
 
 func (s *userService) GetAllNurses(patientId string) ([]userDTO.AllNursesListDto, error) {
@@ -474,9 +490,11 @@ func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisi
 	if err != nil {
 		return fmt.Errorf("Erro ao buscar id de enfermeiro.")
 	}
+	if !nurse.Online {
+		return fmt.Errorf("O(A) enfermeiro(a) %s não está online no momento e não pode receber solicitações imediatas", nurse.Name)
+	}
 
 	codeInt, _ := utils.GenerateAuthCode()
-
 	code := strconv.Itoa(codeInt)
 
 	visit := model.Visit{
@@ -500,7 +518,7 @@ func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisi
 		NurseId:   nurse.ID.Hex(),
 		NurseName: nurse.Name,
 
-		VisitValue: nurse.Price,
+		VisitValue: nurse.Price, 
 
 		VisitRequestType: "IMMEDIATE",
 		VisitType:        immediateVisitDto.VisitType,
@@ -515,7 +533,50 @@ func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisi
 		return err
 	}
 
-	utils.SendEmailVisitSolicitation(nurse.Email, patient.Name, immediateVisitDto.VisitDate.String(), visit.VisitValue, patient.Address)
+	// ===================================================================
+	// 6. LÓGICA DE NOTIFICAÇÃO VIA WEBSOCKET (NOVA)
+	// ===================================================================
+
+	// 6a. Montar o payload (o que o app do enfermeiro vai receber)
+	// (Você pode criar um DTO para isso)
+	type NotificationPayload struct {
+		Type        string  `json:"type"`        // Para o app saber que é uma nova chamada
+		VisitID     string  `json:"visit_id"`    // Para o enfermeiro aceitar/recusar
+		PatientName string  `json:"patient_name"`
+		Reason      string  `json:"reason"`
+		Value       float64 `json:"value"`
+		Address     string  `json:"address"` // Um endereço formatado
+	}
+
+	address := fmt.Sprintf("%s, %s - %s", visit.Street, visit.Number, visit.Neighborhood)
+
+	payload := NotificationPayload{
+		Type:        "IMMEDIATE_VISIT_REQUEST",
+		VisitID:     visit.ID.Hex(),
+		PatientName: patient.Name,
+		Reason:      visit.Reason,
+		Value:       visit.VisitValue,
+		Address:     address,
+	}
+
+	jsonPayload, err := json.Marshal(payload)
+	if err != nil {
+		log.Printf("Erro ao serializar payload do WebSocket para visita %s: %v", visit.ID.Hex(), err)
+		// Não retorne erro aqui, o e-mail de fallback ainda pode funcionar
+	} else {
+		// 6b. Enviar a mensagem para o Hub
+		sent := s.visitHub.SendToNurse(nurse.ID.Hex(), jsonPayload)
+
+		if !sent {
+			// Isso significa que o enfermeiro ficou offline no exato segundo
+			// entre a verificação do 'if !nurse.Online' e agora.
+			log.Printf("Alerta: Visita %s criada, mas enfermeiro %s ficou offline antes da notificação WS.", visit.ID.Hex(), nurse.ID.Hex())
+		}
+	}
+
+	// 7. ENVIAR O E-MAIL (MANTIDO COMO FALLBACK)
+	// Você pode manter isso, é uma boa garantia caso a notificação WS falhe.
+	utils.SendEmailVisitSolicitation(nurse.Email, patient.Name, immediateVisitDto.VisitDate.String(), visit.VisitValue, patient.Address) // (patient.Address parece ser um campo antigo, talvez usar o 'address' formatado?)
 
 	return nil
 }

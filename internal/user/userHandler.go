@@ -227,7 +227,7 @@ func (h *UserHandler) GetOnlineNurses(c *gin.Context) {
 	userId := utils.GetUserId(c)
 
 	response, err := h.userService.GetOnlineNurses(userId)
-	if err != nil{
+	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -241,7 +241,7 @@ func (h *UserHandler) GetPatientVisitInfo(c *gin.Context) {
 	visitId := c.Param("id")
 
 	visitInfo, err := h.userService.GetPatientVisitInfo(patientId, visitId)
-	if err != nil{
+	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -249,7 +249,7 @@ func (h *UserHandler) GetPatientVisitInfo(c *gin.Context) {
 	utils.SendSuccessResponse(c, "Informações de visita para paciente listadas com sucesso.", visitInfo)
 }
 
-func (h *UserHandler) AddReview(c *gin.Context){
+func (h *UserHandler) AddReview(c *gin.Context) {
 	userId := utils.GetUserId(c)
 
 	visitId := c.Param("id")
@@ -261,28 +261,28 @@ func (h *UserHandler) AddReview(c *gin.Context){
 	}
 
 	err := h.userService.AddReview(userId, visitId, reviewDto)
-	if err != nil{
-		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
-		return
-	}
-	
-	utils.SendSuccessResponse(c, "Review adicionada com sucesso.", http.StatusOK)
-}
-
-func (h *UserHandler) ImmediateVisitSolicitation(c *gin.Context) {
-	patientId := utils.GetUserId(c)
-	
-	var immediateVisitDto dto.ImmediateVisitDTO
-	if err := c.ShouldBindJSON(&immediateVisitDto); err != nil {
-		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
-		return
-	}
-	
-	err := h.userService.ImmediateVisitSolicitation(patientId, immediateVisitDto)
 	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	utils.SendSuccessResponse(c, "Review adicionada com sucesso.", http.StatusOK)
+}
+
+func (h *UserHandler) ImmediateVisitSolicitation(c *gin.Context) {
+	patientId := utils.GetUserId(c)
+
+	var immediateVisitDto dto.ImmediateVisitDTO
+	if err := c.ShouldBindJSON(&immediateVisitDto); err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := h.userService.ImmediateVisitSolicitation(patientId, immediateVisitDto)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Visita imediata solicitada com sucesso.", http.StatusOK)
 }
