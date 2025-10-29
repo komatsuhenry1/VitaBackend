@@ -79,6 +79,7 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 	pendingVisits := make([]dto.VisitDto, 0)
 	confirmedVisits := make([]dto.VisitDto, 0)
 	completedVisits := make([]dto.VisitDto, 0)
+	rejectedVisits := make([]dto.VisitDto, 0)
 
 	visitsToday := make([]dto.VisitDto, 0)
 
@@ -118,6 +119,9 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 			confirmedVisits = append(confirmedVisits, visitDto)
 		case "COMPLETED":
 			completedVisits = append(completedVisits, visitDto)
+		case "REJECTED":
+			fmt.Print("oi", visitDto)
+			rejectedVisits = append(rejectedVisits, visitDto)
 		}
 
 		visitDate := visit.VisitDate.In(location)
@@ -133,6 +137,7 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 		Pending:     pendingVisits,
 		Confirmed:   confirmedVisits,
 		Completed:   completedVisits,
+		Rejected:    rejectedVisits,
 		VisitsToday: visitsToday,
 	}
 

@@ -10,6 +10,7 @@ type NurseVisitsListsDto struct {
 	Pending     []VisitDto `json:"pending"`
 	Confirmed   []VisitDto `json:"confirmed"`
 	Completed   []VisitDto `json:"completed"`
+	Rejected    []VisitDto `json:"rejected"`
 	VisitsToday []VisitDto `json:"visits_today"`
 }
 
