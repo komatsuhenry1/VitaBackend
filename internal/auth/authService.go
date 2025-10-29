@@ -11,6 +11,8 @@ import (
 	"strings"
 	"time"
 
+	"go.mongodb.org/mongo-driver/bson"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -311,6 +313,7 @@ func (s *authService) NurseRegister(nurseRequestDTO dto.NurseRegisterRequestDTO,
 }
 
 func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dto.AuthUser, error) {
+	fmt.Println("chamou service")
 	if err := loginRequestDTO.Validate(); err != nil {
 		return "", dto.AuthUser{}, err
 	}
@@ -320,6 +323,21 @@ func (s *authService) LoginUser(loginRequestDTO dto.LoginRequestDTO) (string, dt
 	authUser, err := s.findAuthUserByEmail(loginRequestDTO.Email)
 	if err != nil {
 		return "", dto.AuthUser{}, err
+	}
+
+	fmt.Println("auth role", authUser.Role)
+
+	if authUser.Role == "NURSE" {
+		nurseUpdates := bson.M{
+			"online":     false,
+			"updated_at": time.Now(),
+		}
+
+		//salve user com status true/false
+		_, err = s.nurseRepository.UpdateNurseFields(authUser.ID.Hex(), nurseUpdates)
+		if err != nil {
+			return "", dto.AuthUser{}, fmt.Errorf("Erro ao atualizar online nurse field.")
+		}
 	}
 
 	// O resto das validações continua igual
@@ -581,8 +599,6 @@ func (s *authService) ValidateToken(token string) error {
 	}
 	return nil
 }
-
-// auth_service.go
 
 // Use este método em vez de ChangePasswordUnlogged
 func (s *authService) ResetPassword(resetPasswordDTO dto.ResetPasswordDTO) error {
