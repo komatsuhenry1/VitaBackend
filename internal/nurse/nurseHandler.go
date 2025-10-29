@@ -254,3 +254,17 @@ func (h *NurseHandler) TurnOfflineOnLogout(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, "Logout realizado com sucesso.", http.StatusOK)
 }
+
+func (h *NurseHandler) RejectVisit(c *gin.Context) {
+	nurseId := utils.GetUserId(c)
+
+	visitId := c.Param("id")
+
+	err := h.nurseService.RejectVisit(nurseId, visitId)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Visita rejeitada com sucesso.", http.StatusOK)
+}

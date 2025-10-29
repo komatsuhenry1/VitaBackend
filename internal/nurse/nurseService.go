@@ -27,6 +27,7 @@ type NurseService interface {
 	GetNurseVisitInfo(nurseId, visitId string) (dto.NurseVisitInfo, error)
 	VisitServiceConfirmation(nurseId, visitId, confirmationCode string) error
 	TurnOfflineOnLogout(nurseId string) error
+	RejectVisit(nurseId, visitId string) error
 }
 
 type nurseService struct {
@@ -506,6 +507,33 @@ func (s *nurseService) TurnOfflineOnLogout(nurseId string) error {
 
 	//salve user com status true/false
 	_, _ = s.nurseRepository.UpdateNurseFields(nurseId, nurseUpdates)
+
+	return nil
+}
+
+func (s *nurseService) RejectVisit(nurseId, visitId string) error {
+	visit, err := s.visitRepository.FindVisitById(visitId)
+	if err != nil {
+		return fmt.Errorf("Erro ao buscar id da visita.")
+	}
+
+	if visit.Status != "PENDING" {
+		return fmt.Errorf("A visita não está pendente para ser rejeitada.")
+	}
+
+	if visit.NurseId != nurseId {
+		fmt.Errorf("Essa visita é pertencente à outro enfermeiro.")
+	}
+
+	visitUpdates := bson.M{
+		"status":     "REJECTED",
+		"updated_at": time.Now(),
+	}
+
+	_, err = s.visitRepository.UpdateVisitFields(visitId, visitUpdates)
+	if err != nil {
+		fmt.Errorf("Erro ao atualizar status da visita para rejeitada.")
+	}
 
 	return nil
 }
