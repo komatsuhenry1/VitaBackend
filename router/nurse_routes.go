@@ -22,5 +22,6 @@ func SetupNurseRoutes(r *gin.RouterGroup, container *di.Container) {
 		nurse.GET("/dashboard_info", middleware.AuthNurse(), container.NurseHandler.NurseDashboardData)
 		nurse.GET("/visit-info/:id", middleware.AuthNurse(), container.NurseHandler.GetNurseVisitInfo)
 		nurse.PATCH("/service-confirmation/:id", middleware.AuthNurse(), container.NurseHandler.VisitServiceConfirmation)
+		nurse.PATCH("/offline", middleware.AuthNurse(), container.NurseHandler.TurnOfflineOnLogout)
 	}
 }

@@ -242,3 +242,15 @@ func (h *NurseHandler) VisitServiceConfirmation(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, "Serviço completado com sucesso.", http.StatusOK)
 }
+
+func (h *NurseHandler) TurnOfflineOnLogout(c *gin.Context) {
+	nurseId := utils.GetUserId(c)
+
+	err := h.nurseService.TurnOfflineOnLogout(nurseId)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Logout realizado com sucesso.", http.StatusOK)
+}

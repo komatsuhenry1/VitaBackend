@@ -48,7 +48,7 @@ func (h *Hub) SendToNurse(userID string, message []byte) bool {
 		// O canal 'send' do cliente está cheio ou fechado (cliente lento/desconectado)
 		// Remove o cliente do hub para evitar tentar enviar novamente
 		log.Printf("[Hub SendToNurse] Canal do usuário %s cheio ou fechado. Removendo cliente.", userID)
-		delete(h.clients, userID) // Usa o ID para remover
+		delete(h.clients, userID) // Usa o ID para send
 		close(client.send)
 		// IMPORTANTE: Aqui NÃO chamamos SetNurseOffline, pois este Hub é genérico.
 		// A lógica de SetNurseOffline deve ficar no hub específico de visitas (se você o criar)

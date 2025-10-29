@@ -26,6 +26,7 @@ type NurseService interface {
 	GetNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
 	GetNurseVisitInfo(nurseId, visitId string) (dto.NurseVisitInfo, error)
 	VisitServiceConfirmation(nurseId, visitId, confirmationCode string) error
+	TurnOfflineOnLogout(nurseId string) error
 }
 
 type nurseService struct {
@@ -492,6 +493,19 @@ func (s *nurseService) VisitServiceConfirmation(nurseId, visitId, confirmationCo
 	}
 
 	//logica de liberar dinheiro retido para enfermerio
+
+	return nil
+}
+
+func (s *nurseService) TurnOfflineOnLogout(nurseId string) error {
+
+	nurseUpdates := bson.M{
+		"online":     false,
+		"updated_at": time.Now(),
+	}
+
+	//salve user com status true/false
+	_, _ = s.nurseRepository.UpdateNurseFields(nurseId, nurseUpdates)
 
 	return nil
 }

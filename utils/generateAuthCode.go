@@ -1,13 +1,13 @@
 package utils
 
 import (
-	"math/rand"
-	"time"
 	"fmt"
 	"log"
+	"math/rand"
+	"time"
 )
 
-func GenerateAuthCode()(int, error){
+func GenerateAuthCode() (int, error) {
 	min := 100000
 	max := 999999
 
@@ -16,10 +16,10 @@ func GenerateAuthCode()(int, error){
 	num := rand.Intn(max-min+1) + min
 
 	fmt.Println("=========")
-	fmt.Println("2 factor code: ", num)
+	fmt.Println(" code: ", num)
 	fmt.Println("=========")
 	log.Println("=========")
-	log.Println("2 factor code: ", num)
+	log.Println("code: ", num)
 	log.Println("=========")
 
 	return num, nil
