@@ -12,6 +12,8 @@ import (
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type NurseService interface {
@@ -28,6 +30,7 @@ type NurseService interface {
 	VisitServiceConfirmation(nurseId, visitId, confirmationCode string) error
 	TurnOfflineOnLogout(nurseId string) error
 	RejectVisit(nurseId, visitId string) error
+	AddReview(nurseId, visitId string, reviewDto dto.ReviewDTO) error
 }
 
 type nurseService struct {
@@ -97,6 +100,18 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 			return dto.NurseVisitsListsDto{}, err
 		}
 
+		visitReview, err := s.reviewRepository.FindReviewByVisitId(visit.ID.Hex())
+		if err != nil {
+			// Se o erro NÃO FOR "documento não encontrado", é um erro real.
+			if err != mongo.ErrNoDocuments {
+				// É um erro inesperado (ex: DB offline), então paramos.
+				return dto.NurseVisitsListsDto{}, err
+			}
+			// Se o erro FOR "mongo.ErrNoDocuments", está tudo bem.
+			// 'visitReview' continuará sendo um 'model.Review{}' vazio (zero-value).
+			// 'visitReview.Rating' será 0 (ou 0.0), que é o que queremos.
+		}
+
 		visitDto := dto.VisitDto{
 			ID:             visit.ID.Hex(),
 			Description:    visit.Description,
@@ -106,6 +121,7 @@ func (s *nurseService) GetAllVisits(nurseId string) (dto.NurseVisitsListsDto, er
 			CreatedAt:      visit.CreatedAt.Format("02/01/2006 15:04"),
 			Date:           visit.VisitDate.Format("02/01/2006 15:04"),
 			Status:         visit.Status,
+			Rating:         visitReview.Rating,
 			PatientName:    visit.PatientName,
 			PatientImageID: patient.ProfileImageID.Hex(),
 			PatientId:      visit.PatientId,
@@ -217,7 +233,6 @@ func (s *nurseService) GetPatientProfile(patientId string) (dto.PatientProfileRe
 		Hidden:         patient.Hidden,
 		Role:           patient.Role,
 		ProfileImageID: patient.ProfileImageID.Hex(),
-		FirstAccess:    patient.FirstAccess,
 		CreatedAt:      patient.CreatedAt,
 		TempCode:       patient.TempCode,
 		UpdatedAt:      patient.UpdatedAt,
@@ -562,4 +577,52 @@ func (s *nurseService) RejectVisit(nurseId, visitId string) error {
 	}
 
 	return nil
+}
+
+func (s *nurseService) AddReview(nurseId, visitId string, reviewDto dto.ReviewDTO) error {
+
+	visit, err := s.visitRepository.FindVisitById(visitId)
+	if err != nil {
+		return fmt.Errorf("Erro ao buscar id da visita.")
+	}
+
+	//valida se a visita ja foi avaliada.
+
+	if visit.Status != "COMPLETED" {
+		return fmt.Errorf("A visita ainda não foi completada. Portanto não é possível deixar uma avaliação.")
+	}
+
+	if visit.NurseId != nurseId {
+		return fmt.Errorf("Essa visita é pertencente à outro enfermeiro.")
+	}
+
+	patientObjectID, err := primitive.ObjectIDFromHex(visit.PatientId)
+	if err != nil {
+		return fmt.Errorf("Erro ao converter patientId em objectID.")
+	}
+
+	nurseObjectID, err := primitive.ObjectIDFromHex(visit.NurseId)
+	if err != nil {
+		return fmt.Errorf("Erro ao converter nurseId em objectID.")
+	}
+
+	review := model.Review{
+		ID:         primitive.NewObjectID(),
+		VisitId:    visit.ID,
+		NurseId:    nurseObjectID,
+		PatientId:  patientObjectID,
+		Rating:     reviewDto.Rating,
+		Comment:    reviewDto.Comment,
+		ReviewType: "NURSE",
+		CreatedAt:  time.Now(),
+		UpdatedAt:  time.Now(),
+	}
+
+	err = s.reviewRepository.CreateReview(review)
+	if err != nil {
+		return fmt.Errorf("Erro ao criar review: %w", err)
+	}
+
+	return nil
+
 }

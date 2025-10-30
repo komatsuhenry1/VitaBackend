@@ -24,5 +24,6 @@ func SetupNurseRoutes(r *gin.RouterGroup, container *di.Container) {
 		nurse.PATCH("/service-confirmation/:id", middleware.AuthNurse(), container.NurseHandler.VisitServiceConfirmation)
 		nurse.PATCH("/offline", middleware.AuthNurse(), container.NurseHandler.TurnOfflineOnLogout)
 		nurse.PATCH("/reject-visit/:id", middleware.AuthNurse(), container.NurseHandler.RejectVisit)
+		nurse.POST("/review/:id", middleware.AuthNurse(), container.NurseHandler.AddReview)
 	}
 }

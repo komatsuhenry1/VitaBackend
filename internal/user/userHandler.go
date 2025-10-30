@@ -266,7 +266,7 @@ func (h *UserHandler) AddReview(c *gin.Context) {
 		return
 	}
 
-	utils.SendSuccessResponse(c, "Review adicionada com sucesso.", http.StatusOK)
+	utils.SendSuccessResponse(c, "Review para enfermeiro(a) adicionada com sucesso.", http.StatusOK)
 }
 
 func (h *UserHandler) ImmediateVisitSolicitation(c *gin.Context) {

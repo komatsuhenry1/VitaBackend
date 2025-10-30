@@ -268,3 +268,26 @@ func (h *NurseHandler) RejectVisit(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, "Visita rejeitada com sucesso.", http.StatusOK)
 }
+
+func (h *NurseHandler) AddReview(c *gin.Context) {
+	nurseId := utils.GetUserId(c)
+
+	visitId := c.Param("id")
+
+	fmt.Println("===")
+
+	var reviewDto dto.ReviewDTO
+	if err := c.ShouldBindJSON(&reviewDto); err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("===")
+	err := h.nurseService.AddReview(nurseId, visitId, reviewDto)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Review para paciente adicionada com sucesso.", http.StatusOK)
+}

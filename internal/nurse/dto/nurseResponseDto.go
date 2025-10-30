@@ -22,6 +22,7 @@ type VisitDto struct {
 	VisitValue     float64 `json:"visit_value"`
 	CreatedAt      string  `json:"created_at"`
 	Date           string  `json:"date"`
+	Rating         int     `json:"rating"`
 	Status         string  `json:"status"`
 	PatientName    string  `json:"patient_name"`
 	PatientId      string  `json:"patient_id"`
@@ -42,7 +43,6 @@ type PatientProfileResponseDTO struct {
 	Password       string             `json:"password"`
 	Hidden         bool               `json:"hidden"`
 	Role           string             `json:"role"`
-	FirstAccess    bool               `json:"first_access"`
 	CreatedAt      time.Time          `json:"created_at"`
 	TempCode       int                `json:"temp_code"`
 	UpdatedAt      time.Time          `json:"updated_at"`
