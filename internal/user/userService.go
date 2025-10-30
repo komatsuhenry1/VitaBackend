@@ -107,6 +107,7 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 	if err != nil {
 		return userDTO.NurseProfileResponseDTO{}, err
 	}
+
 	nurseProfile := userDTO.NurseProfileResponseDTO{
 		ID:             nurse.ID.Hex(),
 		Name:           nurse.Name,

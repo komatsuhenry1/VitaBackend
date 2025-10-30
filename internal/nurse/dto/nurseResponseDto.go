@@ -35,6 +35,9 @@ type PatientProfileResponseDTO struct {
 	Email          string             `json:"email"`
 	Phone          string             `json:"phone"`
 	Address        string             `json:"address"`
+	Rating         float64            `json:"rating"`
+	VisitCount     int                `json:"visit_count"`
+	Comments       []string           `json:"comments"`
 	Cpf            string             `json:"cpf"`
 	Password       string             `json:"password"`
 	Hidden         bool               `json:"hidden"`

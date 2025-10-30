@@ -23,6 +23,7 @@ type VisitRepository interface {
 	FindVisitById(id string) (model.Visit, error)
 	UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit, error)
 	DeleteVisit(visitId string) error
+	FindAllCompletedVisitsForPatient(patientId string) ([]model.Visit, error)
 }
 
 type visitRepository struct {
@@ -72,6 +73,20 @@ func (r *visitRepository) FindAllPendingVisitsForNurse(nurseId string) ([]model.
 
 func (r *visitRepository) FindAllVisitsForPatient(patientId string) ([]model.Visit, error) {
 	cursor, err := r.collection.Find(r.ctx, bson.M{"patient_id": patientId})
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(context.TODO())
+
+	var visits []model.Visit
+	if err := cursor.All(context.TODO(), &visits); err != nil {
+		return nil, err
+	}
+	return visits, nil
+}
+
+func (r *visitRepository) FindAllCompletedVisitsForPatient(patientId string) ([]model.Visit, error) {
+	cursor, err := r.collection.Find(r.ctx, bson.M{"patient_id": patientId, "status": "COMPLETED"})
 	if err != nil {
 		return nil, err
 	}

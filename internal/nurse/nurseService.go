@@ -153,13 +153,19 @@ func (s *nurseService) ConfirmOrCancelVisit(nurseId, visitId, reason string) (st
 	var response string
 	if visit.Status == "CONFIRMED" {
 		visit.CancelReason = reason
-		visit.Status = "PENDING"
-		response = "Visita cancelada com sucesso."
+		visit.Status = "REJECTED"
+		response = "Visita que estava confirmada foi cancelada com sucesso."
 		utils.SendEmailVisitCanceledWithReason("komatsuhenry@gmail.com", visit.NurseName, visit.VisitDate.Format("02/01/2006 15:04"), reason)
 	} else if visit.Status == "PENDING" {
 		visit.CancelReason = ""
 		visit.Status = "CONFIRMED"
-		response = "Visita confirmada com sucesso."
+		response = "Visita que estava pendente foi confirmada com sucesso."
+
+		utils.SendEmailVisitApproved("komatsuhenry@gmail.com", visit.NurseName, visit.VisitDate.Format("02/01/2006 15:04"), visit.VisitValue)
+	} else if visit.Status == "REJECTED" {
+		visit.CancelReason = ""
+		visit.Status = "CONFIRMED"
+		response = "Visita que estava rejeitada foi confirmada com sucesso."
 
 		utils.SendEmailVisitApproved("komatsuhenry@gmail.com", visit.NurseName, visit.VisitDate.Format("02/01/2006 15:04"), visit.VisitValue)
 	}
@@ -185,6 +191,18 @@ func (s *nurseService) GetPatientProfile(patientId string) (dto.PatientProfileRe
 		return dto.PatientProfileResponseDTO{}, err
 	}
 
+	completedVisitsObjs, err := s.visitRepository.FindAllCompletedVisitsForPatient(patientId)
+	if err != nil {
+		return dto.PatientProfileResponseDTO{}, fmt.Errorf("Erro ao buscar visitas do paciente.")
+	}
+
+	// rating, err := h.reviewRepository.FindAverageRatingByNurseId(nurseId)
+	// if err != nil {
+	// 	return userDTO.NurseProfileResponseDTO{}, err
+	// }
+
+	comments := []string{"comment 1", "commnet2 ", "commnet3", "commnet4"}
+
 	patientProfile := dto.PatientProfileResponseDTO{
 		ID:             patient.ID,
 		Name:           patient.Name,
@@ -192,6 +210,9 @@ func (s *nurseService) GetPatientProfile(patientId string) (dto.PatientProfileRe
 		Phone:          patient.Phone,
 		Address:        patient.Address,
 		Cpf:            patient.Cpf,
+		Rating:         5,
+		VisitCount:     len(completedVisitsObjs),
+		Comments:       comments,
 		Password:       patient.Password,
 		Hidden:         patient.Hidden,
 		Role:           patient.Role,
