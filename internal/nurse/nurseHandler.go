@@ -163,18 +163,15 @@ func (h *NurseHandler) UpdateNurseProfile(c *gin.Context) {
 }
 
 func (h *NurseHandler) DeleteNurseProfile(c *gin.Context) {
-	claims, exists := c.Get("claims")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
-		return
-	}
-	nurseId, ok := claims.(jwt.MapClaims)["sub"].(string)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
+	nurseId := utils.GetUserId(c)
+
+	var deleteAccountPasswordDto dto.DeleteAccountPasswordDto
+	if err := c.ShouldBindJSON(&deleteAccountPasswordDto); err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err := h.nurseService.DeleteNurse(nurseId)
+	err := h.nurseService.DeleteNurse(nurseId, deleteAccountPasswordDto)
 	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 	}

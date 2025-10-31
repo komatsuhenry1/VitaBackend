@@ -39,3 +39,7 @@ type ImmediateVisitDTO struct {
 	VisitType  string    `json:"visit_type" binding:"required"`
 	VisitDate  time.Time `json:"date" binding:"required"`
 }
+
+type DeleteAccountPasswordDto struct {
+	Password string `json:"password" binding:"required"`
+}

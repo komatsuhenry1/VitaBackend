@@ -31,7 +31,7 @@ type UserService interface {
 	VisitSolicitation(userId string, createVisitDto userDTO.CreateVisitDto) error
 	FindAllVisits(patientId string) (userDTO.VisitsResponseDto, error)
 	UpdateUser(userId string, updates map[string]interface{}) (adminDTO.UserTypeResponse, error)
-	DeleteUser(patientId string) error
+	DeleteUser(patientId string, deleteAccountPasswordDto userDTO.DeleteAccountPasswordDto) error
 	ConfirmVisitService(visitId, patientId string) error
 	GetOnlineNurses(userId string) ([]userDTO.AllNursesListDto, error)
 	GetPatientVisitInfo(patientId, visitId string) (userDTO.PatientVisitInfo, error)
@@ -315,8 +315,18 @@ func (s *userService) UpdateUser(userId string, updates map[string]interface{}) 
 	return adminDTO.UserTypeResponse{}, fmt.Errorf("usuário não encontrado")
 }
 
-func (s *userService) DeleteUser(patientId string) error {
-	err := s.userRepository.DeleteUser(patientId)
+func (s *userService) DeleteUser(patientId string, deleteAccountPasswordDto userDTO.DeleteAccountPasswordDto) error {
+
+	patient, err := s.userRepository.FindUserById(patientId)
+	if err != nil {
+		return fmt.Errorf("Erro ao buscar id de paciente.")
+	}
+
+	if !utils.ComparePassword(patient.Password, deleteAccountPasswordDto.Password) {
+		return fmt.Errorf("Credenciais inválidas. Tente novamente.")
+	}
+
+	err = s.userRepository.DeleteUser(patientId)
 	if err != nil {
 		return fmt.Errorf("erro ao deletar visita: %w", err)
 	}

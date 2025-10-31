@@ -8,3 +8,7 @@ type ReviewDTO struct {
 	Rating  int    `json:"rating"`
 	Comment string `json:"comment"`
 }
+
+type DeleteAccountPasswordDto struct {
+	Password string `json:"password" binding:"required"`
+}
