@@ -31,6 +31,7 @@ type NurseService interface {
 	TurnOfflineOnLogout(nurseId string) error
 	RejectVisit(nurseId, visitId string) error
 	AddReview(nurseId, visitId string, reviewDto dto.ReviewDTO) error
+	GetMyNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
 }
 
 type nurseService struct {
@@ -635,4 +636,42 @@ func (s *nurseService) AddReview(nurseId, visitId string, reviewDto dto.ReviewDT
 
 	return nil
 
+}
+
+func (h *nurseService) GetMyNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error) {
+	nurse, err := h.nurseRepository.FindNurseById(nurseId)
+	if err != nil {
+		return userDTO.NurseProfileResponseDTO{}, err
+	}
+
+	rating, err := h.reviewRepository.FindAverageRatingByNurseId(nurseId)
+	if err != nil {
+		return userDTO.NurseProfileResponseDTO{}, err
+	}
+
+	nurseProfile := userDTO.NurseProfileResponseDTO{
+		ID:             nurse.ID.Hex(),
+		Name:           nurse.Name,
+		Specialization: nurse.Specialization,
+		Experience:     nurse.YearsExperience,
+		Rating:         rating,
+		Price:          nurse.Price,
+		Shift:          nurse.Shift,
+		Department:     nurse.Department,
+		Image:          nurse.ProfileImageID.Hex(),
+		Location:       nurse.Address,
+		Neighborhood:   nurse.Neighborhood,
+		Phone:          nurse.Phone,
+		Online:         nurse.Online,
+		Coren:          nurse.Coren,
+		Bio:            nurse.Bio,
+		Qualifications: nurse.Qualifications,
+		Services:       nurse.Services,
+		DaysAvailable:  nurse.DaysAvailable,
+		StartTime:      nurse.StartTime,
+		EndTime:        nurse.EndTime,
+		ProfileImageID: nurse.ProfileImageID.Hex(),
+	}
+
+	return nurseProfile, nil
 }

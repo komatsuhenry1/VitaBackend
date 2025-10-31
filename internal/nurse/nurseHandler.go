@@ -288,3 +288,14 @@ func (h *NurseHandler) AddReview(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, "Review para paciente adicionada com sucesso.", http.StatusOK)
 }
+
+func (h *NurseHandler) GetMyNurseProfile(c *gin.Context) {
+	nurseId := utils.GetUserId(c)
+
+	nurseProfile, err := h.nurseService.GetMyNurseProfile(nurseId)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+	utils.SendSuccessResponse(c, "Perfil completo de enfermeiro(a) listado com sucesso", nurseProfile)
+}
