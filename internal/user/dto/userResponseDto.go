@@ -66,6 +66,13 @@ type NurseProfileResponseDTO struct {
 	DaysAvailable  []string      `json:"days_available"`
 	StartTime      string        `json:"start_time"`
 	EndTime        string        `json:"end_time"`
+	Reviews        []Reviews     `json:"reviews"`
+}
+
+type Reviews struct {
+	PatientName string `json:"patient_name"`
+	Rating      int    `json:"rating"`
+	Comment     string `json:"comment"`
 }
 
 type NurseDto struct {

@@ -108,6 +108,23 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		return userDTO.NurseProfileResponseDTO{}, err
 	}
 
+	reviews, err := h.reviewRepository.FindAllNurseReviews(nurseId)
+	if err != nil {
+		return userDTO.NurseProfileResponseDTO{}, fmt.Errorf("Erro ao buscar avaliações do enfemeiro(a).")
+	}
+
+	var dtoReviews []userDTO.Reviews
+
+	// 3. Iterar sobre as reviews do banco (model.Review)
+	//    e converter para o DTO (userDTO.Reviews)
+	for _, review := range reviews {
+		dtoReviews = append(dtoReviews, userDTO.Reviews{
+			PatientName: review.PatientName,
+			Rating:      review.Rating,
+			Comment:     review.Comment,
+		})
+	}
+
 	nurseProfile := userDTO.NurseProfileResponseDTO{
 		ID:             nurse.ID.Hex(),
 		Name:           nurse.Name,
@@ -122,7 +139,7 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		Neighborhood:   nurse.Neighborhood,
 		Phone:          nurse.Phone,
 		Online:         nurse.Online,
-		Coren:          nurse.Coren,
+		Coren:          nurse.Coren,	
 		Bio:            nurse.Bio,
 		Qualifications: nurse.Qualifications,
 		Services:       nurse.Services,
@@ -130,6 +147,7 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		StartTime:      nurse.StartTime,
 		EndTime:        nurse.EndTime,
 		ProfileImageID: nurse.ProfileImageID.Hex(),
+		Reviews:        dtoReviews,
 	}
 
 	return nurseProfile, nil
@@ -472,15 +490,17 @@ func (s *userService) AddReview(userId, visitId string, reviewDto userDTO.Review
 	}
 
 	review := model.Review{
-		ID:         primitive.NewObjectID(),
-		VisitId:    visit.ID,
-		NurseId:    nurseObjectID,
-		PatientId:  patientObjectID,
-		Rating:     reviewDto.Rating,
-		Comment:    reviewDto.Comment,
-		ReviewType: "PATIENT",
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
+		ID:          primitive.NewObjectID(),
+		VisitId:     visit.ID,
+		NurseId:     nurseObjectID,
+		NurseName:   visit.NurseName,
+		PatientId:   patientObjectID,
+		PatientName: visit.PatientName,
+		Rating:      reviewDto.Rating,
+		Comment:     reviewDto.Comment,
+		ReviewType:  "PATIENT",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 
 	err = s.reviewRepository.CreateReview(review)

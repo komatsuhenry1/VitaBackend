@@ -15,6 +15,7 @@ type ReviewRepository interface {
 	CreateReview(review model.Review) error
 	FindReviewByVisitId(visitId string) (model.Review, error)
 	FindAverageRatingByNurseId(nurseId string) (float64, error)
+	FindAllNurseReviews(nurseId string) ([]model.Review, error)
 }
 
 type reviewRepository struct {
@@ -95,4 +96,34 @@ func (r *reviewRepository) FindAverageRatingByNurseId(nurseId string) (float64, 
 	}
 
 	return result.AverageRating, nil
+}
+
+func (r *reviewRepository) FindAllNurseReviews(nurseId string) ([]model.Review, error) {
+	objID, err := primitive.ObjectIDFromHex(nurseId)
+	if err != nil {
+		return nil, fmt.Errorf("ID de enfermeiro(a) inválido: %w", err)
+	}
+
+	filter := bson.M{"nurse_id": objID, "review_type": "PATIENT"}
+
+	ctx := context.TODO()
+	cursor, err := r.collection.Find(ctx, filter)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			return []model.Review{}, nil
+		}
+		return nil, fmt.Errorf("erro ao buscar avaliações no banco: %w", err)
+	}
+	defer cursor.Close(ctx)
+
+	var reviews []model.Review
+	if err = cursor.All(ctx, &reviews); err != nil {
+		return nil, fmt.Errorf("erro ao decodificar avaliações: %w", err)
+	}
+
+	if reviews == nil {
+		return []model.Review{}, nil
+	}
+
+	return reviews, nil
 }

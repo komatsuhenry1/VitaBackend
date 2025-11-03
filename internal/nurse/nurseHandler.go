@@ -271,15 +271,12 @@ func (h *NurseHandler) AddReview(c *gin.Context) {
 
 	visitId := c.Param("id")
 
-	fmt.Println("===")
-
 	var reviewDto dto.ReviewDTO
 	if err := c.ShouldBindJSON(&reviewDto); err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	fmt.Println("===")
 	err := h.nurseService.AddReview(nurseId, visitId, reviewDto)
 	if err != nil {
 		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)

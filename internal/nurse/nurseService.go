@@ -618,15 +618,17 @@ func (s *nurseService) AddReview(nurseId, visitId string, reviewDto dto.ReviewDT
 	}
 
 	review := model.Review{
-		ID:         primitive.NewObjectID(),
-		VisitId:    visit.ID,
-		NurseId:    nurseObjectID,
-		PatientId:  patientObjectID,
-		Rating:     reviewDto.Rating,
-		Comment:    reviewDto.Comment,
-		ReviewType: "NURSE",
-		CreatedAt:  time.Now(),
-		UpdatedAt:  time.Now(),
+		ID:          primitive.NewObjectID(),
+		VisitId:     visit.ID,
+		NurseId:     nurseObjectID,
+		NurseName:   visit.NurseName,
+		PatientId:   patientObjectID,
+		PatientName: visit.PatientName,
+		Rating:      reviewDto.Rating,
+		Comment:     reviewDto.Comment,
+		ReviewType:  "NURSE",
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 
 	err = s.reviewRepository.CreateReview(review)
