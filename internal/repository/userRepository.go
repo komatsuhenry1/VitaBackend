@@ -8,6 +8,7 @@ import (
 	"io"
 	"medassist/internal/auth/dto"
 	"medassist/internal/model"
+	nurseDTO "medassist/internal/nurse/dto"
 	"medassist/utils"
 	"time"
 
@@ -35,6 +36,11 @@ type UserRepository interface {
 	FindFileByID(ctx context.Context, id primitive.ObjectID) (*dto.FileData, error)
 	UploadFile(file io.Reader, fileName string, contentType string) (primitive.ObjectID, error)
 	DeleteUser(id string) error
+
+	GetTotalPatientsCount() (int64, error)
+    GetInactivePatientsCount() (int64, error)
+    GetNewPatientsCountLast30Days() (int64, error)
+    GetTopNeighborhoodsDemand(limit int) ([]nurseDTO.NeighborhoodDemand, error)
 }
 
 type userRepository struct {
@@ -358,4 +364,63 @@ func (r *userRepository) DeleteUser(id string) error {
 
 	_, err = r.collection.DeleteOne(r.ctx, bson.M{"_id": objID})
 	return err
+}
+
+func (r *userRepository) GetTotalPatientsCount() (int64, error) {
+    // Sua função FindAllUsers já filtra por "PATIENT",
+    // então vamos manter essa lógica aqui para consistência.
+    filter := bson.M{"role": "PATIENT"}
+    return r.collection.CountDocuments(r.ctx, filter)
+}
+
+// GetInactivePatientsCount retorna o número de pacientes com perfil "hidden".
+func (r *userRepository) GetInactivePatientsCount() (int64, error) {
+    filter := bson.M{"role": "PATIENT", "hidden": true}
+    return r.collection.CountDocuments(r.ctx, filter)
+}
+
+// GetNewPatientsCountLast30Days retorna o número de novos pacientes nos últimos 30 dias.
+func (r *userRepository) GetNewPatientsCountLast30Days() (int64, error) {
+    thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+    filter := bson.M{
+        "role":       "PATIENT",
+        "created_at": bson.M{"$gte": thirtyDaysAgo},
+    }
+    return r.collection.CountDocuments(r.ctx, filter)
+}
+
+// GetTopNeighborhoodsDemand usa aggregation para encontrar os bairros com mais pacientes.
+func (r *userRepository) GetTopNeighborhoodsDemand(limit int) ([]nurseDTO.NeighborhoodDemand, error) {
+    var results []nurseDTO.NeighborhoodDemand
+    
+    // Garante que o limite seja ao menos 1
+    if limit <= 0 {
+        limit = 5 // Um padrão razoável
+    }
+
+    pipeline := mongo.Pipeline{
+        // Filtra apenas pacientes e que tenham bairro definido
+        bson.D{{"$match", bson.M{"role": "PATIENT", "neighborhood": bson.M{"$ne": ""}}}},
+        // Agrupa por bairro e conta
+        bson.D{{"$group", bson.M{
+            "_id":   "$neighborhood",
+            "count": bson.M{"$sum": 1},
+        }}},
+        // Ordena pela contagem (maior primeiro)
+        bson.D{{"$sort", bson.M{"count": -1}}},
+        // Limita ao número solicitado
+        bson.D{{"$limit", limit}},
+    }
+
+    cursor, err := r.collection.Aggregate(r.ctx, pipeline)
+    if err != nil {
+        return nil, err
+    }
+    defer cursor.Close(r.ctx)
+
+    if err = cursor.All(r.ctx, &results); err != nil {
+        return nil, err
+    }
+    
+    return results, nil
 }

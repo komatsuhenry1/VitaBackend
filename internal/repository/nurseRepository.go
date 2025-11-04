@@ -9,6 +9,7 @@ import (
 	"medassist/internal/auth/dto"
 	"medassist/internal/model"
 	userDTO "medassist/internal/user/dto"
+	nurseDTO "medassist/internal/nurse/dto"
 	"medassist/utils"
 	"time"
 
@@ -41,6 +42,15 @@ type NurseRepository interface {
 	UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error)
 	DeleteNurse(id string) error
 	GetAllOnlineNurses(patientCity string, latitude float64, longitude float64) ([]userDTO.AllNursesListDto, error)
+
+	GetTotalNursesCount() (int64, error)
+    GetPendingApprovalsCount() (int64, error)
+    GetPendingApprovalNursesInfo() ([]nurseDTO.PendingNurseInfo, error)
+    GetOnlineNursesCount() (int64, error)
+    GetInactiveNursesCount() (int64, error)
+    GetNewNursesCountLast30Days() (int64, error)
+    GetAverageNurseRating() (float64, error)
+    GetMostCommonSpecialization() (string, error)
 }
 
 type nurseRepository struct {
@@ -514,4 +524,119 @@ func (r *nurseRepository) DeleteNurse(id string) error {
 
 	_, err = r.collection.DeleteOne(r.ctx, bson.M{"_id": objID})
 	return err
+}
+
+func (r *nurseRepository) GetTotalNursesCount() (int64, error) {
+    return r.collection.CountDocuments(r.ctx, bson.M{})
+}
+
+// GetPendingApprovalsCount retorna o número de enfermeiros aguardando aprovação.
+func (r *nurseRepository) GetPendingApprovalsCount() (int64, error) {
+    filter := bson.M{"verification_seal": false}
+    return r.collection.CountDocuments(r.ctx, filter)
+}
+
+// GetPendingApprovalNursesInfo retorna ID e Nome dos enfermeiros com aprovação pendente.
+func (r *nurseRepository) GetPendingApprovalNursesInfo() ([]nurseDTO.PendingNurseInfo, error) {
+    var results []nurseDTO.PendingNurseInfo
+
+    filter := bson.M{"verification_seal": false}
+    // Usamos projeção para buscar apenas os campos necessários (eficiência)
+    opts := options.Find().SetProjection(bson.M{"_id": 1, "name": 1})
+
+    cursor, err := r.collection.Find(r.ctx, filter, opts)
+    if err != nil {
+        return nil, err
+    }
+    defer cursor.Close(r.ctx)
+
+    if err = cursor.All(r.ctx, &results); err != nil {
+        return nil, err
+    }
+
+    return results, nil
+}
+
+// GetOnlineNursesCount retorna o número de enfermeiros online.
+func (r *nurseRepository) GetOnlineNursesCount() (int64, error) {
+    filter := bson.M{"online": true}
+    return r.collection.CountDocuments(r.ctx, filter)
+}
+
+// GetInactiveNursesCount retorna o número de enfermeiros com perfil "hidden".
+func (r *nurseRepository) GetInactiveNursesCount() (int64, error) {
+    filter := bson.M{"hidden": true}
+    return r.collection.CountDocuments(r.ctx, filter)
+}
+
+// GetNewNursesCountLast30Days retorna o número de novos enfermeiros nos últimos 30 dias.
+func (r *nurseRepository) GetNewNursesCountLast30Days() (int64, error) {
+    thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+    filter := bson.M{"created_at": bson.M{"$gte": thirtyDaysAgo}}
+    return r.collection.CountDocuments(r.ctx, filter)
+}
+
+// GetAverageNurseRating usa aggregation para calcular a média de avaliação (rating > 0).
+func (r *nurseRepository) GetAverageNurseRating() (float64, error) {
+    pipeline := mongo.Pipeline{
+        // Filtra apenas enfermeiros que já foram avaliados
+        bson.D{{"$match", bson.M{"rating": bson.M{"$gt": 0}}}},
+        // Agrupa todos e calcula a média
+        bson.D{{"$group", bson.M{
+            "_id":       nil,
+            "avgRating": bson.M{"$avg": "$rating"},
+        }}},
+    }
+
+    cursor, err := r.collection.Aggregate(r.ctx, pipeline)
+    if err != nil {
+        return 0, err
+    }
+    defer cursor.Close(r.ctx)
+
+    if cursor.Next(r.ctx) {
+        var result nurseDTO.AverageRatingResult
+        if err := cursor.Decode(&result); err != nil {
+            return 0, err
+        }
+        return result.AvgRating, nil
+    }
+
+    // Retorna 0 se não houver avaliações
+    return 0, nil
+}
+
+// GetMostCommonSpecialization usa aggregation para encontrar a especialização mais comum.
+func (r *nurseRepository) GetMostCommonSpecialization() (string, error) {
+    pipeline := mongo.Pipeline{
+        // Filtra registros que tenham uma especialização definida
+        bson.D{{"$match", bson.M{"specialization": bson.M{"$ne": ""}}}},
+        // Agrupa por especialização e conta
+        bson.D{{"$group", bson.M{
+            "_id":   "$specialization",
+            "count": bson.M{"$sum": 1},
+        }}},
+        // Ordena pela contagem (maior primeiro)
+        bson.D{{"$sort", bson.M{"count": -1}}},
+        // Pega apenas o primeiro (o mais comum)
+        bson.D{{"$limit", 1}},
+    }
+
+    cursor, err := r.collection.Aggregate(r.ctx, pipeline)
+    if err != nil {
+        return "", err
+    }
+    defer cursor.Close(r.ctx)
+
+    if cursor.Next(r.ctx) {
+        var result nurseDTO.SpecializationCount
+        if err := cursor.Decode(&result); err != nil {
+            return "", err
+        }
+        // O ID do grupo é a especialização
+        return result.Specialization, nil
+    }
+
+    // Retorna string vazia se nada for encontrado
+    return "", nil
 }

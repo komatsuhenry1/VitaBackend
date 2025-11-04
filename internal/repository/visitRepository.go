@@ -7,6 +7,7 @@ import (
 	"medassist/internal/model"
 	"medassist/utils"
 	"strings"
+	nurseDTO "medassist/internal/nurse/dto"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,6 +25,11 @@ type VisitRepository interface {
 	UpdateVisitFields(id string, updates map[string]interface{}) (model.Visit, error)
 	DeleteVisit(visitId string) error
 	FindAllCompletedVisitsForPatient(patientId string) ([]model.Visit, error)
+
+	GetTotalVisitsCount() (int64, error)
+    GetVisitsTodayCount() (int64, error)
+    GetCompletedVisitsCountLast30Days() (int64, error)
+    GetTotalRevenueLast30Days() (float64, error)
 }
 
 type visitRepository struct {
@@ -216,4 +222,78 @@ func (r *visitRepository) DeleteVisit(visitId string) error {
 
 	_, err = r.collection.DeleteOne(r.ctx, bson.M{"_id": objID})
 	return err
+}
+
+func (r *visitRepository) GetTotalVisitsCount() (int64, error) {
+    return r.collection.CountDocuments(r.ctx, bson.M{})
+}
+
+// GetVisitsTodayCount retorna o número de visitas agendadas para hoje.
+func (r *visitRepository) GetVisitsTodayCount() (int64, error) {
+    // !! IMPORTANTE !!
+    // Estou assumindo que seu model 'Visit' tem um campo 'visit_date' (time.Time)
+    // que armazena a data do atendimento.
+    // Se você usar 'created_at', contará os *agendamentos feitos hoje*,
+    // o que é diferente de *atendimentos que acontecerão hoje*.
+    
+    now := time.Now()
+    startOfDay := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+    endOfDay := startOfDay.AddDate(0, 0, 1)
+
+    // Troque "visit_date" pelo campo correto se for diferente
+    filter := bson.M{"visit_date": bson.M{"$gte": startOfDay, "$lt": endOfDay}}
+    
+    // Se você *realmente* quiser os criados hoje, use:
+    // filter := bson.M{"created_at": bson.M{"$gte": startOfDay, "$lt": endOfDay}}
+
+    return r.collection.CountDocuments(r.ctx, filter)
+}
+
+// GetCompletedVisitsCountLast30Days retorna visitas concluídas nos últimos 30 dias.
+func (r *visitRepository) GetCompletedVisitsCountLast30Days() (int64, error) {
+    thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+    
+    // Assumindo que quando uma visita é 'COMPLETED', o 'updated_at' é atualizado.
+    // Se você tiver um campo 'completed_at', seria melhor usá-lo.
+    filter := bson.M{
+        "status":     "COMPLETED",
+        "updated_at": bson.M{"$gte": thirtyDaysAgo},
+    }
+    return r.collection.CountDocuments(r.ctx, filter)
+}
+
+// GetTotalRevenueLast30Days usa aggregation para somar a receita de visitas concluídas.
+func (r *visitRepository) GetTotalRevenueLast30Days() (float64, error) {
+    // !! IMPORTANTE !!
+    // Assumindo que seu model 'Visit' tem um campo 'price' (float64 ou similar)
+    
+    thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+    
+    pipeline := mongo.Pipeline{
+        bson.D{{"$match", bson.M{
+            "status": "COMPLETED",
+            // Novamente, assumindo 'updated_at' para data de conclusão
+            "updated_at": bson.M{"$gte": thirtyDaysAgo}, 
+        }}},
+        bson.D{{"$group", bson.M{
+            "_id":          nil,
+            "totalRevenue": bson.M{"$sum": "$price"}, // Assumindo campo 'price'
+        }}},
+    }
+
+    cursor, err := r.collection.Aggregate(r.ctx, pipeline)
+    if err != nil {
+        return 0, err
+    }
+    defer cursor.Close(r.ctx)
+
+    if cursor.Next(r.ctx) {
+        var result nurseDTO.TotalRevenueResult
+        if err := cursor.Decode(&result); err != nil {
+            return 0, err
+        }
+        return result.TotalRevenue, nil
+    }
+
+    return 0, nil // Retorna 0 se não houver receita
 }

@@ -10,12 +10,28 @@ type DocumentInfoResponse struct {
 }
 
 type DashboardAdminDataResponse struct {
-	TotalNurses         int                                `json:"total_nurses"`
-	TotalPatients       int                                `json:"total_patients"`
-	VisitsToday         int                                `json:"visits_today"`
-	NumberVisits        int                                `json:"number_visits"`
-	PendentApprovations int                                `json:"pendent_approvations"`
-	NursesFields        []NursesFieldsForDashboardResponse `json:"nurses_ids_pendent_approvations"`
+	// Métricas Principais (KPIs)
+	TotalNurses         int     `json:"total_nurses"`
+	TotalPatients       int     `json:"total_patients"`
+	NumberVisits        int64   `json:"number_visits"` // Mudei para int64 para consistência
+	VisitsToday         int64   `json:"visits_today"`  // Mudei para int64 para consistência
+	AverageNurseRating  float64 `json:"average_nurse_rating"`
+	TotalRevenueLast30Days float64 `json:"total_revenue_last_30_days"`
+
+	// Métricas de Atividade e Crescimento
+	NursesOnline              int64 `json:"nurses_online"`
+	NewNursesLast30Days     int64 `json:"new_nurses_last_30_days"`
+	NewPatientsLast30Days   int64 `json:"new_patients_last_30_days"`
+	CompletedVisitsLast30Days int64 `json:"completed_visits_last_30_days"`
+
+	// Métricas de Gestão e Alertas
+	PendentApprovations int64                                `json:"pendent_approvations"`
+	PendingNurses       []NursesFieldsForDashboardResponse `json:"nurses_ids_pendent_approvations"` // Renomeei aqui
+	NursesInactive      int64                                `json:"nurses_inactive"`
+	PatientsInactive    int64                                `json:"patients_inactive"`
+	
+	// Métricas Estratégicas
+	MostCommonSpecialization string `json:"most_common_specialization"`
 }
 
 type NursesFieldsForDashboardResponse struct {

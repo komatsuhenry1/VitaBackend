@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 	"time"
-
+	"sync"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/gridfs"
@@ -133,41 +133,212 @@ func (s *adminService) GetFileStream(fileID primitive.ObjectID) (*gridfs.Downloa
 }
 
 func (s *adminService) GetDashboardData() (dto.DashboardAdminDataResponse, error) {
-	var response dto.DashboardAdminDataResponse
+	// 1. Prepara a estrutura de resposta e as ferramentas de concorrência
+	var data dto.DashboardAdminDataResponse
+	var wg sync.WaitGroup
+	// Criamos um canal de erro com buffer. 
+	// O buffer (12) evita que uma goroutine trave se o erro não for lido imediatamente.
+	errChan := make(chan error, 12) 
 
-	allUsers, err := s.userRepository.FindAllUsers()
-	if err != nil {
-		return response, err
+	// 2. Dispara as goroutines para cada busca de dados
+	
+	// --- Métricas de Enfermeiros ---
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.nurseRepository.GetTotalNursesCount()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.TotalNurses = int(count) // Convertendo de int64 para int
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.nurseRepository.GetOnlineNursesCount()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.NursesOnline = count
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.nurseRepository.GetInactiveNursesCount()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.NursesInactive = count
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.nurseRepository.GetNewNursesCountLast30Days()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.NewNursesLast30Days = count
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		rating, err := s.nurseRepository.GetAverageNurseRating()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.AverageNurseRating = rating
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		spec, err := s.nurseRepository.GetMostCommonSpecialization()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.MostCommonSpecialization = spec
+	}()
+
+	// --- Métricas de Pacientes ---
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.userRepository.GetTotalPatientsCount()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.TotalPatients = int(count) // Convertendo de int64 para int
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.userRepository.GetInactivePatientsCount()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.PatientsInactive = count
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.userRepository.GetNewPatientsCountLast30Days()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.NewPatientsLast30Days = count
+	}()
+
+	// --- Métricas de Visitas (Financeiro) ---
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.visitRepository.GetTotalVisitsCount()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.NumberVisits = count
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.visitRepository.GetVisitsTodayCount()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.VisitsToday = count
+	}()
+    
+    wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.visitRepository.GetCompletedVisitsCountLast30Days()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.CompletedVisitsLast30Days = count
+	}()
+    
+    wg.Add(1)
+	go func() {
+		defer wg.Done()
+		revenue, err := s.visitRepository.GetTotalRevenueLast30Days()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.TotalRevenueLast30Days = revenue
+	}()
+
+
+	// --- Métricas de Aprovação (precisa de 2 chamadas) ---
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		count, err := s.nurseRepository.GetPendingApprovalsCount()
+		if err != nil {
+			errChan <- err
+			return
+		}
+		data.PendentApprovations = count
+
+		// Se há pendentes, busca os nomes. Senão, pula.
+		if count > 0 {
+			// Usamos o DTO interno 'PendingNurseInfo' que o repo retorna
+			pendingNurses, err := s.nurseRepository.GetPendingApprovalNursesInfo()
+			if err != nil {
+				errChan <- err
+				return
+			}
+			
+			// Converte do DTO do repo (com ObjectID) para o DTO de resposta (com string)
+			// Pre-alocamos o slice para melhor performance
+			fields := make([]dto.NursesFieldsForDashboardResponse, len(pendingNurses))
+			for i, nurse := range pendingNurses {
+				fields[i] = dto.NursesFieldsForDashboardResponse{
+					ID:   nurse.ID.Hex(), // Conversão
+					Name: nurse.Name,
+				}
+			}
+			data.PendingNurses = fields
+		} else {
+            // Garante que retorne uma lista vazia "[]" ao invés de "null" no JSON
+			data.PendingNurses = make([]dto.NursesFieldsForDashboardResponse, 0)
+		}
+	}()
+
+	// 3. Espera todas as goroutines terminarem
+	wg.Wait()
+	
+	// 4. Fecha o canal e verifica se algum erro ocorreu
+	close(errChan)
+
+	// Lê o primeiro (e único, esperamos) erro do canal.
+	if err := <-errChan; err != nil {
+		// Se qualquer uma das 12+ goroutines falhou, a função retorna o erro.
+		return dto.DashboardAdminDataResponse{}, err
 	}
 
-	allNurses, err := s.nurseRepository.FindAllNurses()
-	if err != nil {
-		return response, err
-	}
-
-	allNursesNotVerified, err := s.nurseRepository.FindAllNursesNotVerified()
-	if err != nil {
-		return response, err
-	}
-
-	var nursesFields []dto.NursesFieldsForDashboardResponse
-	for _, nurse := range allNursesNotVerified {
-		nursesFields = append(nursesFields, dto.NursesFieldsForDashboardResponse{
-			ID:   nurse.ID.Hex(),
-			Name: nurse.Name,
-		})
-	}
-
-	adminDashboardData := dto.DashboardAdminDataResponse{
-		TotalNurses:         len(allNurses),
-		TotalPatients:       len(allUsers),
-		NumberVisits:        100, // ADD
-		VisitsToday:         100, // ADD
-		PendentApprovations: len(allNursesNotVerified),
-		NursesFields:        nursesFields,
-	}
-
-	return adminDashboardData, nil
+	// 5. Retorna os dados completos e sem erros
+	return data, nil
 }
 
 func (s *adminService) RejectNurseRegister(rejectedNurseId string, rejectDescription dto.RejectDescription) (string, error) {

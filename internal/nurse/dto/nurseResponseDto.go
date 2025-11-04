@@ -38,7 +38,6 @@ type PatientProfileResponseDTO struct {
 	Address        string             `json:"address"`
 	Rating         float64            `json:"rating"`
 	VisitCount     int                `json:"visit_count"`
-	Comments       []string           `json:"comments"`
 	Cpf            string             `json:"cpf"`
 	Password       string             `json:"password"`
 	Hidden         bool               `json:"hidden"`
@@ -47,6 +46,13 @@ type PatientProfileResponseDTO struct {
 	TempCode       int                `json:"temp_code"`
 	UpdatedAt      time.Time          `json:"updated_at"`
 	ProfileImageID string             `json:"profile_image_id"`
+	Reviews        []Reviews          `json:"reviews"`
+}
+
+type Reviews struct {
+	NurseName string `json:"nurse_name"`
+	Rating    int    `json:"rating"`
+	Comment   string `json:"comment"`
 }
 
 type StatsDTO struct {
@@ -143,4 +149,31 @@ type PatientInfoDto struct {
 type NurseVisitInfo struct {
 	Visit   VisitInfoDto   `json:"visit"`
 	Patient PatientInfoDto `json:"patient"`
+}
+
+type PendingNurseInfo struct {
+	ID   primitive.ObjectID `bson:"_id" json:"id"`
+	Name string             `bson:"name" json:"name"`
+}
+
+// Usado para a agregação de bairros mais populares
+type NeighborhoodDemand struct {
+	Neighborhood string `bson:"_id" json:"neighborhood"`
+	Count        int    `bson:"count" json:"count"`
+}
+
+// Usado para a agregação de especialização mais comum
+type SpecializationCount struct {
+	Specialization string `bson:"_id" json:"specialization"`
+	Count          int    `bson:"count" json:"count"`
+}
+
+// Usado para a agregação de média de avaliação
+type AverageRatingResult struct {
+	AvgRating float64 `bson:"avgRating" json:"avgRating"`
+}
+
+// Usado para a agregação de receita total
+type TotalRevenueResult struct {
+	TotalRevenue float64 `bson:"totalRevenue" json:"totalRevenue"`
 }

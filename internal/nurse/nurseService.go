@@ -213,12 +213,27 @@ func (s *nurseService) GetPatientProfile(patientId string) (dto.PatientProfileRe
 		return dto.PatientProfileResponseDTO{}, fmt.Errorf("Erro ao buscar visitas do paciente.")
 	}
 
+	// FAZER ISSO DEPOIS
+
 	// rating, err := h.reviewRepository.FindAverageRatingByNurseId(nurseId)
 	// if err != nil {
 	// 	return userDTO.NurseProfileResponseDTO{}, err
 	// }
 
-	comments := []string{"comment 1", "commnet2 ", "commnet3", "commnet4"}
+	reviews, err := s.reviewRepository.FindAllPatientReviews(patientId)
+	if err != nil {
+		return dto.PatientProfileResponseDTO{}, fmt.Errorf("Erro ao buscar avaliações do paciente.")
+	}
+
+	var dtoReviews []dto.Reviews
+
+	for _, review := range reviews {
+		dtoReviews = append(dtoReviews, dto.Reviews{
+			NurseName: review.NurseName,
+			Rating:    review.Rating,
+			Comment:   review.Comment,
+		})
+	}
 
 	patientProfile := dto.PatientProfileResponseDTO{
 		ID:             patient.ID,
@@ -229,7 +244,7 @@ func (s *nurseService) GetPatientProfile(patientId string) (dto.PatientProfileRe
 		Cpf:            patient.Cpf,
 		Rating:         5,
 		VisitCount:     len(completedVisitsObjs),
-		Comments:       comments,
+		Reviews:        dtoReviews,
 		Password:       patient.Password,
 		Hidden:         patient.Hidden,
 		Role:           patient.Role,
@@ -340,6 +355,23 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 		return userDTO.NurseProfileResponseDTO{}, fmt.Errorf("Erro ao buscar média de avaliação de enfermeiro(a).")
 	}
 
+	reviews, err := h.reviewRepository.FindAllNurseReviews(nurseId)
+	if err != nil {
+		return userDTO.NurseProfileResponseDTO{}, fmt.Errorf("Erro ao buscar avaliações do enfemeiro(a).")
+	}
+
+	var dtoReviews []userDTO.Reviews
+
+	// 3. Iterar sobre as reviews do banco (model.Review)
+	//    e converter para o DTO (userDTO.Reviews)
+	for _, review := range reviews {
+		dtoReviews = append(dtoReviews, userDTO.Reviews{
+			PatientName: review.PatientName,
+			Rating:      review.Rating,
+			Comment:     review.Comment,
+		})
+	}
+
 	nurseProfile := userDTO.NurseProfileResponseDTO{
 		ID:             nurse.ID.Hex(),
 		Name:           nurse.Name,
@@ -361,6 +393,7 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 		Schedule:       schedule,
 		TotalPatients:  totalPatients,
 		Earnings:       totalEarnings,
+		Reviews:        dtoReviews,
 	}
 
 	return nurseProfile, nil

@@ -22,10 +22,6 @@ func NewUserHandler(userService UserService) *UserHandler {
 	return &UserHandler{userService: userService}
 }
 
-func (h *UserHandler) UserDashboard(c *gin.Context) {
-	utils.SendSuccessResponse(c, "user dashboard", http.StatusOK)
-}
-
 func (h *UserHandler) GetAllNurses(c *gin.Context) {
 	claims, exists := c.Get("claims")
 	if !exists {
