@@ -8,6 +8,7 @@ import (
 	"medassist/internal/nurse"
 	"medassist/internal/repository"
 	"medassist/internal/user"
+	"medassist/internal/payment"
 )
 
 type Container struct {
@@ -17,6 +18,7 @@ type Container struct {
 	AdminHandler *admin.AdminHandler
 	ChatHub      *chat.Hub
 	ChatHandler  *chat.ChatHandler
+	PaymentHandler *payment.PaymentHandler
 }
 
 func NewContainer() *Container {
@@ -28,18 +30,22 @@ func NewContainer() *Container {
 	visitRepository := repository.NewVisitRepository(db)
 	messageRepository := repository.NewMessageRepository(db)
 	reviewRepository := repository.NewReviewRepository(db)
+	paymentRepository := repository.NewPaymentRepository(db)
 	hub := chat.NewHub(messageRepository)
 
 	authService := auth.NewAuthService(userRepository, nurseRepository)
 	adminService := admin.NewAdminService(userRepository, nurseRepository, visitRepository)
 	userService := user.NewUserService(userRepository, nurseRepository, visitRepository, reviewRepository, hub)
 	nurseService := nurse.NewNurseService(userRepository, nurseRepository, visitRepository, reviewRepository)
+	paymentService := payment.NewPaymentService(paymentRepository, userRepository)
+
 
 	authHandler := auth.NewAuthHandler(authService)
 	adminHandler := admin.NewAdminHandler(adminService)
 	userHandler := user.NewUserHandler(userService)
 	nurseHandler := nurse.NewNurseHandler(nurseService)
 	chatHandler := chat.NewChatHandler(messageRepository)
+	paymentHandler := payment.NewPaymentHandler(paymentService)
 
 	return &Container{
 		AuthHandler:  authHandler,
@@ -48,5 +54,6 @@ func NewContainer() *Container {
 		NurseHandler: nurseHandler,
 		ChatHub:      hub,
 		ChatHandler:  chatHandler,
+		PaymentHandler: paymentHandler,
 	}
 }

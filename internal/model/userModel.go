@@ -23,14 +23,15 @@ type User struct {
 	Latitude     float64 `bson:"latitude" json:"latitude"`
 	Longitude    float64 `bson:"longitude" json:"longitude"`
 
-	Cpf            string             `bson:"cpf" json:"cpf" binding:"required"`
-	Password       string             `bson:"password" json:"password" binding:"required"`
-	TwoFactor      bool                `bson:"two_factor" json:"two_factor"`
-	Hidden         bool               `bson:"hidden" json:"hidden"`
-	Role           string             `bson:"role" json:"role" binding:"required"`
-	ProfileImageID primitive.ObjectID `bson:"profile_image_id" json:"profile_image_id"`
-	FirstAccess    bool               `bson:"first_access" json:"first_access"`
-	CreatedAt      time.Time          `bson:"created_at" json:"created_at"`
-	TempCode       int                `bson:"temp_code" json:"temp_code"`
-	UpdatedAt      time.Time          `bson:"updated_at" json:"updated_at"`
+	Cpf               string             `bson:"cpf" json:"cpf" binding:"required"`
+	Password          string             `bson:"password" json:"password" binding:"required"`
+	TwoFactor         bool               `bson:"two_factor" json:"two_factor"`
+	Hidden            bool               `bson:"hidden" json:"hidden"`
+	Role              string             `bson:"role" json:"role" binding:"required"`
+	ProfileImageID    primitive.ObjectID `bson:"profile_image_id" json:"profile_image_id"`
+	FirstAccess       bool               `bson:"first_access" json:"first_access"`
+	GatewayCustomerID string             `bson:"gateway_customer_id json:"gateway_customer_id" binding:"required`
+	CreatedAt         time.Time          `bson:"created_at" json:"created_at"`
+	TempCode          int                `bson:"temp_code" json:"temp_code"`
+	UpdatedAt         time.Time          `bson:"updated_at" json:"updated_at"`
 }

@@ -37,6 +37,7 @@ func InitializeRoutes() *gin.Engine {
 	SetupAdminRoutes(api, container)
 	SetupWebsocketRoutes(router, container)
 	SetupChatRoutes(api, container)
+	SetupPaymentRoutes(api, container)
 
 	return router
 }
