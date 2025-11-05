@@ -280,3 +280,16 @@ func (h *UserHandler) ImmediateVisitSolicitation(c *gin.Context) {
 
 	utils.SendSuccessResponse(c, "Visita imediata solicitada com sucesso.", gin.H{"patient_id": userId})
 }
+
+func (h *UserHandler) GetMyUserProfile(c *gin.Context){
+
+	userId := utils.GetUserId(c)
+
+	patientProfile, err := h.userService.GetPatientProfile(userId)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+	}
+
+	utils.SendSuccessResponse(c, "Perfil do paciente listado com sucesso.", patientProfile)
+
+}

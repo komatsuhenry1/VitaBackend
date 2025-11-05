@@ -9,7 +9,6 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type AuthHandler struct {
@@ -245,36 +244,38 @@ func (h *AuthHandler) ResetPassword(c *gin.Context) {
 }
 
 func (h *AuthHandler) ChangePasswordLogged(c *gin.Context) {
-	claims, exists := c.Get("claims")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
-		return
-	}
-	id, ok := claims.(jwt.MapClaims)["sub"].(string)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
-		return
-	}
+	userId := utils.GetUserId(c)
 
 	var changePasswordBothRequestDTO dto.ChangePasswordBothRequestDTO
-	if err := c.ShouldBindJSON(&changePasswordBothRequestDTO); err != nil {
-		utils.SendErrorResponse(c, "Requisição inválida", http.StatusBadRequest)
-		return
-	}
+    if err := c.ShouldBindJSON(&changePasswordBothRequestDTO); err != nil {
+        utils.SendErrorResponse(c, "Requisição inválida", http.StatusBadRequest)
+        return
+    }
 
-	err := h.authService.ChangePasswordLogged(changePasswordBothRequestDTO, id)
-	if err != nil {
-		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
-		return
-	}
+    // --- MUDANÇA AQUI ---
+    // 1. Capturar o novo 'bool' retornado
+    passwordWasChanged, err := h.authService.ChangePasswordLogged(changePasswordBothRequestDTO, userId)
+    if err != nil {
+        utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+        return
+    }
 
-	utils.SendSuccessResponse(
-		c,
-		"Senha atualizada com sucesso.",
-		gin.H{
+    // 2. Definir a mensagem com base no que mudou
+    message := "Configurações de segurança atualizadas com sucesso."
+    if passwordWasChanged {
+        message = "Senha atualizada com sucesso."
+    }
+    
+    // 3. Usar a nova mensagem
+    utils.SendSuccessResponse(
+        c,
+        message, // <-- usa a variável
+        gin.H{
+            // O token não muda, enviar isso é desnecessário e pode confundir
 			"token": "senha atualizada",
-		},
-	)
+        },
+    )
+    // --- FIM DA MUDANÇA ---
 }
 
 func (h *AuthHandler) ValidateResetToken(c *gin.Context) {

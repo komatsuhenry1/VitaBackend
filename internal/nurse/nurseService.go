@@ -693,6 +693,7 @@ func (h *nurseService) GetMyNurseProfile(nurseId string) (userDTO.NurseProfileRe
 		Price:          nurse.Price,
 		Shift:          nurse.Shift,
 		Department:     nurse.Department,
+		TwoFactor:      nurse.TwoFactor,
 		Image:          nurse.ProfileImageID.Hex(),
 		Location:       nurse.Address,
 		Neighborhood:   nurse.Neighborhood,

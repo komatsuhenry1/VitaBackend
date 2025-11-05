@@ -37,6 +37,7 @@ type UserService interface {
 	GetPatientVisitInfo(patientId, visitId string) (userDTO.PatientVisitInfo, error)
 	AddReview(userId, visitId string, reviewDto userDTO.ReviewDTO) error
 	ImmediateVisitSolicitation(patientId string, immediateVisitDto userDTO.ImmediateVisitDTO) (string, error)
+	GetPatientProfile(patientId string) (userDTO.PatientProfileResponseDTO, error)
 }
 
 type userService struct {
@@ -615,3 +616,61 @@ func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisi
 
 	return patientId, nil
 }
+
+func (s *userService) GetPatientProfile(patientId string) (userDTO.PatientProfileResponseDTO, error) {
+
+	patient, err := s.userRepository.FindUserById(patientId)
+	if err != nil {
+		return userDTO.PatientProfileResponseDTO{}, err
+	}
+
+	completedVisitsObjs, err := s.visitRepository.FindAllCompletedVisitsForPatient(patientId)
+	if err != nil {
+		return userDTO.PatientProfileResponseDTO{}, fmt.Errorf("Erro ao buscar visitas do paciente.")
+	}
+
+	// FAZER ISSO DEPOIS
+
+	// rating, err := h.reviewRepository.FindAverageRatingByNurseId(nurseId)
+	// if err != nil {
+	// 	return userDTO.NurseProfileResponseDTO{}, err
+	// }
+
+	reviews, err := s.reviewRepository.FindAllPatientReviews(patientId)
+	if err != nil {
+		return userDTO.PatientProfileResponseDTO{}, fmt.Errorf("Erro ao buscar avaliações do paciente.")
+	}
+
+	var dtoReviews []userDTO.Reviews
+
+	for _, review := range reviews {
+		dtoReviews = append(dtoReviews, userDTO.Reviews{
+			PatientName: review.NurseName,
+			Rating:    review.Rating,
+			Comment:   review.Comment,
+		})
+	}
+
+	patientProfile := userDTO.PatientProfileResponseDTO{
+		ID:             patient.ID,
+		Name:           patient.Name,
+		Email:          patient.Email,
+		Phone:          patient.Phone,
+		Address:        patient.Address,
+		Cpf:            patient.Cpf,
+		Rating:         5,
+		TwoFactor:      patient.TwoFactor,
+		VisitCount:     len(completedVisitsObjs),
+		Reviews:        dtoReviews,
+		Password:       patient.Password,
+		Hidden:         patient.Hidden,
+		Role:           patient.Role,
+		ProfileImageID: patient.ProfileImageID.Hex(),
+		CreatedAt:      patient.CreatedAt,
+		TempCode:       patient.TempCode,
+		UpdatedAt:      patient.UpdatedAt,
+	}
+
+	return patientProfile, nil
+}
+

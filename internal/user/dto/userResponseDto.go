@@ -1,6 +1,11 @@
 package dto
 
-import "medassist/internal/model"
+import (
+	"medassist/internal/model"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type Location struct {
 	Latitude  float64 `json:"latitude"`
@@ -56,6 +61,7 @@ type NurseProfileResponseDTO struct {
 	Image          string        `json:"image"`
 	Location       string        `json:"location"`
 	Neighborhood   string        `json:"neighborhood"`
+	TwoFactor      bool          `json:"two_factor"`
 	Bio            string        `json:"bio"`
 	Schedule       []model.Visit `json:"schedules"`
 	TotalPatients  int           `json:"total_patients"`
@@ -130,4 +136,24 @@ type NurseInfoDto struct {
 	Rating          float64 `json:"rating"`
 	Coren           string  `json:"coren"`
 	ProfileImageID  string  `json:"profile_image_id"`
+}
+
+type PatientProfileResponseDTO struct {
+	ID             primitive.ObjectID `json:"id"`
+	Name           string             `json:"name"`
+	Email          string             `json:"email"`
+	Phone          string             `json:"phone"`
+	Address        string             `json:"address"`
+	Rating         float64            `json:"rating"`
+	VisitCount     int                `json:"visit_count"`
+	TwoFactor      bool               `json:"two_factor"`
+	Cpf            string             `json:"cpf"`
+	Password       string             `json:"password"`
+	Hidden         bool               `json:"hidden"`
+	Role           string             `json:"role"`
+	CreatedAt      time.Time          `json:"created_at"`
+	TempCode       int                `json:"temp_code"`
+	UpdatedAt      time.Time          `json:"updated_at"`
+	ProfileImageID string             `json:"profile_image_id"`
+	Reviews        []Reviews          `json:"reviews"`
 }

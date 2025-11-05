@@ -25,7 +25,7 @@ type User struct {
 
 	Cpf            string             `bson:"cpf" json:"cpf" binding:"required"`
 	Password       string             `bson:"password" json:"password" binding:"required"`
-	TwoFactor      int                `bson:"two_factor" json:"two_factor"`
+	TwoFactor      bool                `bson:"two_factor" json:"two_factor"`
 	Hidden         bool               `bson:"hidden" json:"hidden"`
 	Role           string             `bson:"role" json:"role" binding:"required"`
 	ProfileImageID primitive.ObjectID `bson:"profile_image_id" json:"profile_image_id"`

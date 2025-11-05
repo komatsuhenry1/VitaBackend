@@ -19,6 +19,7 @@ func SetupUserRoutes(r *gin.RouterGroup, container *di.Container) {
 		user.GET("/file/:id", container.UserHandler.GetFileByID)
 		user.POST("/contact", container.UserHandler.ContactUsMessage)
 		user.GET("/nurse/:id", middleware.AuthUserOrNurse(), container.UserHandler.GetNurseProfile)
+		user.GET("/my-profile", middleware.AuthUser(), container.UserHandler.GetMyUserProfile)
 		user.PATCH("/update", middleware.AuthUser(), container.UserHandler.UpdateUser)
 		user.DELETE("/delete", middleware.AuthUser(), container.UserHandler.DeleteUser)
 		user.GET("/online_nurses", middleware.AuthUser(), container.UserHandler.GetOnlineNurses)

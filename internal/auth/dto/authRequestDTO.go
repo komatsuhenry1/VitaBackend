@@ -142,9 +142,10 @@ type ForgotPasswordRequestDTO struct {
 
 type ChangePasswordBothRequestDTO struct {
 	Password    string `json:"password" binding:"required"`
-	NewPassword string `json:"new_password" binding:"required"`
+	NewPassword string `json:"new_password"`
 	TwoFactor   bool   `json:"two_fa"`
 }
+
 type UpdatedPasswordByNewPassword struct {
 	NewPassword string `json:"new_password" binding:"required"`
 }

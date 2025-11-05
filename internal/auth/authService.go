@@ -26,7 +26,7 @@ type AuthService interface {
 	SendEmailForgotPassword(email dto.ForgotPasswordRequestDTO) error
 	ChangePasswordUnlogged(updatedPasswordByNewPassword dto.UpdatedPasswordByNewPassword, id string) error
 	ValidateToken(token string) error
-	ChangePasswordLogged(changePasswordBothRequestDTO dto.ChangePasswordBothRequestDTO, id string) error
+	ChangePasswordLogged(changePasswordBothRequestDTO dto.ChangePasswordBothRequestDTO, id string) (bool, error)
 	ResetPassword(resetPasswordDTO dto.ResetPasswordDTO) error
 }
 
@@ -561,35 +561,60 @@ func (s *authService) ChangePasswordUnlogged(updatedPasswordByNewPassword dto.Up
 	return s.userRepository.UpdatePasswordByUserID(id, hashedNewPassword)
 }
 
-func (s *authService) ChangePasswordLogged(changePasswordBothRequestDTO dto.ChangePasswordBothRequestDTO, id string) error {
-	authUser, err := s.userRepository.FindAuthUserByID(id)
+func (s *authService) ChangePasswordLogged(changePasswordBothRequestDTO dto.ChangePasswordBothRequestDTO, id string) (bool, error) {
+    authUser, err := s.userRepository.FindAuthUserByID(id)
 
-	if err != nil {
-		if err.Error() == "usuário não encontrado" {
-			authUser, err = s.nurseRepository.FindAuthNurseByID(id)
-			if err != nil {
-				return fmt.Errorf("usuário ou enfermeiro(a) com o ID fornecido não foi encontrado: %w", err)
-			}
-		} else {
-			return fmt.Errorf("erro ao buscar usuário: %w", err)
-		}
-	}
-	if !utils.ComparePassword(authUser.Password, changePasswordBothRequestDTO.Password) {
-		return fmt.Errorf("Senha atual incorreta.")
-	}
-	// a senha precisa ter caracteres especiais, numeros e letras
-	if !utils.ValidatePassword(changePasswordBothRequestDTO.NewPassword) {
-		return fmt.Errorf("senha invalida. A senha precisa ter caracteres especiais, numeros e letras")
-	}
-	hashedNewPassword, err := utils.HashPassword(changePasswordBothRequestDTO.NewPassword)
-	if err != nil {
-		return fmt.Errorf("Erro ao criptografar senha: %w", err)
-	}
+    if err != nil {
+        if err.Error() == "usuário não encontrado" {
+            authUser, err = s.nurseRepository.FindAuthNurseByID(id)
+            if err != nil {
+                // Mude o retorno para (false, error)
+                return false, fmt.Errorf("usuário ou enfermeiro(a) com o ID fornecido não foi encontrado: %w", err)
+            }
+        } else {
+             // Mude o retorno para (false, error)
+            return false, fmt.Errorf("erro ao buscar usuário: %w", err)
+        }
+    }
+    if !utils.ComparePassword(authUser.Password, changePasswordBothRequestDTO.Password) {
+         // Mude o retorno para (false, error)
+        return false, fmt.Errorf("Senha atual incorreta.")
+    }
 
-	if authUser.Role == "NURSE" {
-		return s.nurseRepository.UpdatePasswordLoggedByNurseID(id, hashedNewPassword, changePasswordBothRequestDTO.TwoFactor)
-	}
-	return s.userRepository.UpdatePasswordLoggedByUserID(id, hashedNewPassword, changePasswordBothRequestDTO.TwoFactor)
+    var hashedNewPassword string
+    // --- MUDANÇA 1: Criar um flag ---
+    passwordWasChanged := false
+
+    if changePasswordBothRequestDTO.NewPassword != "" {
+        if !utils.ValidatePassword(changePasswordBothRequestDTO.NewPassword) {
+             // Mude o retorno para (false, error)
+            return false, fmt.Errorf("senha invalida. A senha precisa ter caracteres especiais, numeros e letras")
+        }
+        hashed, err := utils.HashPassword(changePasswordBothRequestDTO.NewPassword)
+        if err != nil {
+             // Mude o retorno para (false, error)
+            return false, fmt.Errorf("Erro ao criptografar senha: %w", err)
+        }
+        hashedNewPassword = hashed
+        // --- MUDANÇA 2: Atualizar o flag ---
+        passwordWasChanged = true
+    } else {
+        hashedNewPassword = authUser.Password
+    }
+
+    var repoErr error
+    if authUser.Role == "NURSE" {
+        repoErr = s.nurseRepository.UpdatePasswordLoggedByNurseID(id, hashedNewPassword, changePasswordBothRequestDTO.TwoFactor)
+    } else {
+        repoErr = s.userRepository.UpdatePasswordLoggedByUserID(id, hashedNewPassword, changePasswordBothRequestDTO.TwoFactor)
+    }
+
+    if repoErr != nil {
+        return false, repoErr // Retorna o flag (false) e o erro do repositório
+    }
+
+    // --- MUDANÇA 3: Retornar o flag e nil (sucesso) ---
+    return passwordWasChanged, nil
 }
 
 func (s *authService) ValidateToken(token string) error {
