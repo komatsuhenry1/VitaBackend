@@ -10,6 +10,7 @@ import (
 	"github.com/stripe/stripe-go/v72/customer"
 	"github.com/stripe/stripe-go/v72/paymentintent"
 	"go.mongodb.org/mongo-driver/bson"
+	"encoding/json"
 )
 
 // Interface para o serviço
@@ -22,7 +23,6 @@ type paymentService struct {
 	userRepository    repository.UserRepository    // Para buscar/salvar o ID do cliente Stripe
 }
 
-// (Estou assumindo que você tem um repositório para buscar pacientes)
 func NewPaymentService(paymentRepository repository.PaymentRepository, userRepository repository.UserRepository) PaymentService {
 	// Configura a chave secreta do Stripe (NUNCA exponha no código)
 	stripe.Key = os.Getenv("STRIPE_SECRET_KEY")
@@ -31,7 +31,7 @@ func NewPaymentService(paymentRepository repository.PaymentRepository, userRepos
 
 func (s *paymentService) CreatePaymentIntent(patientID string, value float64) (string, error) {
 
-	// 1. OBTER/CRIAR O CLIENTE NO STRIPE
+	// obter o cliente no stripe
 	patient, err := s.userRepository.FindUserById(patientID)
 	if err != nil {
 		return "", fmt.Errorf("paciente não encontrado: %w", err)
@@ -39,16 +39,15 @@ func (s *paymentService) CreatePaymentIntent(patientID string, value float64) (s
 
 	stripeCustomerID := patient.GatewayCustomerID
 
-	fmt.Println("stripeCostumerID", stripeCustomerID)
+	//cria o cliente no stripe
 
 	if stripeCustomerID == "" {
-		// Se não tiver, criamos um novo Cliente no Stripe
 		customerParams := &stripe.CustomerParams{
 			Name:  stripe.String(patient.Name),
 			Email: stripe.String(patient.Email),
 			Phone: stripe.String(patient.Phone),
 			Address: &stripe.AddressParams{
-				Line1:      stripe.String(patient.Address), // ou os campos reais se você tiver
+				Line1:      stripe.String(patient.Address), 
 				City:       stripe.String(patient.City),	
 				State:      stripe.String(patient.UF),
 				PostalCode: stripe.String(patient.CEP),
@@ -62,6 +61,8 @@ func (s *paymentService) CreatePaymentIntent(patientID string, value float64) (s
 			return "", fmt.Errorf("erro ao criar cliente no Stripe: %w", err)
 		}
 
+		//salva  o costumer id no meu banco
+
 		stripeCustomerID = newCustomer.ID
 
 		updates := bson.M{
@@ -73,33 +74,28 @@ func (s *paymentService) CreatePaymentIntent(patientID string, value float64) (s
 		}
 	}
 
-	fmt.Println("stripeCostumerID", stripeCustomerID)
-
 	amountInCents := int64(math.Round(value * 100))
 
-    // 3. CRIAR A INTENÇÃO DE PAGAMENTO (PAYMENT INTENT)
+    // CRIAR A INTENÇÃO DE PAGAMENTO (PAYMENT INTENT)
     params := &stripe.PaymentIntentParams{
-        Amount:           stripe.Int64(amountInCents),
-        Currency:         stripe.String(string(stripe.CurrencyBRL)),
-        Customer:         stripe.String(stripeCustomerID),
-        SetupFutureUsage: stripe.String(string(stripe.PaymentIntentSetupFutureUsageOffSession)),
+        Amount:           stripe.Int64(amountInCents), // quantia
+        Currency:         stripe.String(string(stripe.CurrencyBRL)), // moeda
+        Customer:         stripe.String(stripeCustomerID), // cliente
+        SetupFutureUsage: stripe.String(string(stripe.PaymentIntentSetupFutureUsageOffSession)), // serve para indicar que o método de pagamento poderá ser reutilizado no futuro, sem precisar da interação do usuário (ou seja, "off-session"
 
-        // 👇 MUDANÇA 1: Removido o 'CaptureMethodManual' (agora é automático)
-
-        // 👇 MUDANÇA 2: Adicionado para limitar ao cartão e evitar o erro do Apple Pay
         PaymentMethodTypes: []*string{
             stripe.String("card"),
         },
     }
-
-    // Código antigo que foi alterado:
-    // CaptureMethod:    stripe.String(string(stripe.PaymentIntentCaptureMethodManual)),
     
     pi, err := paymentintent.New(params)
     if err != nil {
         return "", fmt.Errorf("erro ao criar PaymentIntent no Stripe: %w", err)
     }
 
+	b, _ := json.MarshalIndent(pi, "", "  ")
+	fmt.Println(string(b))
+	
     // 4. RETORNAR O "CLIENT SECRET"
     return pi.ClientSecret, nil
 }

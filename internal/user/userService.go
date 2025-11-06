@@ -140,7 +140,7 @@ func (h *userService) GetNurseProfile(nurseId string) (userDTO.NurseProfileRespo
 		Neighborhood:   nurse.Neighborhood,
 		Phone:          nurse.Phone,
 		Online:         nurse.Online,
-		Coren:          nurse.Coren,	
+		Coren:          nurse.Coren,
 		Bio:            nurse.Bio,
 		Qualifications: nurse.Qualifications,
 		Services:       nurse.Services,
@@ -170,8 +170,6 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 		return fmt.Errorf("Erro ao gerar codigo de confirmação: %w", err)
 	}
 
-	fmt.Println("confirmationCode", confirmationCode)
-
 	visit := model.Visit{
 		ID:               primitive.NewObjectID(),
 		Status:           "PENDING",
@@ -180,6 +178,12 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 		PatientId:    patientId,
 		PatientName:  patient.Name,
 		PatientEmail: patient.Email,
+
+		CEP:          createVisitDto.CEP,
+		Street:       createVisitDto.Street,
+		Number:       createVisitDto.Number,
+		Complement:   createVisitDto.Complement,
+		Neighborhood: createVisitDto.Neighborhood,
 
 		Description: createVisitDto.Description,
 		Reason:      createVisitDto.Reason,
@@ -242,10 +246,6 @@ func (h *userService) FindAllVisits(patientId string) (userDTO.VisitsResponseDto
 			// 'visitReview' continuará sendo um 'model.Review{}' vazio (zero-value).
 			// 'visitReview.Rating' será 0 (ou 0.0), que é o que queremos.
 		}
-		// FIM DA MUDANÇA
-
-		fmt.Println("visitReview", visitReview)
-		fmt.Println("visitReview.Rating", visitReview.Rating)
 
 		nurse, err := h.nurseRepository.FindNurseById(visit.NurseId)
 		if err != nil {
@@ -646,8 +646,8 @@ func (s *userService) GetPatientProfile(patientId string) (userDTO.PatientProfil
 	for _, review := range reviews {
 		dtoReviews = append(dtoReviews, userDTO.Reviews{
 			PatientName: review.NurseName,
-			Rating:    review.Rating,
-			Comment:   review.Comment,
+			Rating:      review.Rating,
+			Comment:     review.Comment,
 		})
 	}
 
@@ -673,4 +673,3 @@ func (s *userService) GetPatientProfile(patientId string) (userDTO.PatientProfil
 
 	return patientProfile, nil
 }
-
