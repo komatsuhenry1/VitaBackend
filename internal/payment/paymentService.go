@@ -10,7 +10,6 @@ import (
 	"github.com/stripe/stripe-go/v72/customer"
 	"github.com/stripe/stripe-go/v72/paymentintent"
 	"go.mongodb.org/mongo-driver/bson"
-	"encoding/json"
 )
 
 // Interface para o serviço
@@ -93,8 +92,8 @@ func (s *paymentService) CreatePaymentIntent(patientID string, value float64) (s
         return "", fmt.Errorf("erro ao criar PaymentIntent no Stripe: %w", err)
     }
 
-	b, _ := json.MarshalIndent(pi, "", "  ")
-	fmt.Println(string(b))
+	// b, _ := json.MarshalIndent(pi, "", "  ")
+	// fmt.Println(string(b))
 	
     // 4. RETORNAR O "CLIENT SECRET"
     return pi.ClientSecret, nil

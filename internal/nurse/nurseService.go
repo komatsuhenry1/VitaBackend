@@ -32,6 +32,7 @@ type NurseService interface {
 	RejectVisit(nurseId, visitId string) error
 	AddReview(nurseId, visitId string, reviewDto dto.ReviewDTO) error
 	GetMyNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
+	CreateStripeOnboardingLink(nurseId string) (dto.StripeOnboardingResponseDTO, error)
 }
 
 type nurseService struct {
@@ -39,10 +40,11 @@ type nurseService struct {
 	nurseRepository  repository.NurseRepository
 	visitRepository  repository.VisitRepository
 	reviewRepository repository.ReviewRepository
+	stripeRepository repository.StripeRepository
 }
 
-func NewNurseService(userRepository repository.UserRepository, nurseRepository repository.NurseRepository, visitRepository repository.VisitRepository, reviewRepository repository.ReviewRepository) NurseService {
-	return &nurseService{userRepository: userRepository, nurseRepository: nurseRepository, visitRepository: visitRepository, reviewRepository: reviewRepository}
+func NewNurseService(userRepository repository.UserRepository, nurseRepository repository.NurseRepository, visitRepository repository.VisitRepository, reviewRepository repository.ReviewRepository, stripeRepository repository.StripeRepository) NurseService {
+	return &nurseService{userRepository: userRepository, nurseRepository: nurseRepository, visitRepository: visitRepository, reviewRepository: reviewRepository, stripeRepository: stripeRepository}
 }
 
 func (s *nurseService) UpdateAvailablityNursingService(nurseId string) (model.Nurse, error) {
@@ -685,29 +687,66 @@ func (h *nurseService) GetMyNurseProfile(nurseId string) (userDTO.NurseProfileRe
 	}
 
 	nurseProfile := userDTO.NurseProfileResponseDTO{
-		ID:             nurse.ID.Hex(),
-		Name:           nurse.Name,
-		Specialization: nurse.Specialization,
-		Experience:     nurse.YearsExperience,
-		Rating:         rating,
-		Price:          nurse.Price,
-		Shift:          nurse.Shift,
-		Department:     nurse.Department,
-		TwoFactor:      nurse.TwoFactor,
-		Image:          nurse.ProfileImageID.Hex(),
-		Location:       nurse.Address,
-		Neighborhood:   nurse.Neighborhood,
-		Phone:          nurse.Phone,
-		Online:         nurse.Online,
-		Coren:          nurse.Coren,
-		Bio:            nurse.Bio,
-		Qualifications: nurse.Qualifications,
-		Services:       nurse.Services,
-		DaysAvailable:  nurse.DaysAvailable,
-		StartTime:      nurse.StartTime,
-		EndTime:        nurse.EndTime,
-		ProfileImageID: nurse.ProfileImageID.Hex(),
+		ID:              nurse.ID.Hex(),
+		Name:            nurse.Name,
+		Specialization:  nurse.Specialization,
+		Experience:      nurse.YearsExperience,
+		Rating:          rating,
+		Price:           nurse.Price,
+		Shift:           nurse.Shift,
+		Department:      nurse.Department,
+		TwoFactor:       nurse.TwoFactor,
+		Image:           nurse.ProfileImageID.Hex(),
+		Location:        nurse.Address,
+		Neighborhood:    nurse.Neighborhood,
+		Phone:           nurse.Phone,
+		Online:          nurse.Online,
+		Coren:           nurse.Coren,
+		Bio:             nurse.Bio,
+		Qualifications:  nurse.Qualifications,
+		Services:        nurse.Services,
+		DaysAvailable:   nurse.DaysAvailable,
+		StartTime:       nurse.StartTime,
+		EndTime:         nurse.EndTime,
+		StripeAccountId: nurse.StripeAccountId,
+		ProfileImageID:  nurse.ProfileImageID.Hex(),
 	}
 
 	return nurseProfile, nil
+}
+
+func (s *nurseService) CreateStripeOnboardingLink(nurseId string) (dto.StripeOnboardingResponseDTO, error) {
+	var response dto.StripeOnboardingResponseDTO
+
+	nurse, err := s.nurseRepository.FindNurseById(nurseId)
+	if err != nil {
+		return response, fmt.Errorf("Enfermeiro não encontrado: %w", err)
+	}
+
+	stripeAccountId := nurse.StripeAccountId
+
+	if stripeAccountId == "" {
+		newAccountId, err := s.stripeRepository.CreateExpressAccount(nurse.Email)
+		if err != nil {
+			return response, fmt.Errorf("Erro ao criar conta Stripe: %w", err)
+		}
+
+		err = s.nurseRepository.UpdateStripeAccountId(nurseId, newAccountId)
+		if err != nil {
+			return response, fmt.Errorf("Erro ao salvar ID da conta Stripe no banco: %w", err)
+		}
+
+		stripeAccountId = newAccountId
+	}
+
+	// 3. Crie o link de onboarding (onetime link)
+	// O 'stripeAccountId' aqui será o antigo (se já existia) ou o novo (se acabamos de criar)
+	linkUrl, err := s.stripeRepository.CreateAccountLink(stripeAccountId)
+	if err != nil {
+		return response, fmt.Errorf("Erro ao criar link de onboarding Stripe: %w", err)
+	}
+
+	// 4. Mapeie para o DTO de resposta
+	response.URL = linkUrl
+	return response, nil
 }

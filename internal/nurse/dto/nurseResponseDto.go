@@ -177,3 +177,7 @@ type AverageRatingResult struct {
 type TotalRevenueResult struct {
 	TotalRevenue float64 `bson:"totalRevenue" json:"totalRevenue"`
 }
+
+type StripeOnboardingResponseDTO struct {
+    URL string `json:"url"`
+}

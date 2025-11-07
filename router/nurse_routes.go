@@ -26,5 +26,6 @@ func SetupNurseRoutes(r *gin.RouterGroup, container *di.Container) {
 		nurse.PATCH("/offline", middleware.AuthNurse(), container.NurseHandler.TurnOfflineOnLogout)
 		nurse.PATCH("/reject-visit/:id", middleware.AuthNurse(), container.NurseHandler.RejectVisit)
 		nurse.POST("/review/:id", middleware.AuthNurse(), container.NurseHandler.AddReview)
+		nurse.POST("/stripe-onboarding", middleware.AuthNurse(), container.NurseHandler.SetupStripeOnboarding)
 	}
 }

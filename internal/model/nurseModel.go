@@ -21,6 +21,7 @@ type Nurse struct {
 	Services               []string           `bson:"services" json:"services"`
 	AvailableNeighborhoods []string           `bson:"available_neighborhoods" json:"available_neighborhoods"`
 	Qualifications         []string           `bson:"qualifications" json:"qualifications"`
+	StripeAccountId        string             `bson:"stripe_account_id" json:"stripe_account_id"`
 
 	Address      string  `bson:"address" json:"address" binding:"required,address"`
 	CEP          string  `json:"cep"`

@@ -2,13 +2,12 @@ package nurse
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 	"medassist/internal/nurse/dto"
 	"medassist/utils"
 	"net/http"
 	"strings"
-
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 )
 
 type NurseHandler struct {
@@ -295,4 +294,16 @@ func (h *NurseHandler) GetMyNurseProfile(c *gin.Context) {
 		return
 	}
 	utils.SendSuccessResponse(c, "Perfil completo de enfermeiro(a) listado com sucesso", nurseProfile)
+}
+
+func (h *NurseHandler) SetupStripeOnboarding(c *gin.Context) {
+    nurseId := utils.GetUserId(c)
+
+    responseDto, err := h.nurseService.CreateStripeOnboardingLink(nurseId)
+    if err != nil {
+        utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+        return
+    }
+
+    utils.SendSuccessResponse(c, "Link de onboarding criado com sucesso.", responseDto)
 }

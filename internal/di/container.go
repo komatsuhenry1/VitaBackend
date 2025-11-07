@@ -31,12 +31,13 @@ func NewContainer() *Container {
 	messageRepository := repository.NewMessageRepository(db)
 	reviewRepository := repository.NewReviewRepository(db)
 	paymentRepository := repository.NewPaymentRepository(db)
+	stripeRepository := repository.NewStripeRepository()
 	hub := chat.NewHub(messageRepository)
 
 	authService := auth.NewAuthService(userRepository, nurseRepository)
 	adminService := admin.NewAdminService(userRepository, nurseRepository, visitRepository)
 	userService := user.NewUserService(userRepository, nurseRepository, visitRepository, reviewRepository, hub)
-	nurseService := nurse.NewNurseService(userRepository, nurseRepository, visitRepository, reviewRepository)
+	nurseService := nurse.NewNurseService(userRepository, nurseRepository, visitRepository, reviewRepository, stripeRepository)
 	paymentService := payment.NewPaymentService(paymentRepository, userRepository)
 
 

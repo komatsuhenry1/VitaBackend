@@ -42,6 +42,7 @@ type NurseRepository interface {
 	UpdateNurseFields(id string, updates map[string]interface{}) (model.Nurse, error)
 	DeleteNurse(id string) error
 	GetAllOnlineNurses(patientCity string, latitude float64, longitude float64) ([]userDTO.AllNursesListDto, error)
+	UpdateStripeAccountId(nurseId string, stripeAccountId string) error
 
 	GetTotalNursesCount() (int64, error)
     GetPendingApprovalsCount() (int64, error)
@@ -530,13 +531,11 @@ func (r *nurseRepository) GetTotalNursesCount() (int64, error) {
     return r.collection.CountDocuments(r.ctx, bson.M{})
 }
 
-// GetPendingApprovalsCount retorna o número de enfermeiros aguardando aprovação.
 func (r *nurseRepository) GetPendingApprovalsCount() (int64, error) {
     filter := bson.M{"verification_seal": false}
     return r.collection.CountDocuments(r.ctx, filter)
 }
 
-// GetPendingApprovalNursesInfo retorna ID e Nome dos enfermeiros com aprovação pendente.
 func (r *nurseRepository) GetPendingApprovalNursesInfo() ([]nurseDTO.PendingNurseInfo, error) {
     var results []nurseDTO.PendingNurseInfo
 
@@ -557,26 +556,22 @@ func (r *nurseRepository) GetPendingApprovalNursesInfo() ([]nurseDTO.PendingNurs
     return results, nil
 }
 
-// GetOnlineNursesCount retorna o número de enfermeiros online.
 func (r *nurseRepository) GetOnlineNursesCount() (int64, error) {
     filter := bson.M{"online": true}
     return r.collection.CountDocuments(r.ctx, filter)
 }
 
-// GetInactiveNursesCount retorna o número de enfermeiros com perfil "hidden".
 func (r *nurseRepository) GetInactiveNursesCount() (int64, error) {
     filter := bson.M{"hidden": true}
     return r.collection.CountDocuments(r.ctx, filter)
 }
 
-// GetNewNursesCountLast30Days retorna o número de novos enfermeiros nos últimos 30 dias.
 func (r *nurseRepository) GetNewNursesCountLast30Days() (int64, error) {
     thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
     filter := bson.M{"created_at": bson.M{"$gte": thirtyDaysAgo}}
     return r.collection.CountDocuments(r.ctx, filter)
 }
 
-// GetAverageNurseRating usa aggregation para calcular a média de avaliação (rating > 0).
 func (r *nurseRepository) GetAverageNurseRating() (float64, error) {
     pipeline := mongo.Pipeline{
         // Filtra apenas enfermeiros que já foram avaliados
@@ -606,7 +601,6 @@ func (r *nurseRepository) GetAverageNurseRating() (float64, error) {
     return 0, nil
 }
 
-// GetMostCommonSpecialization usa aggregation para encontrar a especialização mais comum.
 func (r *nurseRepository) GetMostCommonSpecialization() (string, error) {
     pipeline := mongo.Pipeline{
         // Filtra registros que tenham uma especialização definida
@@ -639,4 +633,24 @@ func (r *nurseRepository) GetMostCommonSpecialization() (string, error) {
 
     // Retorna string vazia se nada for encontrado
     return "", nil
+}
+
+func (r *nurseRepository) UpdateStripeAccountId(nurseId string, stripeAccountId string) error {
+    objID, err := primitive.ObjectIDFromHex(nurseId)
+    if err != nil {
+        return fmt.Errorf("ID de enfermeiro inválido: %w", err)
+    }
+
+    filter := bson.M{"_id": objID}
+    update := bson.M{"$set": bson.M{"stripe_account_id": stripeAccountId}}
+
+    result, err := r.collection.UpdateOne(r.ctx, filter, update)
+    if err != nil {
+        return err
+    }
+    if result.ModifiedCount == 0 {
+        return fmt.Errorf("Nenhum enfermeiro encontrado para atualizar com o ID: %s", nurseId)
+    }
+    
+    return nil
 }
