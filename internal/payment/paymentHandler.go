@@ -29,12 +29,14 @@ func (h *PaymentHandler) CreatePaymentIntent(c *gin.Context) {
         return
     }
 
+    visitId := c.Param("id")
+
     // 2. Obter o ID do paciente logado (do middleware de autenticação)
     //    Isso é FUNDAMENTAL para vincular o pagamento ao paciente correto.
     patientID := utils.GetUserId(c)
 
     // 3. Chamar o serviço de pagamento
-    clientSecret, err := h.paymentService.CreatePaymentIntent(patientID, req.Value)
+    clientSecret, err := h.paymentService.CreatePaymentIntent(patientID, req.Value, visitId)
     if err != nil {
         c.JSON(http.StatusInternalServerError, gin.H{"error": "Não foi possível criar a intenção de pagamento"})
         return
