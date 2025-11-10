@@ -5,16 +5,16 @@ import (
     "github.com/stripe/stripe-go/v76"
     "github.com/stripe/stripe-go/v76/account"
     "github.com/stripe/stripe-go/v76/accountlink"
+    "github.com/stripe/stripe-go/v76/transfer"
 )
 
 type StripeRepository interface {
     CreateExpressAccount(email string) (string, error)
     CreateAccountLink(accountId string) (string, error)
+    CreateTransfer(amountInCents int64, destinationAccountId string, sourceTransactionId string) (*stripe.Transfer, error)
 }
 
-// Implementação
 type stripeRepository struct {
-    // Aqui você pode adicionar configs, se necessário
 }
 
 // Construtor
@@ -62,3 +62,27 @@ func (r *stripeRepository) CreateAccountLink(accountId string) (string, error) {
     
     return link.URL, nil // Retorna a URL completa
 }
+
+
+func (r *stripeRepository) CreateTransfer(amountInCents int64, destinationAccountId string, sourceTransactionId string) (*stripe.Transfer, error) {
+    
+    params := &stripe.TransferParams{
+        Amount:      stripe.Int64(amountInCents),             // O valor em centavos
+        Currency:    stripe.String(string(stripe.CurrencyBRL)), // Moeda
+        Destination: stripe.String(destinationAccountId),     // Conta do enfermeiro (acct_...)
+        
+        // Esta é a linha mais importante:
+        // Ela vincula o repasse ao pagamento original do paciente.
+        // O Stripe usa isso para mover o dinheiro que já está "retido" 
+        // na sua conta da plataforma.
+        SourceTransaction: stripe.String(sourceTransactionId), // Pagamento (pi_...)
+    }
+
+    t, err := transfer.New(params)
+    if err != nil {
+        return nil, err
+    }
+
+    return t, nil
+}
+

@@ -7,6 +7,7 @@ import (
 	"medassist/internal/repository"
 	userDTO "medassist/internal/user/dto"
 	"medassist/utils"
+	"math"
 	"time"
 
 	"strings"
@@ -570,9 +571,38 @@ func (s *nurseService) VisitServiceConfirmation(nurseId, visitId, confirmationCo
 		return fmt.Errorf("Código de confirmação inválido.")
 	}
 
+	nurse, err := s.nurseRepository.FindNurseById(nurseId)
+    if err != nil {
+        return fmt.Errorf("Erro ao localizar dados do enfermeiro: %w", err)
+    }
+
+    if nurse.StripeAccountId == "" {
+        return fmt.Errorf("Este enfermeiro(a) não possui uma conta de pagamentos configurada.")
+    }
+
+	if visit.PaymentIntentID == "" {
+        return fmt.Errorf("Pagamento original não encontrado para esta visita.")
+    }
+
+	// 3. Calcular valor do repasse (Ex: comissão da plataforma de 10%)
+    commissionRate := 0.10 // 10%
+    amountToTransfer := visit.VisitValue * (1.0 - commissionRate)
+    amountInCents := int64(math.Round(amountToTransfer * 100)) // valor em cents
+
+	transfer, err := s.stripeRepository.CreateTransfer(
+        amountInCents,
+        nurse.StripeAccountId,   // Destino (conta do enfermeiro)
+        visit.PaymentIntentID, // Origem (pagamento do paciente)
+    )
+    if err != nil {
+        // Se o repasse falhar, NÃO confirme a visita.
+        return fmt.Errorf("Erro ao processar repasse para o enfermeiro: %w", err)
+    }
+
 	visitUpdates := bson.M{
 		"status":     "COMPLETED",
 		"updated_at": time.Now(),
+		"transfer_id": transfer.ID,
 	}
 
 	_, err = s.visitRepository.UpdateVisitFields(visitId, visitUpdates)

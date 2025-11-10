@@ -34,6 +34,7 @@ type Visit struct {
 	VisitDate        time.Time `bson:"visit_date" json:"visit_date" binding:"required"`
 
 	PaymentIntentID string `bson:"payment_intent_id" json:"payment_intent_id" binding:"required"`
+	TransferID      string `bson:"transfer_id" json:"transfer_id" binding:"required"`
 
 	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 	UpdatedAt time.Time `bson:"updated_at" json:"updated_at"`
