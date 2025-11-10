@@ -18,7 +18,7 @@ type PaymentService interface {
 }
 
 type paymentService struct {
-	paymentRepository repository.PaymentRepository 
+	paymentRepository repository.PaymentRepository
 	userRepository    repository.UserRepository
 	visitRepository   repository.VisitRepository
 }
@@ -30,6 +30,19 @@ func NewPaymentService(paymentRepository repository.PaymentRepository, userRepos
 }
 
 func (s *paymentService) CreatePaymentIntent(patientID string, value float64, visitId string) (string, error) {
+
+	visit, err := s.visitRepository.FindVisitById(visitId)
+	if err != nil {
+		return "", fmt.Errorf("Erro ao buscar visita...")
+	}
+
+	if visit.Status != "CONFIRMED" {
+		return "", fmt.Errorf("A visita não está confirmada, portanto não pode ser paga.")
+	}
+
+	if visit.PatientId != patientID {
+		return "", fmt.Errorf("Visita pertencente à outro paciente.")
+	}
 
 	patient, err := s.userRepository.FindUserById(patientID)
 	if err != nil {
