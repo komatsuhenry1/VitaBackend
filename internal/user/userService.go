@@ -196,6 +196,8 @@ func (h *userService) VisitSolicitation(patientId string, createVisitDto userDTO
 		VisitValue:       createVisitDto.VisitValue,
 		VisitRequestType: "SCHEDULED",
 
+		PaymentIntentID: createVisitDto.PaymentIntentID,
+
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 	}
