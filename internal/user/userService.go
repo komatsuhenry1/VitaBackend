@@ -553,6 +553,8 @@ func (s *userService) ImmediateVisitSolicitation(patientId string, immediateVisi
 		NurseId:   nurse.ID.Hex(),
 		NurseName: nurse.Name,
 
+		PaymentIntentID: immediateVisitDto.PaymentIntentID,
+
 		VisitValue: nurse.Price,
 
 		VisitRequestType: "IMMEDIATE",

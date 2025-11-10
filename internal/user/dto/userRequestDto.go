@@ -40,7 +40,8 @@ type ImmediateVisitDTO struct {
 	Complement   string `json:"complement"`
 	Neighborhood string `json:"neighborhood" binding:"required"`
 
-	NurseId string `json:"nurse_id" binding:"required"`
+	NurseId         string `json:"nurse_id" binding:"required"`
+	PaymentIntentID string `json:"payment_intent_id" binding:"required"`
 
 	VisitValue float64   `json:"value" binding:"required"`
 	VisitType  string    `json:"visit_type" binding:"required"`
