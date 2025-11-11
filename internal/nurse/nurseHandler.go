@@ -2,12 +2,13 @@ package nurse
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt/v5"
 	"medassist/internal/nurse/dto"
 	"medassist/utils"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 type NurseHandler struct {
@@ -297,13 +298,36 @@ func (h *NurseHandler) GetMyNurseProfile(c *gin.Context) {
 }
 
 func (h *NurseHandler) SetupStripeOnboarding(c *gin.Context) {
-    nurseId := utils.GetUserId(c)
+	nurseId := utils.GetUserId(c)
 
-    responseDto, err := h.nurseService.CreateStripeOnboardingLink(nurseId)
-    if err != nil {
-        utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
-        return
-    }
+	responseDto, err := h.nurseService.CreateStripeOnboardingLink(nurseId)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-    utils.SendSuccessResponse(c, "Link de onboarding criado com sucesso.", responseDto)
+	utils.SendSuccessResponse(c, "Link de onboarding criado com sucesso.", responseDto)
+}
+
+func (h *NurseHandler) AddPrescription(c *gin.Context) {
+	nurseId := utils.GetUserId(c)
+
+	visitId := c.Param("id")
+
+	// permite que o campo 'reason' venha vazio
+	var prescriptionList dto.PrescriptionList
+	if err := c.ShouldBindJSON(&prescriptionList); err != nil {
+		if err.Error() != "EOF" {
+			utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+			return
+		}
+	}
+
+	visit, err := h.nurseService.AddPrescription(nurseId, visitId, prescriptionList.PrescriptionList)
+	if err != nil {
+		utils.SendErrorResponse(c, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	utils.SendSuccessResponse(c, "Prescrição adicionada com sucesso.", visit)
 }

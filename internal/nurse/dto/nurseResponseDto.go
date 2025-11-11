@@ -114,18 +114,19 @@ type AvailabilityResponseDTO struct {
 }
 
 type VisitInfoDto struct {
-	ID           string  `json:"id"`
-	Status       string  `json:"status"`
-	PatientId    string  `json:"patient_id"`
-	PatientName  string  `json:"patient_name"`
-	Description  string  `json:"description"`
-	Reason       string  `json:"reason"`
-	CancelReason string  `json:"cancel_reason,omitempty"`
-	VisitValue   float64 `json:"visit_value"`
-	VisitType    string  `json:"visit_type"`
-	VisitDate    string  `json:"visit_date"`
-	CreatedAt    string  `json:"created_at"`
-	UpdatedAt    string  `json:"updated_at"`
+	ID            string   `json:"id"`
+	Status        string   `json:"status"`
+	PatientId     string   `json:"patient_id"`
+	PatientName   string   `json:"patient_name"`
+	Description   string   `json:"description"`
+	Reason        string   `json:"reason"`
+	CancelReason  string   `json:"cancel_reason,omitempty"`
+	Prescriptions []string `json:"prescriptions"`
+	VisitValue    float64  `json:"visit_value"`
+	VisitType     string   `json:"visit_type"`
+	VisitDate     string   `json:"visit_date"`
+	CreatedAt     string   `json:"created_at"`
+	UpdatedAt     string   `json:"updated_at"`
 }
 
 type PatientInfoDto struct {
@@ -179,5 +180,5 @@ type TotalRevenueResult struct {
 }
 
 type StripeOnboardingResponseDTO struct {
-    URL string `json:"url"`
+	URL string `json:"url"`
 }

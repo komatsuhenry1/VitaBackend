@@ -33,6 +33,8 @@ type Visit struct {
 	VisitRequestType string    `bson:"visit_request_type" json:"visit_request_type" binding:"required"`
 	VisitDate        time.Time `bson:"visit_date" json:"visit_date" binding:"required"`
 
+	Prescriptions []string `bson:"prescriptions" json:"prescriptions"`
+
 	PaymentIntentID string `bson:"payment_intent_id" json:"payment_intent_id" binding:"required"`
 	TransferID      string `bson:"transfer_id" json:"transfer_id" binding:"required"`
 

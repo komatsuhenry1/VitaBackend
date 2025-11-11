@@ -2,12 +2,12 @@ package nurse
 
 import (
 	"fmt"
+	"math"
 	"medassist/internal/model"
 	"medassist/internal/nurse/dto"
 	"medassist/internal/repository"
 	userDTO "medassist/internal/user/dto"
 	"medassist/utils"
-	"math"
 	"time"
 
 	"strings"
@@ -34,6 +34,7 @@ type NurseService interface {
 	AddReview(nurseId, visitId string, reviewDto dto.ReviewDTO) error
 	GetMyNurseProfile(nurseId string) (userDTO.NurseProfileResponseDTO, error)
 	CreateStripeOnboardingLink(nurseId string) (dto.StripeOnboardingResponseDTO, error)
+	AddPrescription(nurseId string, visitId string, prescriptions []string) (dto.NurseVisitInfo, error)
 }
 
 type nurseService struct {
@@ -522,18 +523,19 @@ func (s nurseService) GetNurseVisitInfo(nurseId, visitId string) (dto.NurseVisit
 	}
 
 	visitDto := dto.VisitInfoDto{
-		ID:           visit.ID.Hex(),
-		Status:       visit.Status,
-		PatientId:    visit.PatientId,
-		PatientName:  visit.PatientName,
-		Description:  visit.Description,
-		Reason:       visit.Reason,
-		CancelReason: visit.CancelReason,
-		VisitValue:   visit.VisitValue,
-		VisitType:    visit.VisitType,
-		VisitDate:    visit.VisitDate.Format("02/01/2006 15:04"),
-		CreatedAt:    visit.CreatedAt.Format("02/01/2006 15:04"),
-		UpdatedAt:    visit.UpdatedAt.Format("02/01/2006 15:04"),
+		ID:            visit.ID.Hex(),
+		Status:        visit.Status,
+		PatientId:     visit.PatientId,
+		PatientName:   visit.PatientName,
+		Description:   visit.Description,
+		Reason:        visit.Reason,
+		CancelReason:  visit.CancelReason,
+		VisitValue:    visit.VisitValue,
+		VisitType:     visit.VisitType,
+		Prescriptions: visit.Prescriptions,
+		VisitDate:     visit.VisitDate.Format("02/01/2006 15:04"),
+		CreatedAt:     visit.CreatedAt.Format("02/01/2006 15:04"),
+		UpdatedAt:     visit.UpdatedAt.Format("02/01/2006 15:04"),
 	}
 
 	visitInfo := dto.NurseVisitInfo{
@@ -572,36 +574,36 @@ func (s *nurseService) VisitServiceConfirmation(nurseId, visitId, confirmationCo
 	}
 
 	nurse, err := s.nurseRepository.FindNurseById(nurseId)
-    if err != nil {
-        return fmt.Errorf("Erro ao localizar dados do enfermeiro: %w", err)
-    }
+	if err != nil {
+		return fmt.Errorf("Erro ao localizar dados do enfermeiro: %w", err)
+	}
 
-    if nurse.StripeAccountId == "" {
-        return fmt.Errorf("Este enfermeiro(a) não possui uma conta de pagamentos configurada.")
-    }
+	if nurse.StripeAccountId == "" {
+		return fmt.Errorf("Este enfermeiro(a) não possui uma conta de pagamentos configurada.")
+	}
 
 	if visit.PaymentIntentID == "" {
-        return fmt.Errorf("Pagamento original não encontrado para esta visita.")
-    }
+		return fmt.Errorf("Pagamento original não encontrado para esta visita.")
+	}
 
 	// 3. Calcular valor do repasse (Ex: comissão da plataforma de 10%)
-    commissionRate := 0.10 // 10%
-    amountToTransfer := visit.VisitValue * (1.0 - commissionRate)
-    amountInCents := int64(math.Round(amountToTransfer * 100)) // valor em cents
+	commissionRate := 0.10 // 10%
+	amountToTransfer := visit.VisitValue * (1.0 - commissionRate)
+	amountInCents := int64(math.Round(amountToTransfer * 100)) // valor em cents
 
 	transfer, err := s.stripeRepository.CreateTransfer(
-        amountInCents,
-        nurse.StripeAccountId,   // Destino (conta do enfermeiro)
-        visit.PaymentIntentID, // Origem (pagamento do paciente)
-    )
-    if err != nil {
-        // Se o repasse falhar, NÃO confirme a visita.
-        return fmt.Errorf("Erro ao processar repasse para o enfermeiro: %w", err)
-    }
+		amountInCents,
+		nurse.StripeAccountId, // Destino (conta do enfermeiro)
+		visit.PaymentIntentID, // Origem (pagamento do paciente)
+	)
+	if err != nil {
+		// Se o repasse falhar, NÃO confirme a visita.
+		return fmt.Errorf("Erro ao processar repasse para o enfermeiro: %w", err)
+	}
 
 	visitUpdates := bson.M{
-		"status":     "COMPLETED",
-		"updated_at": time.Now(),
+		"status":      "COMPLETED",
+		"updated_at":  time.Now(),
 		"transfer_id": transfer.ID,
 	}
 
@@ -779,4 +781,79 @@ func (s *nurseService) CreateStripeOnboardingLink(nurseId string) (dto.StripeOnb
 	// 4. Mapeie para o DTO de resposta
 	response.URL = linkUrl
 	return response, nil
+}
+
+func (s *nurseService) AddPrescription(nurseId string, visitId string, prescriptions []string) (dto.NurseVisitInfo, error) {
+	visit, err := s.visitRepository.FindVisitById(visitId)
+	if err != nil {
+		return dto.NurseVisitInfo{}, fmt.Errorf("Erro ao buscar id da visita.")
+	}
+
+	fmt.Println("====")
+	fmt.Println(visit.Status)
+	fmt.Println("====")
+	if visit.Status != "CONFIRMED" && visit.Status != "COMPLETED" {
+		return dto.NurseVisitInfo{}, fmt.Errorf("A visita precisar estar confirmada ou completada para adicionar uma prescrição.")
+	}
+
+	if visit.NurseId != nurseId {
+		return dto.NurseVisitInfo{}, fmt.Errorf("Essa visita é pertencente à outro enfermeiro.")
+	}
+
+	patient, err := s.userRepository.FindUserById(visit.PatientId)
+	if err != nil {
+		return dto.NurseVisitInfo{}, fmt.Errorf("Erro ao buscar id de enfermeiro(a).")
+	}
+
+	visitUpdates := bson.M{
+		"prescriptions": prescriptions,
+		"updated_at":    time.Now(),
+	}
+
+	_, err = s.visitRepository.UpdateVisitFields(visitId, visitUpdates)
+	if err != nil {
+		return dto.NurseVisitInfo{}, err
+	}
+
+	patientDto := dto.PatientInfoDto{
+		ID:             patient.ID.Hex(),
+		Name:           patient.Name,
+		Email:          patient.Email,
+		Phone:          patient.Phone,
+		CEP:            patient.CEP,
+		Street:         patient.Street,
+		Number:         patient.Number,
+		Complement:     patient.Complement,
+		Neighborhood:   patient.Neighborhood,
+		City:           patient.City,
+		UF:             patient.UF,
+		Latitude:       patient.Latitude,
+		Longitude:      patient.Longitude,
+		Cpf:            patient.Cpf,
+		ProfileImageID: patient.ProfileImageID.Hex(),
+	}
+
+	visitDto := dto.VisitInfoDto{
+		ID:            visit.ID.Hex(),
+		Status:        visit.Status,
+		PatientId:     visit.PatientId,
+		PatientName:   visit.PatientName,
+		Description:   visit.Description,
+		Reason:        visit.Reason,
+		CancelReason:  visit.CancelReason,
+		VisitValue:    visit.VisitValue,
+		VisitType:     visit.VisitType,
+		VisitDate:     visit.VisitDate.Format("02/01/2006 15:04"),
+		CreatedAt:     visit.CreatedAt.Format("02/01/2006 15:04"),
+		UpdatedAt:     visit.UpdatedAt.Format("02/01/2006 15:04"),
+		Prescriptions: prescriptions,
+	}
+
+	visitInfo := dto.NurseVisitInfo{
+		Visit:   visitDto,
+		Patient: patientDto,
+	}
+
+	return visitInfo, nil
+
 }

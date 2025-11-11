@@ -12,3 +12,7 @@ type ReviewDTO struct {
 type DeleteAccountPasswordDto struct {
 	Password string `json:"password" binding:"required"`
 }
+
+type PrescriptionList struct{
+	PrescriptionList []string `json:"prescription_list" binding:"required"`
+}
