@@ -6,6 +6,8 @@ import (
     "github.com/stripe/stripe-go/v76/account"
     "github.com/stripe/stripe-go/v76/accountlink"
     "github.com/stripe/stripe-go/v76/transfer"
+    "github.com/stripe/stripe-go/v76/paymentintent"
+    "fmt"
 )
 
 type StripeRepository interface {
@@ -64,18 +66,39 @@ func (r *stripeRepository) CreateAccountLink(accountId string) (string, error) {
 }
 
 
-func (r *stripeRepository) CreateTransfer(amountInCents int64, destinationAccountId string, sourceTransactionId string) (*stripe.Transfer, error) {
+func (r *stripeRepository) CreateTransfer(amountInCents int64, destinationAccountId string, paymentIntentId string) (*stripe.Transfer, error) {
     
+    // 1. Buscar o PaymentIntent no Stripe usando o ID (pi_...)
+    // (Esta parte estava correta)
+    pi, err := paymentintent.Get(paymentIntentId, nil)
+    if err != nil {
+        return nil, fmt.Errorf("erro ao buscar payment intent no Stripe: %w", err)
+    }
+
+    // --- MUDANÇA (A CORREÇÃO FINAL) ---
+    // 2. O campo correto é 'LatestCharge' (singular)
+    
+    // Verificação de segurança (Boa Prática) para o ponteiro
+    if pi.LatestCharge == nil {
+        return nil, fmt.Errorf("payment intent %s não possui uma cobrança (charge) associada (status: %s)", pi.ID, pi.Status)
+    }
+
+    // O ID da cobrança (ch_...) está dentro do objeto 'LatestCharge'
+    latestChargeID := pi.LatestCharge.ID
+    if latestChargeID == "" {
+        return nil, fmt.Errorf("ID da cobrança (charge) associada está vazio")
+    }
+    // --- FIM DA MUDANÇA ---
+
+
+    // 3. USAR O 'latestChargeID' (o 'ch_...') como SourceTransaction
     params := &stripe.TransferParams{
-        Amount:      stripe.Int64(amountInCents),             // O valor em centavos
-        Currency:    stripe.String(string(stripe.CurrencyBRL)), // Moeda
-        Destination: stripe.String(destinationAccountId),     // Conta do enfermeiro (acct_...)
+        Amount:      stripe.Int64(amountInCents),
+        Currency:    stripe.String(string(stripe.CurrencyBRL)),
+        Destination: stripe.String(destinationAccountId),
         
-        // Esta é a linha mais importante:
-        // Ela vincula o repasse ao pagamento original do paciente.
-        // O Stripe usa isso para mover o dinheiro que já está "retido" 
-        // na sua conta da plataforma.
-        SourceTransaction: stripe.String(sourceTransactionId), // Pagamento (pi_...)
+        // Aqui usamos a variável correta que acabamos de pegar
+        SourceTransaction: stripe.String(latestChargeID), 
     }
 
     t, err := transfer.New(params)
@@ -85,4 +108,3 @@ func (r *stripeRepository) CreateTransfer(amountInCents int64, destinationAccoun
 
     return t, nil
 }
-
