@@ -439,6 +439,7 @@ func (s *userService) GetPatientVisitInfo(patientId, visitId string) (userDTO.Pa
 		NurseName:        visit.NurseName,
 		VisitValue:       visit.VisitValue,
 		VisitType:        visit.VisitType,
+		Prescriptions:    visit.Prescriptions,
 		VisitDate:        visit.VisitDate.String(),
 		CreatedAt:        visit.CreatedAt.String(),
 		UpdatedAt:        visit.UpdatedAt.String(),
