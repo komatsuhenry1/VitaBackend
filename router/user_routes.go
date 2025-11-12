@@ -12,6 +12,7 @@ func SetupUserRoutes(r *gin.RouterGroup, container *di.Container) {
 	user := r.Group("/user")
 	{
 		user.GET("/all_nurses", middleware.AuthUser(), container.UserHandler.GetAllNurses)  // get all nurses para agendar visita TODO
+		user.GET("/online_nurses", middleware.AuthUser(), container.UserHandler.GetOnlineNurses)
 		user.POST("/visit", middleware.AuthUser(), container.UserHandler.VisitSolicitation) // agendamento de visita TODO
 		user.POST("/immediate-visit", middleware.AuthUser(), container.UserHandler.ImmediateVisitSolicitation)
 		user.PATCH("/visit/:id", middleware.AuthUser(), container.UserHandler.ConfirmVisitService)
@@ -22,7 +23,6 @@ func SetupUserRoutes(r *gin.RouterGroup, container *di.Container) {
 		user.GET("/my-profile", middleware.AuthUser(), container.UserHandler.GetMyUserProfile)
 		user.PATCH("/update", middleware.AuthUser(), container.UserHandler.UpdateUser)
 		user.DELETE("/delete", middleware.AuthUser(), container.UserHandler.DeleteUser)
-		user.GET("/online_nurses", middleware.AuthUser(), container.UserHandler.GetOnlineNurses)
 		user.GET("/visit-info/:id", middleware.AuthUser(), container.UserHandler.GetPatientVisitInfo)
 		user.POST("/review/:id", middleware.AuthUser(), container.UserHandler.AddReview)
 	}

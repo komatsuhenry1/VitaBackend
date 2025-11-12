@@ -88,8 +88,6 @@ func (r *stripeRepository) CreateTransfer(amountInCents int64, destinationAccoun
     if latestChargeID == "" {
         return nil, fmt.Errorf("ID da cobrança (charge) associada está vazio")
     }
-    // --- FIM DA MUDANÇA ---
-
 
     // 3. USAR O 'latestChargeID' (o 'ch_...') como SourceTransaction
     params := &stripe.TransferParams{

@@ -8,8 +8,8 @@ import (
 	"io"
 	"medassist/internal/auth/dto"
 	"medassist/internal/model"
-	userDTO "medassist/internal/user/dto"
 	nurseDTO "medassist/internal/nurse/dto"
+	userDTO "medassist/internal/user/dto"
 	"medassist/utils"
 	"time"
 
@@ -45,13 +45,13 @@ type NurseRepository interface {
 	UpdateStripeAccountId(nurseId string, stripeAccountId string) error
 
 	GetTotalNursesCount() (int64, error)
-    GetPendingApprovalsCount() (int64, error)
-    GetPendingApprovalNursesInfo() ([]nurseDTO.PendingNurseInfo, error)
-    GetOnlineNursesCount() (int64, error)
-    GetInactiveNursesCount() (int64, error)
-    GetNewNursesCountLast30Days() (int64, error)
-    GetAverageNurseRating() (float64, error)
-    GetMostCommonSpecialization() (string, error)
+	GetPendingApprovalsCount() (int64, error)
+	GetPendingApprovalNursesInfo() ([]nurseDTO.PendingNurseInfo, error)
+	GetOnlineNursesCount() (int64, error)
+	GetInactiveNursesCount() (int64, error)
+	GetNewNursesCountLast30Days() (int64, error)
+	GetAverageNurseRating() (float64, error)
+	GetMostCommonSpecialization() (string, error)
 }
 
 type nurseRepository struct {
@@ -348,7 +348,12 @@ func (r *nurseRepository) GetAllNurses(patientCity string) ([]userDTO.AllNursesL
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.M{"hidden": false, "verification_seal": true, "city": patientCity}
+	filter := bson.M{
+		"hidden":            false,
+		"verification_seal": true,
+		"city":              patientCity,
+		"stripe_account_id": bson.M{"$ne": ""},
+	}
 
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
@@ -528,129 +533,129 @@ func (r *nurseRepository) DeleteNurse(id string) error {
 }
 
 func (r *nurseRepository) GetTotalNursesCount() (int64, error) {
-    return r.collection.CountDocuments(r.ctx, bson.M{})
+	return r.collection.CountDocuments(r.ctx, bson.M{})
 }
 
 func (r *nurseRepository) GetPendingApprovalsCount() (int64, error) {
-    filter := bson.M{"verification_seal": false}
-    return r.collection.CountDocuments(r.ctx, filter)
+	filter := bson.M{"verification_seal": false}
+	return r.collection.CountDocuments(r.ctx, filter)
 }
 
 func (r *nurseRepository) GetPendingApprovalNursesInfo() ([]nurseDTO.PendingNurseInfo, error) {
-    var results []nurseDTO.PendingNurseInfo
+	var results []nurseDTO.PendingNurseInfo
 
-    filter := bson.M{"verification_seal": false}
-    // Usamos projeção para buscar apenas os campos necessários (eficiência)
-    opts := options.Find().SetProjection(bson.M{"_id": 1, "name": 1})
+	filter := bson.M{"verification_seal": false}
+	// Usamos projeção para buscar apenas os campos necessários (eficiência)
+	opts := options.Find().SetProjection(bson.M{"_id": 1, "name": 1})
 
-    cursor, err := r.collection.Find(r.ctx, filter, opts)
-    if err != nil {
-        return nil, err
-    }
-    defer cursor.Close(r.ctx)
+	cursor, err := r.collection.Find(r.ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(r.ctx)
 
-    if err = cursor.All(r.ctx, &results); err != nil {
-        return nil, err
-    }
+	if err = cursor.All(r.ctx, &results); err != nil {
+		return nil, err
+	}
 
-    return results, nil
+	return results, nil
 }
 
 func (r *nurseRepository) GetOnlineNursesCount() (int64, error) {
-    filter := bson.M{"online": true}
-    return r.collection.CountDocuments(r.ctx, filter)
+	filter := bson.M{"online": true}
+	return r.collection.CountDocuments(r.ctx, filter)
 }
 
 func (r *nurseRepository) GetInactiveNursesCount() (int64, error) {
-    filter := bson.M{"hidden": true}
-    return r.collection.CountDocuments(r.ctx, filter)
+	filter := bson.M{"hidden": true}
+	return r.collection.CountDocuments(r.ctx, filter)
 }
 
 func (r *nurseRepository) GetNewNursesCountLast30Days() (int64, error) {
-    thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
-    filter := bson.M{"created_at": bson.M{"$gte": thirtyDaysAgo}}
-    return r.collection.CountDocuments(r.ctx, filter)
+	thirtyDaysAgo := time.Now().AddDate(0, 0, -30)
+	filter := bson.M{"created_at": bson.M{"$gte": thirtyDaysAgo}}
+	return r.collection.CountDocuments(r.ctx, filter)
 }
 
 func (r *nurseRepository) GetAverageNurseRating() (float64, error) {
-    pipeline := mongo.Pipeline{
-        // Filtra apenas enfermeiros que já foram avaliados
-        bson.D{{"$match", bson.M{"rating": bson.M{"$gt": 0}}}},
-        // Agrupa todos e calcula a média
-        bson.D{{"$group", bson.M{
-            "_id":       nil,
-            "avgRating": bson.M{"$avg": "$rating"},
-        }}},
-    }
+	pipeline := mongo.Pipeline{
+		// Filtra apenas enfermeiros que já foram avaliados
+		bson.D{{"$match", bson.M{"rating": bson.M{"$gt": 0}}}},
+		// Agrupa todos e calcula a média
+		bson.D{{"$group", bson.M{
+			"_id":       nil,
+			"avgRating": bson.M{"$avg": "$rating"},
+		}}},
+	}
 
-    cursor, err := r.collection.Aggregate(r.ctx, pipeline)
-    if err != nil {
-        return 0, err
-    }
-    defer cursor.Close(r.ctx)
+	cursor, err := r.collection.Aggregate(r.ctx, pipeline)
+	if err != nil {
+		return 0, err
+	}
+	defer cursor.Close(r.ctx)
 
-    if cursor.Next(r.ctx) {
-        var result nurseDTO.AverageRatingResult
-        if err := cursor.Decode(&result); err != nil {
-            return 0, err
-        }
-        return result.AvgRating, nil
-    }
+	if cursor.Next(r.ctx) {
+		var result nurseDTO.AverageRatingResult
+		if err := cursor.Decode(&result); err != nil {
+			return 0, err
+		}
+		return result.AvgRating, nil
+	}
 
-    // Retorna 0 se não houver avaliações
-    return 0, nil
+	// Retorna 0 se não houver avaliações
+	return 0, nil
 }
 
 func (r *nurseRepository) GetMostCommonSpecialization() (string, error) {
-    pipeline := mongo.Pipeline{
-        // Filtra registros que tenham uma especialização definida
-        bson.D{{"$match", bson.M{"specialization": bson.M{"$ne": ""}}}},
-        // Agrupa por especialização e conta
-        bson.D{{"$group", bson.M{
-            "_id":   "$specialization",
-            "count": bson.M{"$sum": 1},
-        }}},
-        // Ordena pela contagem (maior primeiro)
-        bson.D{{"$sort", bson.M{"count": -1}}},
-        // Pega apenas o primeiro (o mais comum)
-        bson.D{{"$limit", 1}},
-    }
+	pipeline := mongo.Pipeline{
+		// Filtra registros que tenham uma especialização definida
+		bson.D{{"$match", bson.M{"specialization": bson.M{"$ne": ""}}}},
+		// Agrupa por especialização e conta
+		bson.D{{"$group", bson.M{
+			"_id":   "$specialization",
+			"count": bson.M{"$sum": 1},
+		}}},
+		// Ordena pela contagem (maior primeiro)
+		bson.D{{"$sort", bson.M{"count": -1}}},
+		// Pega apenas o primeiro (o mais comum)
+		bson.D{{"$limit", 1}},
+	}
 
-    cursor, err := r.collection.Aggregate(r.ctx, pipeline)
-    if err != nil {
-        return "", err
-    }
-    defer cursor.Close(r.ctx)
+	cursor, err := r.collection.Aggregate(r.ctx, pipeline)
+	if err != nil {
+		return "", err
+	}
+	defer cursor.Close(r.ctx)
 
-    if cursor.Next(r.ctx) {
-        var result nurseDTO.SpecializationCount
-        if err := cursor.Decode(&result); err != nil {
-            return "", err
-        }
-        // O ID do grupo é a especialização
-        return result.Specialization, nil
-    }
+	if cursor.Next(r.ctx) {
+		var result nurseDTO.SpecializationCount
+		if err := cursor.Decode(&result); err != nil {
+			return "", err
+		}
+		// O ID do grupo é a especialização
+		return result.Specialization, nil
+	}
 
-    // Retorna string vazia se nada for encontrado
-    return "", nil
+	// Retorna string vazia se nada for encontrado
+	return "", nil
 }
 
 func (r *nurseRepository) UpdateStripeAccountId(nurseId string, stripeAccountId string) error {
-    objID, err := primitive.ObjectIDFromHex(nurseId)
-    if err != nil {
-        return fmt.Errorf("ID de enfermeiro inválido: %w", err)
-    }
+	objID, err := primitive.ObjectIDFromHex(nurseId)
+	if err != nil {
+		return fmt.Errorf("ID de enfermeiro inválido: %w", err)
+	}
 
-    filter := bson.M{"_id": objID}
-    update := bson.M{"$set": bson.M{"stripe_account_id": stripeAccountId}}
+	filter := bson.M{"_id": objID}
+	update := bson.M{"$set": bson.M{"stripe_account_id": stripeAccountId}}
 
-    result, err := r.collection.UpdateOne(r.ctx, filter, update)
-    if err != nil {
-        return err
-    }
-    if result.ModifiedCount == 0 {
-        return fmt.Errorf("Nenhum enfermeiro encontrado para atualizar com o ID: %s", nurseId)
-    }
-    
-    return nil
+	result, err := r.collection.UpdateOne(r.ctx, filter, update)
+	if err != nil {
+		return err
+	}
+	if result.ModifiedCount == 0 {
+		return fmt.Errorf("Nenhum enfermeiro encontrado para atualizar com o ID: %s", nurseId)
+	}
+
+	return nil
 }
