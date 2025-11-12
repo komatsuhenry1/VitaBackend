@@ -414,7 +414,7 @@ func (r *nurseRepository) GetAllOnlineNurses(patientCity string, latitude float6
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	filter := bson.M{"hidden": false, "verification_seal": true, "city": patientCity, "online": true}
+	filter := bson.M{"hidden": false, "verification_seal": true, "city": patientCity, "online": true, "stripe_account_id": bson.M{"$ne": ""}}
 
 	cursor, err := r.collection.Find(ctx, filter)
 	if err != nil {
