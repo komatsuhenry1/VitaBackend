@@ -744,6 +744,7 @@ func (h *nurseService) GetMyNurseProfile(nurseId string) (userDTO.NurseProfileRe
 	nurseProfile := userDTO.NurseProfileResponseDTO{
 		ID:              nurse.ID.Hex(),
 		Name:            nurse.Name,
+		Email:           nurse.Email,
 		Specialization:  nurse.Specialization,
 		Experience:      nurse.YearsExperience,
 		Rating:          rating,

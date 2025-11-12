@@ -49,6 +49,7 @@ type AvailabilityDTO struct {
 type NurseProfileResponseDTO struct {
 	ID             string        `json:"id"`
 	Name           string        `json:"name"`
+	Email          string        `json:"email"`
 	Experience     int           `json:"experience"`
 	Rating         float64       `json:"rating"`
 	Online         bool          `json:"online"`
