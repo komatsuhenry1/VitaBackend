@@ -57,6 +57,21 @@ func (s *nurseService) UpdateAvailablityNursingService(nurseId string) (model.Nu
 		return model.Nurse{}, fmt.Errorf("erro ao buscar user by id")
 	}
 
+	if nurse.Department == "" ||
+		nurse.Bio == "" ||
+		nurse.Qualifications == nil ||
+		nurse.Specialization == "" ||
+		nurse.MaxPatientsPerDay == 0 ||
+		nurse.Price == 0 ||
+		nurse.Services == nil ||
+		nurse.DaysAvailable == nil ||
+		nurse.StartTime == "" ||
+		nurse.EndTime == "" ||
+		nurse.AvailableNeighborhoods == nil ||
+		nurse.StripeAccountId == "" {
+		return model.Nurse{}, fmt.Errorf("Preencha os dados de disponibilidade e pagamento para ficar online.")
+	}
+
 	if nurse.Online {
 		nurse.Online = false
 	} else {
@@ -392,20 +407,20 @@ func (h *nurseService) GetNurseProfile(nurseId string) (userDTO.NurseProfileResp
 		TotalPatients:  totalPatients,
 		Earnings:       totalEarnings,
 
-		Department: nurse.Department,
-		Bio: nurse.Bio,
-		Qualifications: nurse.Qualifications,
-		Specialization: nurse.Specialization,
+		Department:        nurse.Department,
+		Bio:               nurse.Bio,
+		Qualifications:    nurse.Qualifications,
+		Specialization:    nurse.Specialization,
 		MaxPatientsPerDay: nurse.MaxPatientsPerDay,
-		Price: nurse.Price,
-		Services: nurse.Services,
-		DaysAvailable: nurse.DaysAvailable,
-		StartTime: nurse.StartTime,
-		EndTime: nurse.EndTime,
-		Neighborhoods: nurse.AvailableNeighborhoods,
-		StripeAccountId: nurse.StripeAccountId,
+		Price:             nurse.Price,
+		Services:          nurse.Services,
+		DaysAvailable:     nurse.DaysAvailable,
+		StartTime:         nurse.StartTime,
+		EndTime:           nurse.EndTime,
+		Neighborhoods:     nurse.AvailableNeighborhoods,
+		StripeAccountId:   nurse.StripeAccountId,
 
-		Reviews:        dtoReviews,
+		Reviews: dtoReviews,
 	}
 
 	return nurseProfile, nil
