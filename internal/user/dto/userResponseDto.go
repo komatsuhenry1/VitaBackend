@@ -47,33 +47,37 @@ type AvailabilityDTO struct {
 }
 
 type NurseProfileResponseDTO struct {
-	ID              string        `json:"id"`
-	Name            string        `json:"name"`
-	Specialization  string        `json:"specialization"`
-	Experience      int           `json:"experience"`
-	Rating          float64       `json:"rating"`
-	Online          bool          `json:"online"`
-	Price           float64       `json:"price"`
-	Shift           string        `json:"shift"`
-	Department      string        `json:"department"`
-	Coren           string        `json:"coren"`
-	Phone           string        `json:"phone"`
-	Image           string        `json:"image"`
-	Location        string        `json:"location"`
-	Neighborhood    string        `json:"neighborhood"`
-	TwoFactor       bool          `json:"two_factor"`
-	Bio             string        `json:"bio"`
-	Schedule        []model.Visit `json:"schedules"`
-	TotalPatients   int           `json:"total_patients"`
-	Earnings        float64       `json:"earnings"`
-	Qualifications  []string      `json:"qualifications"`
-	ProfileImageID  string        `json:"profile_image_id"`
-	Services        []string      `json:"services"`
-	DaysAvailable   []string      `json:"days_available"`
-	StartTime       string        `json:"start_time"`
-	EndTime         string        `json:"end_time"`
-	Reviews         []Reviews     `json:"reviews"`
-	StripeAccountId string        `json:"stripe_account_id"`
+	ID             string        `json:"id"`
+	Name           string        `json:"name"`
+	Experience     int           `json:"experience"`
+	Rating         float64       `json:"rating"`
+	Online         bool          `json:"online"`
+	Shift          string        `json:"shift"`
+	Coren          string        `json:"coren"`
+	Phone          string        `json:"phone"`
+	Image          string        `json:"image"`
+	Location       string        `json:"location"`
+	Neighborhood   string        `json:"neighborhood"`
+	TwoFactor      bool          `json:"two_factor"`
+	Schedule       []model.Visit `json:"schedules"`
+	TotalPatients  int           `json:"total_patients"`
+	Earnings       float64       `json:"earnings"`
+	ProfileImageID string        `json:"profile_image_id"`
+
+	Department        string   `json:"department"`
+	Bio               string   `json:"bio"`
+	Qualifications    []string `json:"qualifications"`
+	Specialization    string   `json:"specialization"`
+	MaxPatientsPerDay int      `json:"max_patients_per_day"`
+	Price             float64  `json:"price"`
+	Services          []string `json:"services"`
+	DaysAvailable     []string `json:"days_available"`
+	StartTime         string   `json:"start_time"`
+	EndTime           string   `json:"end_time"`
+	Neighborhoods     []string `json:"neighborhoods"`
+	StripeAccountId   string   `json:"stripe_account_id"`
+
+	Reviews []Reviews `json:"reviews"`
 }
 
 type Reviews struct {
