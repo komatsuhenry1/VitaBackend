@@ -103,3 +103,5 @@ type UserListsResponse struct {
 	Nurses []NurseTypeResponse `json:"nurses"`
 	Visits []VisitTypeResponse `json:"visits"`
 }
+
+

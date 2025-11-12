@@ -16,6 +16,62 @@ definitions:
       code:
         type: integer
     type: object
+  dto.DashboardAdminDataResponse:
+    properties:
+      average_nurse_rating:
+        type: number
+      completed_visits_last_30_days:
+        type: integer
+      most_common_specialization:
+        description: Métricas Estratégicas
+        type: string
+      new_nurses_last_30_days:
+        type: integer
+      new_patients_last_30_days:
+        type: integer
+      number_visits:
+        description: Mudei para int64 para consistência
+        type: integer
+      nurses_ids_pendent_approvations:
+        description: Renomeei aqui
+        items:
+          $ref: '#/definitions/dto.NursesFieldsForDashboardResponse'
+        type: array
+      nurses_inactive:
+        type: integer
+      nurses_online:
+        description: Métricas de Atividade e Crescimento
+        type: integer
+      patients_inactive:
+        type: integer
+      pendent_approvations:
+        description: Métricas de Gestão e Alertas
+        type: integer
+      total_nurses:
+        description: Métricas Principais (KPIs)
+        type: integer
+      total_patients:
+        type: integer
+      total_revenue_last_30_days:
+        type: number
+      visits_today:
+        description: Mudei para int64 para consistência
+        type: integer
+    type: object
+  dto.DocumentInfoResponse:
+    properties:
+      download_url:
+        description: A URL para baixar o arquivo
+        type: string
+      image_id:
+        type: string
+      name:
+        description: 'Um nome amigável, ex: "Documento de Licença (COREN)"'
+        type: string
+      type:
+        description: 'Um identificador, ex: "license_document"'
+        type: string
+    type: object
   dto.EmailAuthRequestDTO:
     properties:
       email:
@@ -43,6 +99,69 @@ definitions:
     - email
     - password
     type: object
+  dto.NurseTypeResponse:
+    properties:
+      address:
+        type: string
+      bio:
+        type: string
+      coren:
+        description: registro profissional
+        type: string
+      cpf:
+        type: string
+      department:
+        description: setor/hospital onde trabalha
+        type: string
+      email:
+        type: string
+      end_time:
+        type: string
+      first_access:
+        type: boolean
+      hidden:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      online:
+        type: boolean
+      password:
+        type: string
+      phone:
+        type: string
+      pix_key:
+        type: string
+      price:
+        type: number
+      role:
+        type: string
+      shift:
+        description: manhã, tarde, noite
+        type: string
+      specialization:
+        description: 'área (ex: pediatrics, geriatrics, ER)'
+        type: string
+      start_time:
+        type: string
+      verification_seal:
+        type: boolean
+      years_experience:
+        type: integer
+    type: object
+  dto.NursesFieldsForDashboardResponse:
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+    type: object
+  dto.RejectDescription:
+    properties:
+      description:
+        type: string
+    type: object
   dto.ResetPasswordDTO:
     properties:
       newPassword:
@@ -53,12 +172,80 @@ definitions:
     - newPassword
     - token
     type: object
+  dto.UserListsResponse:
+    properties:
+      nurses:
+        items:
+          $ref: '#/definitions/dto.NurseTypeResponse'
+        type: array
+      users:
+        items:
+          $ref: '#/definitions/dto.UserTypeResponse'
+        type: array
+      visits:
+        items:
+          $ref: '#/definitions/dto.VisitTypeResponse'
+        type: array
+    type: object
+  dto.UserTypeResponse:
+    properties:
+      address:
+        type: string
+      cpf:
+        description: PixKey      string `json:"pix_key"`
+        type: string
+      email:
+        type: string
+      first_access:
+        type: boolean
+      hidden:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      role:
+        type: string
+    type: object
   dto.ValidateTokenDTO:
     properties:
       token:
         type: string
     required:
     - token
+    type: object
+  dto.VisitTypeResponse:
+    properties:
+      cancel_reason:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      nurse_id:
+        type: string
+      nurse_name:
+        type: string
+      patient_email:
+        type: string
+      patient_id:
+        type: string
+      patient_name:
+        type: string
+      reason:
+        type: string
+      status:
+        type: string
+      value:
+        type: number
+      visit_date:
+        type: string
+      visit_type:
+        type: string
     type: object
   model.Nurse:
     properties:
@@ -284,6 +471,31 @@ definitions:
         example: false
         type: boolean
     type: object
+  utils.SuccessDashboardResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.DashboardAdminDataResponse'
+      message:
+        example: Dados de dashboard carregados com sucesso
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessDocumentsResponse:
+    properties:
+      data:
+        description: Note que é um slice []
+        items:
+          $ref: '#/definitions/dto.DocumentInfoResponse'
+        type: array
+      message:
+        example: Documentos retornados com sucesso
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   utils.SuccessResponseNoData:
     properties:
       message:
@@ -306,12 +518,57 @@ definitions:
         example: true
         type: boolean
     type: object
+  utils.SuccessResponseString:
+    properties:
+      data:
+        example: Mensagem de dados
+        type: string
+      message:
+        example: Operação realizada com sucesso
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessUserListsResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.UserListsResponse'
+      message:
+        example: Listas de usuários retornadas com sucesso.
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessUserTypeResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.UserTypeResponse'
+      message:
+        example: Usuário atualizado com sucesso.
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   utils.SuccessValidateCodeResponse:
     properties:
       data:
         $ref: '#/definitions/utils.ValidateCodeResponse'
       message:
         example: Código validado com sucesso
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessVisitTypeResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.VisitTypeResponse'
+      message:
+        example: Visita atualizada com sucesso.
         type: string
       success:
         example: true
@@ -328,9 +585,367 @@ definitions:
 host: localhost:8081
 info:
   contact: {}
-  title: Sua API Incrível
+  title: Vita API doc
   version: "1.0"
 paths:
+  /admin/approve/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: 'Altera o status do enfermeiro para ''verificado'' (verification_seal:
+        true). Requer autenticação de Admin.'
+      parameters:
+      - description: ID do Enfermeiro a ser aprovado
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Enfermeiro aprovado com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseString'
+        "400":
+          description: ID inválido ou erro na aprovação
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Administrador)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Aprova o cadastro de um enfermeiro
+      tags:
+      - Admin
+  /admin/dashboard:
+    get:
+      consumes:
+      - application/json
+      description: Retorna as principais métricas e KPIs para a tela de dashboard
+        do administrador. Requer autenticação de Admin.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dados de dashboard carregados com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessDashboardResponse'
+        "400":
+          description: Erro ao carregar dados
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Administrador)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Dados do Dashboard Administrativo
+      tags:
+      - Admin
+  /admin/documents/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retorna uma lista de documentos (com URLs de download) de um enfermeiro
+        específico para aprovação. Requer autenticação de Admin.
+      parameters:
+      - description: ID do Enfermeiro (Nurse ID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Documentos retornados com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessDocumentsResponse'
+        "400":
+          description: ID inválido ou erro ao buscar documentos
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Administrador)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Obtém documentos do enfermeiro para análise
+      tags:
+      - Admin
+  /admin/download/{id}:
+    get:
+      description: Faz o download de um arquivo (como um documento de enfermeiro)
+        com base no seu ObjectID do GridFS.
+      parameters:
+      - description: ID do Arquivo (File ID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/octet-stream
+      responses:
+        "200":
+          description: O arquivo para download
+          schema:
+            type: file
+        "400":
+          description: ID inválido ou Arquivo não encontrado
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Erro ao enviar o arquivo
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Baixa um arquivo do GridFS
+      tags:
+      - Admin
+  /admin/reject/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Envia um email ao enfermeiro com o motivo da rejeição. Requer autenticação
+        de Admin.
+      parameters:
+      - description: ID do Enfermeiro a ser rejeitado
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Objeto contendo a descrição/motivo da rejeição
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.RejectDescription'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Enfermeiro rejeitado com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseString'
+        "400":
+          description: ID inválido, corpo da requisição inválido ou erro na rejeição
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Administrador)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Rejeita o cadastro de um enfermeiro
+      tags:
+      - Admin
+  /admin/user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permite ao administrador deletar um usuário (Paciente ou Enfermeiro)
+        permanentemente. Requer autenticação de Admin.
+      parameters:
+      - description: ID do Usuário a ser deletado
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário deletado com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: ID inválido ou erro ao deletar
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Administrador)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Deleta um usuário (Admin)
+      tags:
+      - Admin
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Permite ao administrador atualizar campos de um usuário (Paciente ou Enfermeiro). Requer autenticação de Admin.
+        Campos protegidos (id, created_at, updated_at) não podem ser atualizados.
+      parameters:
+      - description: ID do Usuário a ser atualizado
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Campos para atualizar (JSON arbitrário). Ex: {\'
+        in: body
+        name: payload
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário atualizado com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessUserTypeResponse'
+        "400":
+          description: JSON inválido, ID não encontrado ou campo protegido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Administrador)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Atualiza um usuário (Admin)
+      tags:
+      - Admin
+  /admin/users:
+    get:
+      consumes:
+      - application/json
+      description: Retorna listas completas de usuários, enfermeiros e visitas para
+        gerenciamento do admin. Requer autenticação de Admin.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Listas retornadas com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessUserListsResponse'
+        "400":
+          description: Erro ao buscar listas
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Administrador)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Listas de gerenciamento (Usuários, Enfermeiros, Visitas)
+      tags:
+      - Admin
+  /admin/visit/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Permite ao administrador deletar uma visita permanentemente. Requer
+        autenticação de Admin.
+      parameters:
+      - description: ID da Visita a ser deletada
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Visita deletada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: ID inválido ou erro ao deletar
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Administrador)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Deleta uma visita (Admin)
+      tags:
+      - Admin
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Permite ao administrador atualizar campos de uma visita. Requer autenticação de Admin.
+        Campos protegidos (id, created_at, updated_at) não podem ser atualizados.
+      parameters:
+      - description: ID da Visita a ser atualizada
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: 'Campos para atualizar (JSON arbitrário). Ex: {\'
+        in: body
+        name: payload
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Visita atualizada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessVisitTypeResponse'
+        "400":
+          description: JSON inválido, ID não encontrado ou campo protegido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Administrador)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Atualiza uma visita (Admin)
+      tags:
+      - Admin
   /auth/adm:
     post:
       consumes:
@@ -796,6 +1411,8 @@ paths:
       - Auth
 securityDefinitions:
   ApiKeyAuth:
+    description: '"Para autorizar, insira seu token JWT precedido de ''Bearer ''.
+      Exemplo: Bearer <seu-token-aqui>"'
     in: header
     name: Authorization
     type: apiKey

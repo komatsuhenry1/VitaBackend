@@ -8,16 +8,15 @@ import (
 	"os"
 )
 
-// @title Sua API Incrível
+// @title Vita API doc
 // @version 1.0
-// ...
 // @host localhost:8081
 // @BasePath /api/v1
 //
-// 💡 ADICIONE ISSO PARA DEFINIR O HEADER DE AUTORIZAÇÃO
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
+// @description "Para autorizar, insira seu token JWT precedido de 'Bearer '. Exemplo: Bearer <seu-token-aqui>"
 func main() {
 
 	// Inicializa o banco de dados

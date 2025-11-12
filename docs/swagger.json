@@ -1,13 +1,554 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "Sua API Incrível",
+        "title": "Vita API doc",
         "contact": {},
         "version": "1.0"
     },
     "host": "localhost:8081",
     "basePath": "/api/v1",
     "paths": {
+        "/admin/approve/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Altera o status do enfermeiro para 'verificado' (verification_seal: true). Requer autenticação de Admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Aprova o cadastro de um enfermeiro",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do Enfermeiro a ser aprovado",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Enfermeiro aprovado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseString"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou erro na aprovação",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Administrador)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna as principais métricas e KPIs para a tela de dashboard do administrador. Requer autenticação de Admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Dados do Dashboard Administrativo",
+                "responses": {
+                    "200": {
+                        "description": "Dados de dashboard carregados com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessDashboardResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao carregar dados",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Administrador)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/documents/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna uma lista de documentos (com URLs de download) de um enfermeiro específico para aprovação. Requer autenticação de Admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Obtém documentos do enfermeiro para análise",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do Enfermeiro (Nurse ID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Documentos retornados com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessDocumentsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou erro ao buscar documentos",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Administrador)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/download/{id}": {
+            "get": {
+                "description": "Faz o download de um arquivo (como um documento de enfermeiro) com base no seu ObjectID do GridFS.",
+                "produces": [
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Baixa um arquivo do GridFS",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do Arquivo (File ID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "O arquivo para download",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou Arquivo não encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao enviar o arquivo",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/reject/{id}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Envia um email ao enfermeiro com o motivo da rejeição. Requer autenticação de Admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Rejeita o cadastro de um enfermeiro",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do Enfermeiro a ser rejeitado",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Objeto contendo a descrição/motivo da rejeição",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.RejectDescription"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Enfermeiro rejeitado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseString"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido, corpo da requisição inválido ou erro na rejeição",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Administrador)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/user/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Permite ao administrador deletar um usuário (Paciente ou Enfermeiro) permanentemente. Requer autenticação de Admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Deleta um usuário (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do Usuário a ser deletado",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuário deletado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou erro ao deletar",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Administrador)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Permite ao administrador atualizar campos de um usuário (Paciente ou Enfermeiro). Requer autenticação de Admin.\nCampos protegidos (id, created_at, updated_at) não podem ser atualizados.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Atualiza um usuário (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do Usuário a ser atualizado",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Campos para atualizar (JSON arbitrário). Ex: {\\",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuário atualizado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessUserTypeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "JSON inválido, ID não encontrado ou campo protegido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Administrador)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/users": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna listas completas de usuários, enfermeiros e visitas para gerenciamento do admin. Requer autenticação de Admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Listas de gerenciamento (Usuários, Enfermeiros, Visitas)",
+                "responses": {
+                    "200": {
+                        "description": "Listas retornadas com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessUserListsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao buscar listas",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Administrador)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/admin/visit/{id}": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Permite ao administrador deletar uma visita permanentemente. Requer autenticação de Admin.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Deleta uma visita (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da Visita a ser deletada",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Visita deletada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou erro ao deletar",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Administrador)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Permite ao administrador atualizar campos de uma visita. Requer autenticação de Admin.\nCampos protegidos (id, created_at, updated_at) não podem ser atualizados.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Admin"
+                ],
+                "summary": "Atualiza uma visita (Admin)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da Visita a ser atualizada",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Campos para atualizar (JSON arbitrário). Ex: {\\",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Visita atualizada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessVisitTypeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "JSON inválido, ID não encontrado ou campo protegido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Administrador)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/adm": {
             "post": {
                 "description": "Endpoint para configuração inicial. Cria o primeiro usuário administrador no banco de dados se ele ainda não existir.",
@@ -704,6 +1245,86 @@
                 }
             }
         },
+        "dto.DashboardAdminDataResponse": {
+            "type": "object",
+            "properties": {
+                "average_nurse_rating": {
+                    "type": "number"
+                },
+                "completed_visits_last_30_days": {
+                    "type": "integer"
+                },
+                "most_common_specialization": {
+                    "description": "Métricas Estratégicas",
+                    "type": "string"
+                },
+                "new_nurses_last_30_days": {
+                    "type": "integer"
+                },
+                "new_patients_last_30_days": {
+                    "type": "integer"
+                },
+                "number_visits": {
+                    "description": "Mudei para int64 para consistência",
+                    "type": "integer"
+                },
+                "nurses_ids_pendent_approvations": {
+                    "description": "Renomeei aqui",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.NursesFieldsForDashboardResponse"
+                    }
+                },
+                "nurses_inactive": {
+                    "type": "integer"
+                },
+                "nurses_online": {
+                    "description": "Métricas de Atividade e Crescimento",
+                    "type": "integer"
+                },
+                "patients_inactive": {
+                    "type": "integer"
+                },
+                "pendent_approvations": {
+                    "description": "Métricas de Gestão e Alertas",
+                    "type": "integer"
+                },
+                "total_nurses": {
+                    "description": "Métricas Principais (KPIs)",
+                    "type": "integer"
+                },
+                "total_patients": {
+                    "type": "integer"
+                },
+                "total_revenue_last_30_days": {
+                    "type": "number"
+                },
+                "visits_today": {
+                    "description": "Mudei para int64 para consistência",
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.DocumentInfoResponse": {
+            "type": "object",
+            "properties": {
+                "download_url": {
+                    "description": "A URL para baixar o arquivo",
+                    "type": "string"
+                },
+                "image_id": {
+                    "type": "string"
+                },
+                "name": {
+                    "description": "Um nome amigável, ex: \"Documento de Licença (COREN)\"",
+                    "type": "string"
+                },
+                "type": {
+                    "description": "Um identificador, ex: \"license_document\"",
+                    "type": "string"
+                }
+            }
+        },
         "dto.EmailAuthRequestDTO": {
             "type": "object",
             "properties": {
@@ -746,6 +1367,100 @@
                 }
             }
         },
+        "dto.NurseTypeResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "coren": {
+                    "description": "registro profissional",
+                    "type": "string"
+                },
+                "cpf": {
+                    "type": "string"
+                },
+                "department": {
+                    "description": "setor/hospital onde trabalha",
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "first_access": {
+                    "type": "boolean"
+                },
+                "hidden": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "online": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "pix_key": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "shift": {
+                    "description": "manhã, tarde, noite",
+                    "type": "string"
+                },
+                "specialization": {
+                    "description": "área (ex: pediatrics, geriatrics, ER)",
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "verification_seal": {
+                    "type": "boolean"
+                },
+                "years_experience": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.NursesFieldsForDashboardResponse": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.RejectDescription": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ResetPasswordDTO": {
             "type": "object",
             "required": [
@@ -761,6 +1476,65 @@
                 }
             }
         },
+        "dto.UserListsResponse": {
+            "type": "object",
+            "properties": {
+                "nurses": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.NurseTypeResponse"
+                    }
+                },
+                "users": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.UserTypeResponse"
+                    }
+                },
+                "visits": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.VisitTypeResponse"
+                    }
+                }
+            }
+        },
+        "dto.UserTypeResponse": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "cpf": {
+                    "description": "PixKey      string `json:\"pix_key\"`",
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_access": {
+                    "type": "boolean"
+                },
+                "hidden": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ValidateTokenDTO": {
             "type": "object",
             "required": [
@@ -768,6 +1542,50 @@
             ],
             "properties": {
                 "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.VisitTypeResponse": {
+            "type": "object",
+            "properties": {
+                "cancel_reason": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nurse_id": {
+                    "type": "string"
+                },
+                "nurse_name": {
+                    "type": "string"
+                },
+                "patient_email": {
+                    "type": "string"
+                },
+                "patient_id": {
+                    "type": "string"
+                },
+                "patient_name": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                },
+                "visit_date": {
+                    "type": "string"
+                },
+                "visit_type": {
                     "type": "string"
                 }
             }
@@ -1090,6 +1908,42 @@
                 }
             }
         },
+        "utils.SuccessDashboardResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.DashboardAdminDataResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Dados de dashboard carregados com sucesso"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessDocumentsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Note que é um slice []",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.DocumentInfoResponse"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Documentos retornados com sucesso"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "utils.SuccessResponseNoData": {
             "type": "object",
             "properties": {
@@ -1124,6 +1978,55 @@
                 }
             }
         },
+        "utils.SuccessResponseString": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "string",
+                    "example": "Mensagem de dados"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Operação realizada com sucesso"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessUserListsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.UserListsResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Listas de usuários retornadas com sucesso."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessUserTypeResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.UserTypeResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Usuário atualizado com sucesso."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "utils.SuccessValidateCodeResponse": {
             "type": "object",
             "properties": {
@@ -1133,6 +2036,22 @@
                 "message": {
                     "type": "string",
                     "example": "Código validado com sucesso"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessVisitTypeResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.VisitTypeResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Visita atualizada com sucesso."
                 },
                 "success": {
                     "type": "boolean",
@@ -1155,6 +2074,7 @@
     },
     "securityDefinitions": {
         "ApiKeyAuth": {
+            "description": "\"Para autorizar, insira seu token JWT precedido de 'Bearer '. Exemplo: Bearer \u003cseu-token-aqui\u003e\"",
             "type": "apiKey",
             "name": "Authorization",
             "in": "header"

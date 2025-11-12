@@ -7,12 +7,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func SetupAdminRoutes(r *gin.RouterGroup, container *di.Container) {	
+func SetupAdminRoutes(r *gin.RouterGroup, container *di.Container) {
 	admin := r.Group("/admin")
 	{
 		//CRUS DE USER/ NURSE  TODO
-		admin.GET("/dashboard", middleware.AuthAdmin(),container.AdminHandler.AdminDashboard)
-		admin.GET("/all_pending_registers", container.AdminHandler.GetRegistersToApprove)
+		admin.GET("/dashboard", middleware.AuthAdmin(), container.AdminHandler.AdminDashboard)
 		admin.GET("/documents/:id", middleware.AuthAdmin(), container.AdminHandler.GetDocuments)
 		// admin.GET("/visits", middleware.AuthAdmin(), container.AdminHandler.GetAllVisits)
 		admin.GET("/download/:id", container.AdminHandler.DownloadFile)
@@ -24,8 +23,5 @@ func SetupAdminRoutes(r *gin.RouterGroup, container *di.Container) {
 		admin.PATCH("visit/:id", middleware.AuthAdmin(), container.AdminHandler.UpdateVisit)
 		admin.DELETE("/user/:id", middleware.AuthAdmin(), container.AdminHandler.DeleteUser)
 		admin.DELETE("/visit/:id", middleware.AuthAdmin(), container.AdminHandler.DeleteVisit)
-
-		//crud visits
-
 	}
 }
