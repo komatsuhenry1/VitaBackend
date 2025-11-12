@@ -8,6 +8,16 @@ import (
 	"os"
 )
 
+// @title Sua API Incrível
+// @version 1.0
+// ...
+// @host localhost:8081
+// @BasePath /api/v1
+//
+// 💡 ADICIONE ISSO PARA DEFINIR O HEADER DE AUTORIZAÇÃO
+// @securityDefinitions.apikey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 
 	// Inicializa o banco de dados

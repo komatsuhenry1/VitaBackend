@@ -1,0 +1,802 @@
+basePath: /api/v1
+definitions:
+  dto.ChangePasswordBothRequestDTO:
+    properties:
+      new_password:
+        type: string
+      password:
+        type: string
+      two_fa:
+        type: boolean
+    required:
+    - password
+    type: object
+  dto.CodeResponseDTO:
+    properties:
+      code:
+        type: integer
+    type: object
+  dto.EmailAuthRequestDTO:
+    properties:
+      email:
+        type: string
+    type: object
+  dto.ForgotPasswordRequestDTO:
+    properties:
+      email:
+        type: string
+    type: object
+  dto.InputCodeDto:
+    properties:
+      code:
+        type: integer
+      email:
+        type: string
+    type: object
+  dto.LoginRequestDTO:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  dto.ResetPasswordDTO:
+    properties:
+      newPassword:
+        type: string
+      token:
+        type: string
+    required:
+    - newPassword
+    - token
+    type: object
+  dto.ValidateTokenDTO:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  model.Nurse:
+    properties:
+      address:
+        type: string
+      available_neighborhoods:
+        items:
+          type: string
+        type: array
+      bio:
+        type: string
+      cep:
+        type: string
+      city:
+        type: string
+      complement:
+        type: string
+      coren:
+        description: registro profissional
+        type: string
+      cpf:
+        type: string
+      created_at:
+        type: string
+      days_available:
+        items:
+          type: string
+        type: array
+      department:
+        description: setor/hospital onde trabalha
+        type: string
+      email:
+        type: string
+      end_time:
+        type: string
+      first_access:
+        type: boolean
+      general_register_id:
+        type: string
+      hidden:
+        type: boolean
+      id:
+        type: string
+      latitude:
+        type: number
+      license_document_id:
+        type: string
+      longitude:
+        type: number
+      max_patients_per_day:
+        type: integer
+      name:
+        type: string
+      neighborhood:
+        type: string
+      number:
+        type: string
+      online:
+        type: boolean
+      password:
+        type: string
+      phone:
+        type: string
+      pix_key:
+        type: string
+      price:
+        type: number
+      profile_image_id:
+        type: string
+      qualifications:
+        items:
+          type: string
+        type: array
+      qualifications_id:
+        type: string
+      rating:
+        type: number
+      residence_comprovant_id:
+        type: string
+      role:
+        type: string
+      services:
+        items:
+          type: string
+        type: array
+      shift:
+        description: manhã, tarde, noite
+        type: string
+      specialization:
+        description: 'área (ex: pediatrics, geriatrics, ER)'
+        type: string
+      start_time:
+        type: string
+      street:
+        type: string
+      stripe_account_id:
+        type: string
+      temp_code:
+        type: integer
+      two_factor:
+        type: boolean
+      uf:
+        type: string
+      updated_at:
+        type: string
+      verification_seal:
+        type: boolean
+      years_experience:
+        type: integer
+    required:
+    - address
+    - city
+    - coren
+    - cpf
+    - email
+    - end_time
+    - general_register_id
+    - license_document_id
+    - name
+    - neighborhood
+    - number
+    - online
+    - password
+    - phone
+    - pix_key
+    - profile_image_id
+    - qualifications_id
+    - residence_comprovant_id
+    - role
+    - start_time
+    - street
+    - uf
+    - verification_seal
+    type: object
+  model.User:
+    properties:
+      address:
+        type: string
+      cep:
+        type: string
+      city:
+        type: string
+      complement:
+        type: string
+      cpf:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      first_access:
+        type: boolean
+      gatewayCustomerID:
+        type: string
+      hidden:
+        type: boolean
+      id:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      name:
+        type: string
+      neighborhood:
+        type: string
+      number:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      profile_image_id:
+        type: string
+      role:
+        type: string
+      street:
+        type: string
+      temp_code:
+        type: integer
+      two_factor:
+        type: boolean
+      uf:
+        type: string
+      updated_at:
+        type: string
+    required:
+    - address
+    - cep
+    - city
+    - cpf
+    - email
+    - name
+    - neighborhood
+    - number
+    - password
+    - phone
+    - role
+    - street
+    - uf
+    type: object
+  utils.AuthUserResponse:
+    properties:
+      _id:
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      profile_image_id:
+        type: string
+      role:
+        type: string
+      two_factor:
+        type: boolean
+    type: object
+  utils.ErrorResponse:
+    properties:
+      message:
+        example: Descrição do erro
+        type: string
+      success:
+        example: false
+        type: boolean
+    type: object
+  utils.SuccessResponseNoData:
+    properties:
+      message:
+        example: Operação realizada com sucesso
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessResponseNurse:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/model.Nurse'
+        description: Aponta para a struct real do enfermeiro
+      message:
+        example: Cadastro de enfermeiro solicitado com sucesso.
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessValidateCodeResponse:
+    properties:
+      data:
+        $ref: '#/definitions/utils.ValidateCodeResponse'
+      message:
+        example: Código validado com sucesso
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.ValidateCodeResponse:
+    properties:
+      token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      user:
+        $ref: '#/definitions/utils.AuthUserResponse'
+    type: object
+host: localhost:8081
+info:
+  contact: {}
+  title: Sua API Incrível
+  version: "1.0"
+paths:
+  /auth/adm:
+    post:
+      consumes:
+      - application/json
+      description: Endpoint para configuração inicial. Cria o primeiro usuário administrador
+        no banco de dados se ele ainda não existir.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Resposta de sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "500":
+          description: Erro interno do servidor
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Cria o primeiro usuário Administrador
+      tags:
+      - Auth
+  /auth/code:
+    patch:
+      consumes:
+      - application/json
+      description: Usado para autenticação de dois fatores ou verificação de email.
+        Envia um código temporário.
+      parameters:
+      - description: Email para o qual enviar o código
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.EmailAuthRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Código enviado com sucesso (retorna o código ou status)
+          schema:
+            $ref: '#/definitions/dto.CodeResponseDTO'
+        "400":
+          description: Requisição inválida
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Envia código de autenticação por email
+      tags:
+      - Auth
+  /auth/email:
+    post:
+      consumes:
+      - application/json
+      description: Inicia o fluxo de "esqueci minha senha" enviando um email com código/token
+        para o usuário.
+      parameters:
+      - description: Email do usuário que esqueceu a senha
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ForgotPasswordRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Email enviado com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: Requisição inválida (e.g., email mal formatado ou não encontrado)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Envia email de recuperação de senha
+      tags:
+      - Auth
+  /auth/logged/password:
+    patch:
+      consumes:
+      - application/json
+      description: Permite que um usuário (paciente ou enfermeiro) logado altere sua
+        própria senha. Requer autenticação JWT.
+      parameters:
+      - description: Dados da nova senha
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ChangePasswordBothRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Senha ou configurações atualizadas com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: Requisição inválida
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Paciente ou Enfermeiro)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Altera a senha do usuário logado
+      tags:
+      - Auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Autentica um usuário (paciente ou enfermeiro) e retorna um token
+        JWT e dados do usuário.
+      parameters:
+      - description: Credenciais de Login (email e senha)
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.LoginRequestDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login bem-sucedido
+          schema:
+            $ref: '#/definitions/utils.SuccessValidateCodeResponse'
+        "400":
+          description: Requisição inválida ou credenciais incorretas
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Login de Usuário
+      tags:
+      - Auth
+  /auth/nurse:
+    post:
+      consumes:
+      - multipart/form-data
+      - multipart/form-data
+      description: Cria uma nova solicitação de cadastro de enfermeiro, com dados
+        e upload de documentos obrigatórios.
+      parameters:
+      - description: Nome completo
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Email válido
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Telefone (com DDD)
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: CEP
+        in: formData
+        name: cep
+        required: true
+        type: string
+      - description: Rua
+        in: formData
+        name: street
+        required: true
+        type: string
+      - description: Número
+        in: formData
+        name: number
+        required: true
+        type: string
+      - description: Complemento (Opcional)
+        in: formData
+        name: complement
+        type: string
+      - description: Bairro
+        in: formData
+        name: neighborhood
+        required: true
+        type: string
+      - description: Cidade
+        in: formData
+        name: city
+        required: true
+        type: string
+      - description: UF
+        in: formData
+        name: uf
+        required: true
+        type: string
+      - description: CPF
+        in: formData
+        name: cpf
+        required: true
+        type: string
+      - description: Chave PIX
+        in: formData
+        name: pix_key
+        required: true
+        type: string
+      - description: Senha
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Registro Coren
+        in: formData
+        name: coren
+        required: true
+        type: string
+      - description: 'Especialização (ex: Pediatria)'
+        in: formData
+        name: specialization
+        required: true
+        type: string
+      - description: 'Departamento (ex: Enfermagem)'
+        in: formData
+        name: department
+        required: true
+        type: string
+      - description: Anos de Experiência (número)
+        in: formData
+        name: years_experience
+        required: true
+        type: integer
+      - description: Biografia / Descrição breve
+        in: formData
+        name: bio
+        required: true
+        type: string
+      - description: 'Horário de início (ex: 08:00)'
+        in: formData
+        name: start_time
+        required: true
+        type: string
+      - description: 'Horário de término (ex: 18:00)'
+        in: formData
+        name: end_time
+        required: true
+        type: string
+      - description: Documento de Licença (CNH/RG)
+        in: formData
+        name: license_document
+        required: true
+        type: file
+      - description: Comprovante de Qualificações/Diplomas
+        in: formData
+        name: qualifications
+        required: true
+        type: file
+      - description: Registro Geral (RG)
+        in: formData
+        name: general_register
+        required: true
+        type: file
+      - description: Comprovante de Residência
+        in: formData
+        name: residence_comprovant
+        required: true
+        type: file
+      - description: Imagem de Perfil
+        in: formData
+        name: profile_image
+        required: true
+        type: file
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: Cadastro solicitado com sucesso (retorna o objeto Nurse)
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNurse'
+        "400":
+          description: Dados inválidos, arquivos faltando ou formato incorreto
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Registro de Novo Enfermeiro (Nurse)
+      tags:
+      - Auth
+      - Auth
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Altera a senha do usuário usando um token de reset (obtido no fluxo
+        "esqueci minha senha").
+      parameters:
+      - description: Token de reset e nova senha
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ResetPasswordDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Senha alterada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: Dados inválidos (e.g., senha fraca)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Token inválido ou expirado
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Reseta a senha do usuário
+      tags:
+      - Auth
+  /auth/user:
+    post:
+      consumes:
+      - multipart/form-data
+      - multipart/form-data
+      description: Cria um novo usuário (paciente) no sistema, permitindo o upload
+        de uma imagem de perfil.
+      parameters:
+      - description: Nome completo do usuário
+        in: formData
+        name: name
+        required: true
+        type: string
+      - description: Email válido do usuário
+        in: formData
+        name: email
+        required: true
+        type: string
+      - description: Telefone do usuário (com DDD)
+        in: formData
+        name: phone
+        required: true
+        type: string
+      - description: Bairro
+        in: formData
+        name: neighborhood
+        required: true
+        type: string
+      - description: Cidade
+        in: formData
+        name: city
+        required: true
+        type: string
+      - description: Estado (UF)
+        in: formData
+        name: uf
+        required: true
+        type: string
+      - description: Complemento do endereço (Opcional)
+        in: formData
+        name: complement
+        type: string
+      - description: Número do endereço
+        in: formData
+        name: number
+        required: true
+        type: string
+      - description: Rua/Avenida
+        in: formData
+        name: street
+        required: true
+        type: string
+      - description: CEP
+        in: formData
+        name: cep
+        required: true
+        type: string
+      - description: CPF do usuário
+        in: formData
+        name: cpf
+        required: true
+        type: string
+      - description: Senha (deve seguir as regras de complexidade)
+        in: formData
+        name: password
+        required: true
+        type: string
+      - description: Imagem de perfil (Opcional)
+        in: formData
+        name: image_profile
+        type: file
+      produces:
+      - application/json
+      - application/json
+      responses:
+        "200":
+          description: Usuário criado com sucesso
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Dados inválidos (validação falhou, e-mail/CPF duplicado, erro
+            no arquivo)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Registro de Novo Usuário (Paciente)
+      tags:
+      - Auth
+      - Auth
+  /auth/validate:
+    post:
+      consumes:
+      - application/json
+      description: Valida o código temporário (enviado por email) e retorna um token
+        de sessão e dados do usuário.
+      parameters:
+      - description: Email e código para validação
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InputCodeDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Código validado com sucesso (retorna token e usuário)
+          schema:
+            $ref: '#/definitions/utils.SuccessValidateCodeResponse'
+        "400":
+          description: Código inválido (ou outros erros de requisição)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Valida código de autenticação
+      tags:
+      - Auth
+  /auth/validate-token:
+    post:
+      consumes:
+      - application/json
+      description: Verifica se um token (enviado por email) é válido e não expirou,
+        antes de permitir a troca da senha.
+      parameters:
+      - description: Token de reset a ser validado
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ValidateTokenDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Token válido
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: Token é obrigatório
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Token inválido ou expirado
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Valida um token de reset de senha
+      tags:
+      - Auth
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

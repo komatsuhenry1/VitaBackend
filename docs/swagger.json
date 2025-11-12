@@ -1,0 +1,1163 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Sua API Incrível",
+        "contact": {},
+        "version": "1.0"
+    },
+    "host": "localhost:8081",
+    "basePath": "/api/v1",
+    "paths": {
+        "/auth/adm": {
+            "post": {
+                "description": "Endpoint para configuração inicial. Cria o primeiro usuário administrador no banco de dados se ele ainda não existir.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Cria o primeiro usuário Administrador",
+                "responses": {
+                    "200": {
+                        "description": "Resposta de sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno do servidor",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/code": {
+            "patch": {
+                "description": "Usado para autenticação de dois fatores ou verificação de email. Envia um código temporário.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Envia código de autenticação por email",
+                "parameters": [
+                    {
+                        "description": "Email para o qual enviar o código",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.EmailAuthRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Código enviado com sucesso (retorna o código ou status)",
+                        "schema": {
+                            "$ref": "#/definitions/dto.CodeResponseDTO"
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/email": {
+            "post": {
+                "description": "Inicia o fluxo de \"esqueci minha senha\" enviando um email com código/token para o usuário.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Envia email de recuperação de senha",
+                "parameters": [
+                    {
+                        "description": "Email do usuário que esqueceu a senha",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ForgotPasswordRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Email enviado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida (e.g., email mal formatado ou não encontrado)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/logged/password": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Permite que um usuário (paciente ou enfermeiro) logado altere sua própria senha. Requer autenticação JWT.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Altera a senha do usuário logado",
+                "parameters": [
+                    {
+                        "description": "Dados da nova senha",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChangePasswordBothRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Senha ou configurações atualizadas com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Paciente ou Enfermeiro)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/login": {
+            "post": {
+                "description": "Autentica um usuário (paciente ou enfermeiro) e retorna um token JWT e dados do usuário.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Login de Usuário",
+                "parameters": [
+                    {
+                        "description": "Credenciais de Login (email e senha)",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.LoginRequestDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Login bem-sucedido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessValidateCodeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida ou credenciais incorretas",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/nurse": {
+            "post": {
+                "description": "Cria uma nova solicitação de cadastro de enfermeiro, com dados e upload de documentos obrigatórios.",
+                "consumes": [
+                    "multipart/form-data",
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth",
+                    "Auth"
+                ],
+                "summary": "Registro de Novo Enfermeiro (Nurse)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome completo",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email válido",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Telefone (com DDD)",
+                        "name": "phone",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CEP",
+                        "name": "cep",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Rua",
+                        "name": "street",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Número",
+                        "name": "number",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Complemento (Opcional)",
+                        "name": "complement",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bairro",
+                        "name": "neighborhood",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cidade",
+                        "name": "city",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "UF",
+                        "name": "uf",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CPF",
+                        "name": "cpf",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Chave PIX",
+                        "name": "pix_key",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Registro Coren",
+                        "name": "coren",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Especialização (ex: Pediatria)",
+                        "name": "specialization",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Departamento (ex: Enfermagem)",
+                        "name": "department",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Anos de Experiência (número)",
+                        "name": "years_experience",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Biografia / Descrição breve",
+                        "name": "bio",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Horário de início (ex: 08:00)",
+                        "name": "start_time",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Horário de término (ex: 18:00)",
+                        "name": "end_time",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Documento de Licença (CNH/RG)",
+                        "name": "license_document",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Comprovante de Qualificações/Diplomas",
+                        "name": "qualifications",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Registro Geral (RG)",
+                        "name": "general_register",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Comprovante de Residência",
+                        "name": "residence_comprovant",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Imagem de Perfil",
+                        "name": "profile_image",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Cadastro solicitado com sucesso (retorna o objeto Nurse)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNurse"
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos, arquivos faltando ou formato incorreto",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "description": "Altera a senha do usuário usando um token de reset (obtido no fluxo \"esqueci minha senha\").",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Reseta a senha do usuário",
+                "parameters": [
+                    {
+                        "description": "Token de reset e nova senha",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ResetPasswordDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Senha alterada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos (e.g., senha fraca)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido ou expirado",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/user": {
+            "post": {
+                "description": "Cria um novo usuário (paciente) no sistema, permitindo o upload de uma imagem de perfil.",
+                "consumes": [
+                    "multipart/form-data",
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json",
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth",
+                    "Auth"
+                ],
+                "summary": "Registro de Novo Usuário (Paciente)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome completo do usuário",
+                        "name": "name",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email válido do usuário",
+                        "name": "email",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Telefone do usuário (com DDD)",
+                        "name": "phone",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Bairro",
+                        "name": "neighborhood",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Cidade",
+                        "name": "city",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Estado (UF)",
+                        "name": "uf",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Complemento do endereço (Opcional)",
+                        "name": "complement",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Número do endereço",
+                        "name": "number",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Rua/Avenida",
+                        "name": "street",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CEP",
+                        "name": "cep",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "CPF do usuário",
+                        "name": "cpf",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Senha (deve seguir as regras de complexidade)",
+                        "name": "password",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Imagem de perfil (Opcional)",
+                        "name": "image_profile",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuário criado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/model.User"
+                        }
+                    },
+                    "400": {
+                        "description": "Dados inválidos (validação falhou, e-mail/CPF duplicado, erro no arquivo)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/validate": {
+            "post": {
+                "description": "Valida o código temporário (enviado por email) e retorna um token de sessão e dados do usuário.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Valida código de autenticação",
+                "parameters": [
+                    {
+                        "description": "Email e código para validação",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InputCodeDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Código validado com sucesso (retorna token e usuário)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessValidateCodeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Código inválido (ou outros erros de requisição)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/validate-token": {
+            "post": {
+                "description": "Verifica se um token (enviado por email) é válido e não expirou, antes de permitir a troca da senha.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth"
+                ],
+                "summary": "Valida um token de reset de senha",
+                "parameters": [
+                    {
+                        "description": "Token de reset a ser validado",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ValidateTokenDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Token válido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "Token é obrigatório",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido ou expirado",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "dto.ChangePasswordBothRequestDTO": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "new_password": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "two_fa": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "dto.CodeResponseDTO": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.EmailAuthRequestDTO": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ForgotPasswordRequestDTO": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.InputCodeDto": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "email": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.LoginRequestDTO": {
+            "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ResetPasswordDTO": {
+            "type": "object",
+            "required": [
+                "newPassword",
+                "token"
+            ],
+            "properties": {
+                "newPassword": {
+                    "type": "string"
+                },
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.ValidateTokenDTO": {
+            "type": "object",
+            "required": [
+                "token"
+            ],
+            "properties": {
+                "token": {
+                    "type": "string"
+                }
+            }
+        },
+        "model.Nurse": {
+            "type": "object",
+            "required": [
+                "address",
+                "city",
+                "coren",
+                "cpf",
+                "email",
+                "end_time",
+                "general_register_id",
+                "license_document_id",
+                "name",
+                "neighborhood",
+                "number",
+                "online",
+                "password",
+                "phone",
+                "pix_key",
+                "profile_image_id",
+                "qualifications_id",
+                "residence_comprovant_id",
+                "role",
+                "start_time",
+                "street",
+                "uf",
+                "verification_seal"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "available_neighborhoods": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "bio": {
+                    "type": "string"
+                },
+                "cep": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "complement": {
+                    "type": "string"
+                },
+                "coren": {
+                    "description": "registro profissional",
+                    "type": "string"
+                },
+                "cpf": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "days_available": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "department": {
+                    "description": "setor/hospital onde trabalha",
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "end_time": {
+                    "type": "string"
+                },
+                "first_access": {
+                    "type": "boolean"
+                },
+                "general_register_id": {
+                    "type": "string"
+                },
+                "hidden": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "license_document_id": {
+                    "type": "string"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "max_patients_per_day": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "neighborhood": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "online": {
+                    "type": "boolean"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "pix_key": {
+                    "type": "string"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "profile_image_id": {
+                    "type": "string"
+                },
+                "qualifications": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "qualifications_id": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "residence_comprovant_id": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "shift": {
+                    "description": "manhã, tarde, noite",
+                    "type": "string"
+                },
+                "specialization": {
+                    "description": "área (ex: pediatrics, geriatrics, ER)",
+                    "type": "string"
+                },
+                "start_time": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                },
+                "stripe_account_id": {
+                    "type": "string"
+                },
+                "temp_code": {
+                    "type": "integer"
+                },
+                "two_factor": {
+                    "type": "boolean"
+                },
+                "uf": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "verification_seal": {
+                    "type": "boolean"
+                },
+                "years_experience": {
+                    "type": "integer"
+                }
+            }
+        },
+        "model.User": {
+            "type": "object",
+            "required": [
+                "address",
+                "cep",
+                "city",
+                "cpf",
+                "email",
+                "name",
+                "neighborhood",
+                "number",
+                "password",
+                "phone",
+                "role",
+                "street",
+                "uf"
+            ],
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "cep": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "complement": {
+                    "type": "string"
+                },
+                "cpf": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "first_access": {
+                    "type": "boolean"
+                },
+                "gatewayCustomerID": {
+                    "type": "string"
+                },
+                "hidden": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "neighborhood": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "profile_image_id": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                },
+                "temp_code": {
+                    "type": "integer"
+                },
+                "two_factor": {
+                    "type": "boolean"
+                },
+                "uf": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.AuthUserResponse": {
+            "type": "object",
+            "properties": {
+                "_id": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "profile_image_id": {
+                    "type": "string"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "two_factor": {
+                    "type": "boolean"
+                }
+            }
+        },
+        "utils.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Descrição do erro"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "utils.SuccessResponseNoData": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Operação realizada com sucesso"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessResponseNurse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Aponta para a struct real do enfermeiro",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/model.Nurse"
+                        }
+                    ]
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Cadastro de enfermeiro solicitado com sucesso."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessValidateCodeResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/utils.ValidateCodeResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Código validado com sucesso"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.ValidateCodeResponse": {
+            "type": "object",
+            "properties": {
+                "token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "user": {
+                    "$ref": "#/definitions/utils.AuthUserResponse"
+                }
+            }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
+    }
+}
