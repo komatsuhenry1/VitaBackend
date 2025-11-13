@@ -182,3 +182,5 @@ type TotalRevenueResult struct {
 type StripeOnboardingResponseDTO struct {
 	URL string `json:"url"`
 }
+
+

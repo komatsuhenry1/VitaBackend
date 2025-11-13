@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
     adminDTO "medassist/internal/admin/dto"
     chatDTO "medassist/internal/chat/dto"
+    nurseDTO "medassist/internal/nurse/dto"
 
 
 	model "medassist/internal/model"
@@ -31,7 +32,7 @@ func ErrParamIsRequired(name, typ string) error {
 	return fmt.Errorf("param : %s (type: %s) is required", name, typ)
 }
 
-// --- 💡 ADICIONE ESTAS STRUCTS PARA O SWAGGER ---
+// STRUCTS PARA O SWAGGER (possível passar para outro arquivo para manter organização)
 
 // ErrorResponse define a estrutura padrão para respostas de erro da API.
 // O Swag usará isso para documentar o @Failure.
@@ -132,4 +133,62 @@ type SuccessConversationsResponse struct {
     Success bool                  `json:"success" example:"true"`
     Message string                `json:"message" example:"Lista de conversas retornada com sucesso"`
     Data    []chatDTO.ConversationDTO `json:"data"` // Reutilizável para Nurse e Patient
+}
+
+type SuccessNurseDashboardResponse struct {
+    Success bool                              `json:"success" example:"true"`
+    Message string                            `json:"message" example:"Dados de enfermeiro carregados com sucesso."`
+    Data    nurseDTO.NurseDashboardDataResponseDTO `json:"data"`
+}
+
+type SuccessNurseResponse struct {
+    Success bool        `json:"success" example:"true"`
+    Message string      `json:"message" example:"Operação realizada com sucesso"`
+    Data    model.Nurse `json:"data"`
+}
+
+// SuccessNurseVisitsListsResponse é a struct de sucesso para as listas de visitas
+type SuccessNurseVisitsListsResponse struct {
+    Success bool                    `json:"success" example:"true"`
+    Message string                  `json:"message" example:"Visitas listadas com sucesso."`
+    Data    nurseDTO.NurseVisitsListsDto `json:"data"`
+}
+
+type SuccessPatientProfileResponse struct {
+    Success bool                          `json:"success" example:"true"`
+    Message string                        `json:"message" example:"Perfil do paciente listado com sucesso."`
+    Data    nurseDTO.PatientProfileResponseDTO `json:"data"`
+}
+
+// SuccessNurseUpdateResponse é a struct de sucesso para a atualização do enfermeiro
+type SuccessNurseUpdateResponse struct {
+    Success bool                         `json:"success" example:"true"`
+    Message string                       `json:"message" example:"Usuário atualizado com sucesso."`
+    Data    nurseDTO.NurseUpdateResponseDTO `json:"data"`
+}
+
+type SuccessAvailabilityResponse struct {
+    Success bool                        `json:"success" example:"true"`
+    Message string                      `json:"message" example:"Informações de disponibilidade carregadas com sucesso."`
+    Data    nurseDTO.AvailabilityResponseDTO `json:"data"`
+}
+
+// SuccessNurseProfileResponse é a struct de sucesso para o perfil completo do enfermeiro
+type SuccessNurseProfileResponse struct {
+    Success bool                          `json:"success" example:"true"`
+    Message string                        `json:"message" example:"Perfil completo de enfermeiro(a) listado com sucesso"`
+    Data    nurseDTO.NurseProfileResponseDTO `json:"data"`
+}
+
+// SuccessNurseVisitInfoResponse é a struct de sucesso para os detalhes da visita
+type SuccessNurseVisitInfoResponse struct {
+    Success bool               `json:"success" example:"true"`
+    Message string             `json:"message" example:"Informações de visita listadas com sucesso."`
+    Data    nurseDTO.NurseVisitInfo `json:"data"`
+}
+
+type SuccessStripeOnboardingResponse struct {
+    Success bool                            `json:"success" example:"true"`
+    Message string                          `json:"message" example:"Link de onboarding criado com sucesso."`
+    Data    nurseDTO.StripeOnboardingResponseDTO `json:"data"`
 }
