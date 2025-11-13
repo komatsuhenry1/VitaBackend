@@ -192,3 +192,9 @@ type SuccessStripeOnboardingResponse struct {
     Message string                          `json:"message" example:"Link de onboarding criado com sucesso."`
     Data    nurseDTO.StripeOnboardingResponseDTO `json:"data"`
 }
+
+type SuccessPaymentIntentResponse struct {
+    Success bool                      `json:"success" example:"true"`
+    Message string                    `json:"message" example:"Intenção de pagamento criada com sucesso."`
+    Data    model.PaymentIntentResponse `json:"data"`
+}

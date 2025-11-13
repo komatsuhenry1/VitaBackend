@@ -15,10 +15,20 @@ type PaymentHandler struct {
 func NewPaymentHandler(paymentService PaymentService) *PaymentHandler {
 	return &PaymentHandler{paymentService: paymentService}
 }
-// (Estou assumindo que você injeta os handlers em algum lugar)
-// var PaymentHandler = NewPaymentHandler(services.NewPaymentService(), services.NewPatientService())
 
-
+// @Summary Cria uma Intenção de Pagamento (Stripe)
+// @Description Gera um 'client_secret' do Stripe para o paciente logado poder realizar um pagamento (ex: adicionar fundos à carteira). Requer autenticação de Paciente.
+// @Tags Payment
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param payload body model.PaymentIntentRequest true "Valor do pagamento a ser criado"
+// @Success 200 {object} utils.SuccessPaymentIntentResponse "Intenção de pagamento criada com sucesso"
+// @Failure 400 {object} utils.ErrorResponse "Requisição inválida"
+// @Failure 401 {object} utils.ErrorResponse "Não autorizado (Token JWT inválido ou ausente)"
+// @Failure 403 {object} utils.ErrorResponse "Proibido (Usuário não é Paciente)"
+// @Failure 500 {object} utils.ErrorResponse "Não foi possível criar a intenção de pagamento"
+// @Router /payment/create-intent [post]
 func (h *PaymentHandler) CreatePaymentIntent(c *gin.Context) {
     var req model.PaymentIntentRequest
 

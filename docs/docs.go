@@ -2261,6 +2261,69 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/payment/create-intent": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Gera um 'client_secret' do Stripe para o paciente logado poder realizar um pagamento (ex: adicionar fundos à carteira). Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Cria uma Intenção de Pagamento (Stripe)",
+                "parameters": [
+                    {
+                        "description": "Valor do pagamento a ser criado",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/model.PaymentIntentRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Intenção de pagamento criada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessPaymentIntentResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Paciente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Não foi possível criar a intenção de pagamento",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -3340,6 +3403,22 @@ const docTemplate = `{
                 }
             }
         },
+        "model.PaymentIntentRequest": {
+            "type": "object",
+            "properties": {
+                "value": {
+                    "type": "number"
+                }
+            }
+        },
+        "model.PaymentIntentResponse": {
+            "type": "object",
+            "properties": {
+                "client_secret": {
+                    "type": "string"
+                }
+            }
+        },
         "model.User": {
             "type": "object",
             "required": [
@@ -3667,6 +3746,22 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Perfil do paciente listado com sucesso."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessPaymentIntentResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/model.PaymentIntentResponse"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Intenção de pagamento criada com sucesso."
                 },
                 "success": {
                     "type": "boolean",

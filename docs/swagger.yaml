@@ -718,6 +718,16 @@ definitions:
     - uf
     - verification_seal
     type: object
+  model.PaymentIntentRequest:
+    properties:
+      value:
+        type: number
+    type: object
+  model.PaymentIntentResponse:
+    properties:
+      client_secret:
+        type: string
+    type: object
   model.User:
     properties:
       address:
@@ -944,6 +954,17 @@ definitions:
         $ref: '#/definitions/medassist_internal_nurse_dto.PatientProfileResponseDTO'
       message:
         example: Perfil do paciente listado com sucesso.
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessPaymentIntentResponse:
+    properties:
+      data:
+        $ref: '#/definitions/model.PaymentIntentResponse'
+      message:
+        example: Intenção de pagamento criada com sucesso.
         type: string
       success:
         example: true
@@ -2552,6 +2573,48 @@ paths:
       summary: Lista de visitas do Enfermeiro
       tags:
       - Nurse
+  /payment/create-intent:
+    post:
+      consumes:
+      - application/json
+      description: 'Gera um ''client_secret'' do Stripe para o paciente logado poder
+        realizar um pagamento (ex: adicionar fundos à carteira). Requer autenticação
+        de Paciente.'
+      parameters:
+      - description: Valor do pagamento a ser criado
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/model.PaymentIntentRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Intenção de pagamento criada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessPaymentIntentResponse'
+        "400":
+          description: Requisição inválida
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Paciente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Não foi possível criar a intenção de pagamento
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Cria uma Intenção de Pagamento (Stripe)
+      tags:
+      - Payment
 securityDefinitions:
   ApiKeyAuth:
     description: '"Para autorizar, insira seu token JWT precedido de ''Bearer ''.
