@@ -8,6 +8,7 @@ import (
     adminDTO "medassist/internal/admin/dto"
     chatDTO "medassist/internal/chat/dto"
     nurseDTO "medassist/internal/nurse/dto"
+    userDTO "medassist/internal/user/dto"
 
 
 	model "medassist/internal/model"
@@ -197,4 +198,40 @@ type SuccessPaymentIntentResponse struct {
     Success bool                      `json:"success" example:"true"`
     Message string                    `json:"message" example:"Intenção de pagamento criada com sucesso."`
     Data    model.PaymentIntentResponse `json:"data"`
+}
+
+type SuccessAllNursesResponse struct {
+    Success bool                    `json:"success" example:"true"`
+    Message string                  `json:"message" example:"Enfermeiros listados com sucesso."`
+    Data    []userDTO.AllNursesListDto `json:"data"`
+}
+
+// ImmediateVisitData é a struct de dados para a resposta da visita imediata
+type ImmediateVisitData struct {
+    PatientID string `json:"patient_id"`
+}
+
+// SuccessImmediateVisitResponse é a struct de sucesso para a visita imediata
+type SuccessImmediateVisitResponse struct {
+    Success bool               `json:"success" example:"true"`
+    Message string             `json:"message" example:"Visita imediata solicitada com sucesso."`
+    Data    ImmediateVisitData `json:"data"`
+}
+type SuccessPatientProfileResponsee struct {
+    Success bool                          `json:"success" example:"true"`
+    Message string                        `json:"message" example:"Perfil do paciente listado com sucesso."`
+    Data    userDTO.PatientProfileResponseDTO `json:"data"`
+}
+
+// SuccessPatientVisitInfoResponse é a struct de sucesso para os detalhes da visita (Paciente)
+type SuccessPatientVisitInfoResponse struct {
+    Success bool                 `json:"success" example:"true"`
+    Message string               `json:"message" example:"Informações de visita listadas com sucesso."`
+    Data    userDTO.PatientVisitInfo `json:"data"`
+}
+
+type SuccessVisitsListResponse struct {
+    Success bool            `json:"success" example:"true"`
+    Message string          `json:"message" example:"Lista de visitas listadas com sucesso."`
+    Data    []model.Visit `json:"data"`
 }

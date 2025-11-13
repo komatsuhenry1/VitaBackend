@@ -2324,9 +2324,786 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/user/all_nurses": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna todos os enfermeiros na cidade do paciente logado. Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Lista todos os enfermeiros (para agendar)",
+                "responses": {
+                    "200": {
+                        "description": "Enfermeiros listados com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessAllNursesResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar enfermeiros",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/contact": {
+            "post": {
+                "description": "Endpoint público para enviar uma mensagem (dúvida, sugestão, reclamação) para a central de contato.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Envia mensagem de contato",
+                "parameters": [
+                    {
+                        "description": "Dados da mensagem de contato",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ContactUsDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mensagem enviada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "Requisição inválida (campos obrigatórios faltando)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro interno ao enviar mensagem",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/delete": {
+            "delete": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Deleta permanentemente a conta do paciente logado. Requer senha atual para confirmação. Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Deleta o perfil do Paciente",
+                "parameters": [
+                    {
+                        "description": "Senha atual para confirmação",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/medassist_internal_user_dto.DeleteAccountPasswordDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuário deletado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "JSON inválido ou senha incorreta",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/file/{id}": {
+            "get": {
+                "description": "Retorna um arquivo do GridFS (como uma imagem de perfil) para ser exibido 'inline' no navegador. (Endpoint atualmente público).",
+                "produces": [
+                    "image/png",
+                    "image/jpeg",
+                    "application/octet-stream"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Exibe um arquivo (ex: imagem de perfil)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do Arquivo (GridFS ObjectID)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "A imagem ou arquivo",
+                        "schema": {
+                            "type": "file"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou Arquivo não encontrado",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/immediate-visit": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Cria uma nova solicitação de visita imediata para um enfermeiro (que deve estar online). Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Solicita uma visita imediata",
+                "parameters": [
+                    {
+                        "description": "Detalhes da visita imediata",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ImmediateVisitDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Visita imediata solicitada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessImmediateVisitResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "JSON inválido, enfermeiro offline ou erro na solicitação",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Paciente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/my-profile": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna o perfil completo do paciente logado, incluindo dados privados. Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Meu Perfil de Paciente",
+                "responses": {
+                    "200": {
+                        "description": "Perfil do paciente listado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessPatientProfileResponsee"
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao carregar perfil",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/nurse/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna o perfil detalhado de um enfermeiro específico (para agendamento). Requer autenticação de Paciente ou Enfermeiro.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Perfil público do Enfermeiro",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do Enfermeiro",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Perfil completo de enfermeiro(a) listado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessNurseProfileResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou erro ao buscar perfil",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/online_nurses": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna todos os enfermeiros que estão online e na cidade do paciente logado. Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Lista enfermeiros online",
+                "responses": {
+                    "200": {
+                        "description": "Lista de enfermeiros online listada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessAllNursesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao buscar enfermeiros",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido (Usuário não é Paciente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/review/{id}": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Permite ao paciente avaliar um enfermeiro (com nota e comentário) após uma visita. Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Adiciona review para um Enfermeiro",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da Visita (para associar o review)",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados da avaliação (Nota e Comentário)",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/medassist_internal_user_dto.ReviewDTO"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Review adicionada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "JSON inválido ou erro",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/update": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Permite ao paciente logado atualizar seu próprio perfil. Requer autenticação de Paciente.\nCampos protegidos (id, created_at, updated_at) não podem ser atualizados.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Atualiza o perfil do Paciente",
+                "parameters": [
+                    {
+                        "description": "Campos para atualizar (JSON arbitrário). Ex: {\\",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Usuário atualizado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessUserTypeResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "JSON inválido ou campo protegido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/visit": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Cria uma nova solicitação de visita agendada para um enfermeiro específico. Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Solicita uma visita agendada",
+                "parameters": [
+                    {
+                        "description": "Detalhes da visita agendada",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.CreateVisitDto"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Visita agendada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "JSON inválido ou erro na solicitação",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/visit-info/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna detalhes de uma visita específica e do enfermeiro associado a ela. Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Informações detalhadas da Visita (Paciente)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da Visita",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Informações de visita listadas com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessPatientVisitInfoResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou erro",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autorizado (Token JWT inválido ou ausente)",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "403": {
+                        "description": "Proibido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/visit/{id}": {
+            "patch": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "O paciente confirma que o serviço da visita foi concluído. Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Confirma a conclusão de um serviço (Paciente)",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID da Visita a ser concluída",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Serviço concluído com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessResponseNoData"
+                        }
+                    },
+                    "400": {
+                        "description": "ID inválido ou erro na confirmação",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/user/visits": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna um histórico de todas as visitas (pendentes, concluídas, etc.) do paciente logado. Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Lista todas as visitas do Paciente",
+                "responses": {
+                    "200": {
+                        "description": "Lista de visitas listadas com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessVisitsListResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Erro ao buscar visitas",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "dto.AllNursesListDto": {
+            "type": "object",
+            "properties": {
+                "available": {
+                    "type": "boolean"
+                },
+                "available_neighborhoods": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "city": {
+                    "type": "string"
+                },
+                "days_available": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "department": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "image": {
+                    "type": "string"
+                },
+                "latitude": {
+                    "type": "number"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "longitude": {
+                    "type": "number"
+                },
+                "max_patients_per_day": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "neighborhood": {
+                    "type": "string"
+                },
+                "patient_location": {
+                    "$ref": "#/definitions/dto.Location"
+                },
+                "price": {
+                    "type": "number"
+                },
+                "services": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "shift": {
+                    "type": "string"
+                },
+                "specialization": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                },
+                "uf": {
+                    "type": "string"
+                },
+                "years_experience": {
+                    "type": "integer"
+                }
+            }
+        },
         "dto.AvailabilityResponseDTO": {
             "type": "object",
             "properties": {
@@ -2413,6 +3190,33 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ContactUsDTO": {
+            "type": "object",
+            "required": [
+                "email",
+                "message",
+                "name",
+                "phone",
+                "subject"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "subject": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.ConversationDTO": {
             "type": "object",
             "properties": {
@@ -2429,6 +3233,60 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "partner_name": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.CreateVisitDto": {
+            "type": "object",
+            "required": [
+                "cep",
+                "date",
+                "description",
+                "neighborhood",
+                "number",
+                "nurse_id",
+                "payment_intent_id",
+                "reason",
+                "street",
+                "value",
+                "visit_type"
+            ],
+            "properties": {
+                "cep": {
+                    "type": "string"
+                },
+                "complement": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "neighborhood": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "nurse_id": {
+                    "type": "string"
+                },
+                "payment_intent_id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                },
+                "visit_type": {
                     "type": "string"
                 }
             }
@@ -2529,6 +3387,60 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ImmediateVisitDTO": {
+            "type": "object",
+            "required": [
+                "cep",
+                "date",
+                "description",
+                "neighborhood",
+                "number",
+                "nurse_id",
+                "payment_intent_id",
+                "reason",
+                "street",
+                "value",
+                "visit_type"
+            ],
+            "properties": {
+                "cep": {
+                    "type": "string"
+                },
+                "complement": {
+                    "type": "string"
+                },
+                "date": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "neighborhood": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "nurse_id": {
+                    "type": "string"
+                },
+                "payment_intent_id": {
+                    "type": "string"
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                },
+                "visit_type": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.InputCodeDto": {
             "type": "object",
             "properties": {
@@ -2537,6 +3449,17 @@ const docTemplate = `{
                 },
                 "email": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.Location": {
+            "type": "object",
+            "properties": {
+                "latitude": {
+                    "type": "number"
+                },
+                "longitude": {
+                    "type": "number"
                 }
             }
         },
@@ -2580,6 +3503,38 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/dto.VisitDto"
                     }
+                }
+            }
+        },
+        "dto.NurseInfoDto": {
+            "type": "object",
+            "properties": {
+                "coren": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "profile_image_id": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "specialization": {
+                    "type": "string"
+                },
+                "years_experience": {
+                    "type": "integer"
                 }
             }
         },
@@ -2788,6 +3743,17 @@ const docTemplate = `{
                 },
                 "uf": {
                     "type": "string"
+                }
+            }
+        },
+        "dto.PatientVisitInfo": {
+            "type": "object",
+            "properties": {
+                "nurse": {
+                    "$ref": "#/definitions/dto.NurseInfoDto"
+                },
+                "visit": {
+                    "$ref": "#/definitions/medassist_internal_user_dto.VisitInfoDto"
                 }
             }
         },
@@ -3193,6 +4159,151 @@ const docTemplate = `{
                 }
             }
         },
+        "medassist_internal_user_dto.DeleteAccountPasswordDto": {
+            "type": "object",
+            "required": [
+                "password"
+            ],
+            "properties": {
+                "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "medassist_internal_user_dto.PatientProfileResponseDTO": {
+            "type": "object",
+            "properties": {
+                "address": {
+                    "type": "string"
+                },
+                "cpf": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "hidden": {
+                    "type": "boolean"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
+                },
+                "profile_image_id": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "number"
+                },
+                "reviews": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/medassist_internal_user_dto.Reviews"
+                    }
+                },
+                "role": {
+                    "type": "string"
+                },
+                "temp_code": {
+                    "type": "integer"
+                },
+                "two_factor": {
+                    "type": "boolean"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "visit_count": {
+                    "type": "integer"
+                }
+            }
+        },
+        "medassist_internal_user_dto.ReviewDTO": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                }
+            }
+        },
+        "medassist_internal_user_dto.Reviews": {
+            "type": "object",
+            "properties": {
+                "comment": {
+                    "type": "string"
+                },
+                "patient_name": {
+                    "type": "string"
+                },
+                "rating": {
+                    "type": "integer"
+                }
+            }
+        },
+        "medassist_internal_user_dto.VisitInfoDto": {
+            "type": "object",
+            "properties": {
+                "cancel_reason": {
+                    "type": "string"
+                },
+                "confirmation_code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "nurse_id": {
+                    "type": "string"
+                },
+                "nurse_name": {
+                    "type": "string"
+                },
+                "prescriptions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "visit_date": {
+                    "type": "string"
+                },
+                "visit_type": {
+                    "type": "string"
+                },
+                "visit_value": {
+                    "type": "number"
+                }
+            }
+        },
         "model.Message": {
             "type": "object",
             "properties": {
@@ -3514,6 +4625,109 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Visit": {
+            "type": "object",
+            "required": [
+                "cep",
+                "description",
+                "neighborhood",
+                "number",
+                "nurse_id",
+                "nurse_name",
+                "patient_email",
+                "patient_id",
+                "patient_name",
+                "payment_intent_id",
+                "reason",
+                "status",
+                "street",
+                "transfer_id",
+                "value",
+                "visit_date",
+                "visit_request_type",
+                "visit_type"
+            ],
+            "properties": {
+                "cancel_reason": {
+                    "type": "string"
+                },
+                "cep": {
+                    "type": "string"
+                },
+                "complement": {
+                    "type": "string"
+                },
+                "confirmation_code": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "neighborhood": {
+                    "type": "string"
+                },
+                "number": {
+                    "type": "string"
+                },
+                "nurse_id": {
+                    "type": "string"
+                },
+                "nurse_name": {
+                    "type": "string"
+                },
+                "patient_email": {
+                    "type": "string"
+                },
+                "patient_id": {
+                    "type": "string"
+                },
+                "patient_name": {
+                    "type": "string"
+                },
+                "payment_intent_id": {
+                    "type": "string"
+                },
+                "prescriptions": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "reason": {
+                    "type": "string"
+                },
+                "status": {
+                    "type": "string"
+                },
+                "street": {
+                    "type": "string"
+                },
+                "transfer_id": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "value": {
+                    "type": "number"
+                },
+                "visit_date": {
+                    "type": "string"
+                },
+                "visit_request_type": {
+                    "type": "string"
+                },
+                "visit_type": {
+                    "type": "string"
+                }
+            }
+        },
         "utils.AuthUserResponse": {
             "type": "object",
             "properties": {
@@ -3547,6 +4761,33 @@ const docTemplate = `{
                 "success": {
                     "type": "boolean",
                     "example": false
+                }
+            }
+        },
+        "utils.ImmediateVisitData": {
+            "type": "object",
+            "properties": {
+                "patient_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "utils.SuccessAllNursesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.AllNursesListDto"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Enfermeiros listados com sucesso."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },
@@ -3615,6 +4856,22 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Documentos retornados com sucesso"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessImmediateVisitResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/utils.ImmediateVisitData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Visita imediata solicitada com sucesso."
                 },
                 "success": {
                     "type": "boolean",
@@ -3746,6 +5003,38 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Perfil do paciente listado com sucesso."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessPatientProfileResponsee": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/medassist_internal_user_dto.PatientProfileResponseDTO"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Perfil do paciente listado com sucesso."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessPatientVisitInfoResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/dto.PatientVisitInfo"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Informações de visita listadas com sucesso."
                 },
                 "success": {
                     "type": "boolean",
@@ -3893,6 +5182,25 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Visita atualizada com sucesso."
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessVisitsListResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Visit"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Lista de visitas listadas com sucesso."
                 },
                 "success": {
                     "type": "boolean",

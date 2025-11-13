@@ -1,5 +1,56 @@
 basePath: /api/v1
 definitions:
+  dto.AllNursesListDto:
+    properties:
+      available:
+        type: boolean
+      available_neighborhoods:
+        items:
+          type: string
+        type: array
+      city:
+        type: string
+      days_available:
+        items:
+          type: string
+        type: array
+      department:
+        type: string
+      id:
+        type: string
+      image:
+        type: string
+      latitude:
+        type: number
+      location:
+        type: string
+      longitude:
+        type: number
+      max_patients_per_day:
+        type: integer
+      name:
+        type: string
+      neighborhood:
+        type: string
+      patient_location:
+        $ref: '#/definitions/dto.Location'
+      price:
+        type: number
+      services:
+        items:
+          type: string
+        type: array
+      shift:
+        type: string
+      specialization:
+        type: string
+      street:
+        type: string
+      uf:
+        type: string
+      years_experience:
+        type: integer
+    type: object
   dto.AvailabilityResponseDTO:
     properties:
       available_neighborhoods:
@@ -56,6 +107,25 @@ definitions:
       code:
         type: integer
     type: object
+  dto.ContactUsDTO:
+    properties:
+      email:
+        type: string
+      message:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      subject:
+        type: string
+    required:
+    - email
+    - message
+    - name
+    - phone
+    - subject
+    type: object
   dto.ConversationDTO:
     properties:
       last_message:
@@ -68,6 +138,45 @@ definitions:
         type: string
       partner_name:
         type: string
+    type: object
+  dto.CreateVisitDto:
+    properties:
+      cep:
+        type: string
+      complement:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      neighborhood:
+        type: string
+      number:
+        type: string
+      nurse_id:
+        type: string
+      payment_intent_id:
+        type: string
+      reason:
+        type: string
+      street:
+        type: string
+      value:
+        type: number
+      visit_type:
+        type: string
+    required:
+    - cep
+    - date
+    - description
+    - neighborhood
+    - number
+    - nurse_id
+    - payment_intent_id
+    - reason
+    - street
+    - value
+    - visit_type
     type: object
   dto.DashboardAdminDataResponse:
     properties:
@@ -135,12 +244,58 @@ definitions:
       email:
         type: string
     type: object
+  dto.ImmediateVisitDTO:
+    properties:
+      cep:
+        type: string
+      complement:
+        type: string
+      date:
+        type: string
+      description:
+        type: string
+      neighborhood:
+        type: string
+      number:
+        type: string
+      nurse_id:
+        type: string
+      payment_intent_id:
+        type: string
+      reason:
+        type: string
+      street:
+        type: string
+      value:
+        type: number
+      visit_type:
+        type: string
+    required:
+    - cep
+    - date
+    - description
+    - neighborhood
+    - number
+    - nurse_id
+    - payment_intent_id
+    - reason
+    - street
+    - value
+    - visit_type
+    type: object
   dto.InputCodeDto:
     properties:
       code:
         type: integer
       email:
         type: string
+    type: object
+  dto.Location:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
     type: object
   dto.LoginRequestDTO:
     properties:
@@ -168,6 +323,27 @@ definitions:
         items:
           $ref: '#/definitions/dto.VisitDto'
         type: array
+    type: object
+  dto.NurseInfoDto:
+    properties:
+      coren:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      profile_image_id:
+        type: string
+      rating:
+        type: number
+      specialization:
+        type: string
+      years_experience:
+        type: integer
     type: object
   dto.NurseTypeResponse:
     properties:
@@ -306,6 +482,13 @@ definitions:
         type: string
       uf:
         type: string
+    type: object
+  dto.PatientVisitInfo:
+    properties:
+      nurse:
+        $ref: '#/definitions/dto.NurseInfoDto'
+      visit:
+        $ref: '#/definitions/medassist_internal_user_dto.VisitInfoDto'
     type: object
   dto.PrescriptionList:
     properties:
@@ -570,6 +753,101 @@ definitions:
       visit_value:
         type: number
     type: object
+  medassist_internal_user_dto.DeleteAccountPasswordDto:
+    properties:
+      password:
+        type: string
+    required:
+    - password
+    type: object
+  medassist_internal_user_dto.PatientProfileResponseDTO:
+    properties:
+      address:
+        type: string
+      cpf:
+        type: string
+      created_at:
+        type: string
+      email:
+        type: string
+      hidden:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      profile_image_id:
+        type: string
+      rating:
+        type: number
+      reviews:
+        items:
+          $ref: '#/definitions/medassist_internal_user_dto.Reviews'
+        type: array
+      role:
+        type: string
+      temp_code:
+        type: integer
+      two_factor:
+        type: boolean
+      updated_at:
+        type: string
+      visit_count:
+        type: integer
+    type: object
+  medassist_internal_user_dto.ReviewDTO:
+    properties:
+      comment:
+        type: string
+      rating:
+        type: integer
+    type: object
+  medassist_internal_user_dto.Reviews:
+    properties:
+      comment:
+        type: string
+      patient_name:
+        type: string
+      rating:
+        type: integer
+    type: object
+  medassist_internal_user_dto.VisitInfoDto:
+    properties:
+      cancel_reason:
+        type: string
+      confirmation_code:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      nurse_id:
+        type: string
+      nurse_name:
+        type: string
+      prescriptions:
+        items:
+          type: string
+        type: array
+      reason:
+        type: string
+      status:
+        type: string
+      updated_at:
+        type: string
+      visit_date:
+        type: string
+      visit_type:
+        type: string
+      visit_value:
+        type: number
+    type: object
   model.Message:
     properties:
       id:
@@ -795,6 +1073,80 @@ definitions:
     - street
     - uf
     type: object
+  model.Visit:
+    properties:
+      cancel_reason:
+        type: string
+      cep:
+        type: string
+      complement:
+        type: string
+      confirmation_code:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      id:
+        type: string
+      neighborhood:
+        type: string
+      number:
+        type: string
+      nurse_id:
+        type: string
+      nurse_name:
+        type: string
+      patient_email:
+        type: string
+      patient_id:
+        type: string
+      patient_name:
+        type: string
+      payment_intent_id:
+        type: string
+      prescriptions:
+        items:
+          type: string
+        type: array
+      reason:
+        type: string
+      status:
+        type: string
+      street:
+        type: string
+      transfer_id:
+        type: string
+      updated_at:
+        type: string
+      value:
+        type: number
+      visit_date:
+        type: string
+      visit_request_type:
+        type: string
+      visit_type:
+        type: string
+    required:
+    - cep
+    - description
+    - neighborhood
+    - number
+    - nurse_id
+    - nurse_name
+    - patient_email
+    - patient_id
+    - patient_name
+    - payment_intent_id
+    - reason
+    - status
+    - street
+    - transfer_id
+    - value
+    - visit_date
+    - visit_request_type
+    - visit_type
+    type: object
   utils.AuthUserResponse:
     properties:
       _id:
@@ -817,6 +1169,24 @@ definitions:
         type: string
       success:
         example: false
+        type: boolean
+    type: object
+  utils.ImmediateVisitData:
+    properties:
+      patient_id:
+        type: string
+    type: object
+  utils.SuccessAllNursesResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.AllNursesListDto'
+        type: array
+      message:
+        example: Enfermeiros listados com sucesso.
+        type: string
+      success:
+        example: true
         type: boolean
     type: object
   utils.SuccessAvailabilityResponse:
@@ -864,6 +1234,17 @@ definitions:
         type: array
       message:
         example: Documentos retornados com sucesso
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessImmediateVisitResponse:
+    properties:
+      data:
+        $ref: '#/definitions/utils.ImmediateVisitData'
+      message:
+        example: Visita imediata solicitada com sucesso.
         type: string
       success:
         example: true
@@ -954,6 +1335,28 @@ definitions:
         $ref: '#/definitions/medassist_internal_nurse_dto.PatientProfileResponseDTO'
       message:
         example: Perfil do paciente listado com sucesso.
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessPatientProfileResponsee:
+    properties:
+      data:
+        $ref: '#/definitions/medassist_internal_user_dto.PatientProfileResponseDTO'
+      message:
+        example: Perfil do paciente listado com sucesso.
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessPatientVisitInfoResponse:
+    properties:
+      data:
+        $ref: '#/definitions/dto.PatientVisitInfo'
+      message:
+        example: Informações de visita listadas com sucesso.
         type: string
       success:
         example: true
@@ -1054,6 +1457,19 @@ definitions:
         $ref: '#/definitions/dto.VisitTypeResponse'
       message:
         example: Visita atualizada com sucesso.
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessVisitsListResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.Visit'
+        type: array
+      message:
+        example: Lista de visitas listadas com sucesso.
         type: string
       success:
         example: true
@@ -2615,6 +3031,466 @@ paths:
       summary: Cria uma Intenção de Pagamento (Stripe)
       tags:
       - Payment
+  /user/all_nurses:
+    get:
+      consumes:
+      - application/json
+      description: Retorna todos os enfermeiros na cidade do paciente logado. Requer
+        autenticação de Paciente.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Enfermeiros listados com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessAllNursesResponse'
+        "401":
+          description: Token inválido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Erro ao buscar enfermeiros
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Lista todos os enfermeiros (para agendar)
+      tags:
+      - User
+  /user/contact:
+    post:
+      consumes:
+      - application/json
+      description: Endpoint público para enviar uma mensagem (dúvida, sugestão, reclamação)
+        para a central de contato.
+      parameters:
+      - description: Dados da mensagem de contato
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ContactUsDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Mensagem enviada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: Requisição inválida (campos obrigatórios faltando)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Erro interno ao enviar mensagem
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Envia mensagem de contato
+      tags:
+      - User
+  /user/delete:
+    delete:
+      consumes:
+      - application/json
+      description: Deleta permanentemente a conta do paciente logado. Requer senha
+        atual para confirmação. Requer autenticação de Paciente.
+      parameters:
+      - description: Senha atual para confirmação
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/medassist_internal_user_dto.DeleteAccountPasswordDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário deletado com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: JSON inválido ou senha incorreta
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Deleta o perfil do Paciente
+      tags:
+      - User
+  /user/file/{id}:
+    get:
+      description: Retorna um arquivo do GridFS (como uma imagem de perfil) para ser
+        exibido 'inline' no navegador. (Endpoint atualmente público).
+      parameters:
+      - description: ID do Arquivo (GridFS ObjectID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - image/png
+      - image/jpeg
+      - application/octet-stream
+      responses:
+        "200":
+          description: A imagem ou arquivo
+          schema:
+            type: file
+        "400":
+          description: ID inválido ou Arquivo não encontrado
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: 'Exibe um arquivo (ex: imagem de perfil)'
+      tags:
+      - User
+  /user/immediate-visit:
+    post:
+      consumes:
+      - application/json
+      description: Cria uma nova solicitação de visita imediata para um enfermeiro
+        (que deve estar online). Requer autenticação de Paciente.
+      parameters:
+      - description: Detalhes da visita imediata
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ImmediateVisitDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Visita imediata solicitada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessImmediateVisitResponse'
+        "400":
+          description: JSON inválido, enfermeiro offline ou erro na solicitação
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Paciente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Solicita uma visita imediata
+      tags:
+      - User
+  /user/my-profile:
+    get:
+      consumes:
+      - application/json
+      description: Retorna o perfil completo do paciente logado, incluindo dados privados.
+        Requer autenticação de Paciente.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Perfil do paciente listado com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessPatientProfileResponsee'
+        "400":
+          description: Erro ao carregar perfil
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Meu Perfil de Paciente
+      tags:
+      - User
+  /user/nurse/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retorna o perfil detalhado de um enfermeiro específico (para agendamento).
+        Requer autenticação de Paciente ou Enfermeiro.
+      parameters:
+      - description: ID do Enfermeiro
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Perfil completo de enfermeiro(a) listado com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessNurseProfileResponse'
+        "400":
+          description: ID inválido ou erro ao buscar perfil
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Perfil público do Enfermeiro
+      tags:
+      - User
+  /user/online_nurses:
+    get:
+      consumes:
+      - application/json
+      description: Retorna todos os enfermeiros que estão online e na cidade do paciente
+        logado. Requer autenticação de Paciente.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de enfermeiros online listada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessAllNursesResponse'
+        "400":
+          description: Erro ao buscar enfermeiros
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido (Usuário não é Paciente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Lista enfermeiros online
+      tags:
+      - User
+  /user/review/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Permite ao paciente avaliar um enfermeiro (com nota e comentário)
+        após uma visita. Requer autenticação de Paciente.
+      parameters:
+      - description: ID da Visita (para associar o review)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Dados da avaliação (Nota e Comentário)
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/medassist_internal_user_dto.ReviewDTO'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Review adicionada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: JSON inválido ou erro
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Adiciona review para um Enfermeiro
+      tags:
+      - User
+  /user/update:
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Permite ao paciente logado atualizar seu próprio perfil. Requer autenticação de Paciente.
+        Campos protegidos (id, created_at, updated_at) não podem ser atualizados.
+      parameters:
+      - description: 'Campos para atualizar (JSON arbitrário). Ex: {\'
+        in: body
+        name: payload
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário atualizado com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessUserTypeResponse'
+        "400":
+          description: JSON inválido ou campo protegido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Atualiza o perfil do Paciente
+      tags:
+      - User
+  /user/visit:
+    post:
+      consumes:
+      - application/json
+      description: Cria uma nova solicitação de visita agendada para um enfermeiro
+        específico. Requer autenticação de Paciente.
+      parameters:
+      - description: Detalhes da visita agendada
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateVisitDto'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Visita agendada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: JSON inválido ou erro na solicitação
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Token inválido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Solicita uma visita agendada
+      tags:
+      - User
+  /user/visit-info/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Retorna detalhes de uma visita específica e do enfermeiro associado
+        a ela. Requer autenticação de Paciente.
+      parameters:
+      - description: ID da Visita
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Informações de visita listadas com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessPatientVisitInfoResponse'
+        "400":
+          description: ID inválido ou erro
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Não autorizado (Token JWT inválido ou ausente)
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "403":
+          description: Proibido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Informações detalhadas da Visita (Paciente)
+      tags:
+      - User
+  /user/visit/{id}:
+    patch:
+      consumes:
+      - application/json
+      description: O paciente confirma que o serviço da visita foi concluído. Requer
+        autenticação de Paciente.
+      parameters:
+      - description: ID da Visita a ser concluída
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Serviço concluído com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessResponseNoData'
+        "400":
+          description: ID inválido ou erro na confirmação
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Token inválido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Confirma a conclusão de um serviço (Paciente)
+      tags:
+      - User
+  /user/visits:
+    get:
+      consumes:
+      - application/json
+      description: Retorna um histórico de todas as visitas (pendentes, concluídas,
+        etc.) do paciente logado. Requer autenticação de Paciente.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de visitas listadas com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessVisitsListResponse'
+        "400":
+          description: Erro ao buscar visitas
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Token inválido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Lista todas as visitas do Paciente
+      tags:
+      - User
 securityDefinitions:
   ApiKeyAuth:
     description: '"Para autorizar, insira seu token JWT precedido de ''Bearer ''.
