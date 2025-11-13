@@ -3491,6 +3491,32 @@ paths:
       summary: Lista todas as visitas do Paciente
       tags:
       - User
+  /ws/chat:
+    get:
+      description: Estabelece uma conexão WebSocket para o chat. A autenticação é
+        feita via token JWT enviado no query param 'token'.
+      parameters:
+      - description: Token JWT de autenticação
+        in: query
+        name: token
+        required: true
+        type: string
+      responses:
+        "101":
+          description: Switching Protocols (Conexão WebSocket estabelecida)
+          schema:
+            type: string
+        "400":
+          description: Token não fornecido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Token inválido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      summary: Conexão de WebSocket para Chat
+      tags:
+      - Chat
 securityDefinitions:
   ApiKeyAuth:
     description: '"Para autorizar, insira seu token JWT precedido de ''Bearer ''.

@@ -3017,6 +3017,44 @@
                     }
                 }
             }
+        },
+        "/ws/chat": {
+            "get": {
+                "description": "Estabelece uma conexão WebSocket para o chat. A autenticação é feita via token JWT enviado no query param 'token'.",
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Conexão de WebSocket para Chat",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Token JWT de autenticação",
+                        "name": "token",
+                        "in": "query",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "101": {
+                        "description": "Switching Protocols (Conexão WebSocket estabelecida)",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Token não fornecido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Token inválido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

@@ -10,6 +10,14 @@ import (
 	"net/http"
 )
 
+// @Summary Conexão de WebSocket para Chat
+// @Description Estabelece uma conexão WebSocket para o chat. A autenticação é feita via token JWT enviado no query param 'token'.
+// @Tags Chat
+// @Param token query string true "Token JWT de autenticação"
+// @Success 101 {string} string "Switching Protocols (Conexão WebSocket estabelecida)"
+// @Failure 400 {object} utils.ErrorResponse "Token não fornecido"
+// @Failure 401 {object} utils.ErrorResponse "Token inválido"
+// @Router /ws/chat [get]
 func ServeWs(hub *Hub, c *gin.Context) {
 	// 1. Pega o token da URL
 	tokenStr := c.Query("token")
