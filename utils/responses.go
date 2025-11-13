@@ -6,6 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson/primitive"
     adminDTO "medassist/internal/admin/dto"
+    chatDTO "medassist/internal/chat/dto"
 
 
 	model "medassist/internal/model"
@@ -118,4 +119,17 @@ type SuccessVisitTypeResponse struct {
     Success bool                  `json:"success" example:"true"`
     Message string                `json:"message" example:"Visita atualizada com sucesso."`
     Data    adminDTO.VisitTypeResponse `json:"data"`
+}
+
+type SuccessMessagesResponse struct {
+    Success bool             `json:"success" example:"true"`
+    Message string           `json:"message" example:"Histórico de mensagens retornado com sucesso"`
+    Data    []model.Message `json:"data"`
+}
+
+// SuccessConversationsResponse é a struct de sucesso para a lista de conversas
+type SuccessConversationsResponse struct {
+    Success bool                  `json:"success" example:"true"`
+    Message string                `json:"message" example:"Lista de conversas retornada com sucesso"`
+    Data    []chatDTO.ConversationDTO `json:"data"` // Reutilizável para Nurse e Patient
 }

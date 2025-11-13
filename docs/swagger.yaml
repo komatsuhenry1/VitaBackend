@@ -16,6 +16,19 @@ definitions:
       code:
         type: integer
     type: object
+  dto.ConversationDTO:
+    properties:
+      last_message:
+        type: string
+      last_message_timestamp:
+        type: string
+      partner_id:
+        type: string
+      partner_image_id:
+        type: string
+      partner_name:
+        type: string
+    type: object
   dto.DashboardAdminDataResponse:
     properties:
       average_nurse_rating:
@@ -247,6 +260,21 @@ definitions:
       visit_type:
         type: string
     type: object
+  model.Message:
+    properties:
+      id:
+        type: string
+      message:
+        type: string
+      read:
+        type: boolean
+      receiver_id:
+        type: string
+      sender_id:
+        type: string
+      timestamp:
+        type: string
+    type: object
   model.Nurse:
     properties:
       address:
@@ -471,6 +499,20 @@ definitions:
         example: false
         type: boolean
     type: object
+  utils.SuccessConversationsResponse:
+    properties:
+      data:
+        description: Reutilizável para Nurse e Patient
+        items:
+          $ref: '#/definitions/dto.ConversationDTO'
+        type: array
+      message:
+        example: Lista de conversas retornada com sucesso
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
   utils.SuccessDashboardResponse:
     properties:
       data:
@@ -491,6 +533,19 @@ definitions:
         type: array
       message:
         example: Documentos retornados com sucesso
+        type: string
+      success:
+        example: true
+        type: boolean
+    type: object
+  utils.SuccessMessagesResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/model.Message'
+        type: array
+      message:
+        example: Histórico de mensagens retornado com sucesso
         type: string
       success:
         example: true
@@ -1409,6 +1464,94 @@ paths:
       summary: Valida um token de reset de senha
       tags:
       - Auth
+  /chat/messages/{nurseId}:
+    get:
+      consumes:
+      - application/json
+      description: Retorna todas as mensagens entre o usuário logado (seja Paciente
+        ou Enfermeiro) e um enfermeiro específico.
+      parameters:
+      - description: ID do Enfermeiro (com quem a conversa acontece)
+        in: path
+        name: nurseId
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Histórico de mensagens retornado com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessMessagesResponse'
+        "400":
+          description: ID do enfermeiro inválido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "401":
+          description: Usuário não autenticado
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Erro ao buscar mensagens
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Histórico de mensagens com um enfermeiro
+      tags:
+      - Chat
+  /chat/nurse/conversations:
+    get:
+      consumes:
+      - application/json
+      description: Retorna a lista de todas as conversas ativas do enfermeiro logado.
+        Requer autenticação de Enfermeiro.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de conversas retornada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessConversationsResponse'
+        "401":
+          description: Não autenticado ou ID de usuário inválido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Erro ao buscar conversas
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Lista de conversas do Enfermeiro
+      tags:
+      - Chat
+  /chat/patient/conversations:
+    get:
+      consumes:
+      - application/json
+      description: Retorna a lista de todas as conversas ativas do paciente logado.
+        Requer autenticação de Paciente.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Lista de conversas retornada com sucesso
+          schema:
+            $ref: '#/definitions/utils.SuccessConversationsResponse'
+        "401":
+          description: Não autenticado ou ID de usuário inválido
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Erro ao buscar conversas
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Lista de conversas do Paciente
+      tags:
+      - Chat
 securityDefinitions:
   ApiKeyAuth:
     description: '"Para autorizar, insira seu token JWT precedido de ''Bearer ''.

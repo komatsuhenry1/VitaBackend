@@ -19,6 +19,18 @@ func NewChatHandler(msgRepo repository.MessageRepository) *ChatHandler {
 	}
 }
 
+// @Summary Histórico de mensagens com um enfermeiro
+// @Description Retorna todas as mensagens entre o usuário logado (seja Paciente ou Enfermeiro) e um enfermeiro específico.
+// @Tags Chat
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param nurseId path string true "ID do Enfermeiro (com quem a conversa acontece)"
+// @Success 200 {object} utils.SuccessMessagesResponse "Histórico de mensagens retornado com sucesso"
+// @Failure 400 {object} utils.ErrorResponse "ID do enfermeiro inválido"
+// @Failure 401 {object} utils.ErrorResponse "Usuário não autenticado"
+// @Failure 500 {object} utils.ErrorResponse "Erro ao buscar mensagens"
+// @Router /chat/messages/{nurseId} [get]
 func (h *ChatHandler) GetMessagesHistory(c *gin.Context) {
 	nurseIdStr := c.Param("nurseId")
 	nurseId, err := primitive.ObjectIDFromHex(nurseIdStr)

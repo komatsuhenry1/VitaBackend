@@ -1224,6 +1224,141 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/chat/messages/{nurseId}": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna todas as mensagens entre o usuário logado (seja Paciente ou Enfermeiro) e um enfermeiro específico.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Histórico de mensagens com um enfermeiro",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID do Enfermeiro (com quem a conversa acontece)",
+                        "name": "nurseId",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Histórico de mensagens retornado com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessMessagesResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "ID do enfermeiro inválido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Usuário não autenticado",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar mensagens",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/nurse/conversations": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna a lista de todas as conversas ativas do enfermeiro logado. Requer autenticação de Enfermeiro.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Lista de conversas do Enfermeiro",
+                "responses": {
+                    "200": {
+                        "description": "Lista de conversas retornada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessConversationsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado ou ID de usuário inválido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar conversas",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
+        "/chat/patient/conversations": {
+            "get": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Retorna a lista de todas as conversas ativas do paciente logado. Requer autenticação de Paciente.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chat"
+                ],
+                "summary": "Lista de conversas do Paciente",
+                "responses": {
+                    "200": {
+                        "description": "Lista de conversas retornada com sucesso",
+                        "schema": {
+                            "$ref": "#/definitions/utils.SuccessConversationsResponse"
+                        }
+                    },
+                    "401": {
+                        "description": "Não autenticado ou ID de usuário inválido",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    },
+                    "500": {
+                        "description": "Erro ao buscar conversas",
+                        "schema": {
+                            "$ref": "#/definitions/utils.ErrorResponse"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -1249,6 +1384,26 @@ const docTemplate = `{
             "properties": {
                 "code": {
                     "type": "integer"
+                }
+            }
+        },
+        "dto.ConversationDTO": {
+            "type": "object",
+            "properties": {
+                "last_message": {
+                    "type": "string"
+                },
+                "last_message_timestamp": {
+                    "type": "string"
+                },
+                "partner_id": {
+                    "type": "string"
+                },
+                "partner_image_id": {
+                    "type": "string"
+                },
+                "partner_name": {
+                    "type": "string"
                 }
             }
         },
@@ -1597,6 +1752,29 @@ const docTemplate = `{
                 }
             }
         },
+        "model.Message": {
+            "type": "object",
+            "properties": {
+                "id": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "read": {
+                    "type": "boolean"
+                },
+                "receiver_id": {
+                    "type": "string"
+                },
+                "sender_id": {
+                    "type": "string"
+                },
+                "timestamp": {
+                    "type": "string"
+                }
+            }
+        },
         "model.Nurse": {
             "type": "object",
             "required": [
@@ -1915,6 +2093,26 @@ const docTemplate = `{
                 }
             }
         },
+        "utils.SuccessConversationsResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "description": "Reutilizável para Nurse e Patient",
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.ConversationDTO"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Lista de conversas retornada com sucesso"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
         "utils.SuccessDashboardResponse": {
             "type": "object",
             "properties": {
@@ -1944,6 +2142,25 @@ const docTemplate = `{
                 "message": {
                     "type": "string",
                     "example": "Documentos retornados com sucesso"
+                },
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "utils.SuccessMessagesResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/model.Message"
+                    }
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Histórico de mensagens retornado com sucesso"
                 },
                 "success": {
                     "type": "boolean",

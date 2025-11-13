@@ -48,6 +48,16 @@ func ServeWs(hub *Hub, c *gin.Context) {
 	go client.readPump()
 }
 
+// @Summary Lista de conversas do Enfermeiro
+// @Description Retorna a lista de todas as conversas ativas do enfermeiro logado. Requer autenticação de Enfermeiro.
+// @Tags Chat
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} utils.SuccessConversationsResponse "Lista de conversas retornada com sucesso"
+// @Failure 401 {object} utils.ErrorResponse "Não autenticado ou ID de usuário inválido"
+// @Failure 500 {object} utils.ErrorResponse "Erro ao buscar conversas"
+// @Router /chat/nurse/conversations [get]
 func (h *ChatHandler) GetNurseConversations(c *gin.Context) {
 	// Pega o ID do enfermeiro logado a partir do contexto (do middleware)
 	userIDCtx, exists := c.Get("userId")
@@ -79,6 +89,16 @@ func (h *ChatHandler) GetNurseConversations(c *gin.Context) {
 	})
 }
 
+// @Summary Lista de conversas do Paciente
+// @Description Retorna a lista de todas as conversas ativas do paciente logado. Requer autenticação de Paciente.
+// @Tags Chat
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Success 200 {object} utils.SuccessConversationsResponse "Lista de conversas retornada com sucesso"
+// @Failure 401 {object} utils.ErrorResponse "Não autenticado ou ID de usuário inválido"
+// @Failure 500 {object} utils.ErrorResponse "Erro ao buscar conversas"
+// @Router /chat/patient/conversations [get]
 func (h *ChatHandler) GetPatientConversations(c *gin.Context) {
     // Pega o ID do paciente logado a partir do contexto
     userIDCtx, exists := c.Get("userId")
