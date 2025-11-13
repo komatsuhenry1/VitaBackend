@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -17,13 +18,24 @@ var (
 )
 
 func ConnectDatabase() {
+    // 💡 MUDANÇA AQUI
+	// Tenta carregar o .env, mas não falha se não existir
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Erro ao carregar o .env")
+		// Em um ambiente de contêiner (Docker), o .env não existirá,
+		// mas as variáveis serão injetadas pelo docker-compose.
+		// Por isso, apenas logamos um aviso e continuamos.
+		log.Println("Aviso: Arquivo .env não encontrado. Usando variáveis de ambiente do sistema.")
+	}
+
+    // A partir daqui, o código depende das variáveis de ambiente (seja do .env ou do Docker)
+	mongoURI := os.Getenv("MONGO_URI")
+	if mongoURI == "" {
+		log.Fatal("MONGO_URI não está definido no ambiente")
 	}
 
 	serverAPI := options.ServerAPI(options.ServerAPIVersion1)
-	opts := options.Client().ApplyURI(os.Getenv("MONGO_URI")).SetServerAPIOptions(serverAPI)
+	opts := options.Client().ApplyURI(mongoURI).SetServerAPIOptions(serverAPI)
 
 	Client, err = mongo.Connect(context.TODO(), opts)
 	if err != nil {
@@ -34,10 +46,9 @@ func ConnectDatabase() {
 		panic(err)
 	}
 
-	// Aqui você precisa definir a variável MongoDB, com o nome do banco de dados do seu .env, por exemplo:
 	dbName := os.Getenv("MONGO_DB_NAME")
 	if dbName == "" {
-		log.Fatal("MONGO_DB_NAME não está definido no .env")
+		log.Fatal("MONGO_DB_NAME não está definido no ambiente")
 	}
 
 	MongoDB = Client.Database(dbName)

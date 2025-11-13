@@ -1,0 +1,30 @@
+# 💡 MUDANÇA AQUI: Removemos a linha "version: '3.8'" (obsoleta)
+services:
+  # 1. Serviço da API (Go/Gin)
+  api:
+    build: .
+    container_name: vita_api
+    ports:
+      - "8081:8081"
+    env_file: .env
+    environment:
+      MONGO_URI: "mongodb://db:27017"
+      MONGO_DB_NAME: ${MONGO_DB_NAME}
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  # 2. Serviço do Banco de Dados (MongoDB)
+  db:
+    image: mongo:latest
+    container_name: vita_mongodb
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_DB_NAME}
+    volumes:
+      - vita-mongo-data:/data/db
+    restart: unless-stopped
+
+volumes:
+  vita-mongo-data:
