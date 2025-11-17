@@ -5,8 +5,6 @@ import (
 	"medassist/utils"
 	"net/http"
 
-	"github.com/golang-jwt/jwt/v5"
-
 	"fmt"
 	"strings"
 
@@ -33,16 +31,7 @@ func NewUserHandler(userService UserService) *UserHandler {
 // @Failure 500 {object} utils.ErrorResponse "Erro ao buscar enfermeiros"
 // @Router /user/all_nurses [get]
 func (h *UserHandler) GetAllNurses(c *gin.Context) {
-	claims, exists := c.Get("claims")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
-		return
-	}
-	patientId, ok := claims.(jwt.MapClaims)["sub"].(string)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
-		return
-	}
+	patientId := utils.GetUserId(c)
 
 	nurses, err := h.userService.GetAllNurses(patientId)
 	if err != nil {
@@ -143,16 +132,7 @@ func (h *UserHandler) GetNurseProfile(c *gin.Context) {
 // @Failure 401 {object} utils.ErrorResponse "Token inválido"
 // @Router /user/visit [post]
 func (h *UserHandler) VisitSolicitation(c *gin.Context) {
-	claims, exists := c.Get("claims")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
-		return
-	}
-	patientId, ok := claims.(jwt.MapClaims)["sub"].(string)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
-		return
-	}
+	patientId := utils.GetUserId(c)
 
 	var createVisitDto dto.CreateVisitDto
 	if err := c.ShouldBindJSON(&createVisitDto); err != nil {
@@ -278,16 +258,7 @@ func (h *UserHandler) DeleteUser(c *gin.Context) {
 func (h *UserHandler) ConfirmVisitService(c *gin.Context) {
 	visitId := c.Param("id")
 
-	claims, exists := c.Get("claims")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
-		return
-	}
-	patientId, ok := claims.(jwt.MapClaims)["sub"].(string)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
-		return
-	}
+	patientId := utils.GetUserId(c)
 
 	err := h.userService.ConfirmVisitService(visitId, patientId)
 	if err != nil {
@@ -421,7 +392,7 @@ func (h *UserHandler) ImmediateVisitSolicitation(c *gin.Context) {
 // @Failure 401 {object} utils.ErrorResponse "Não autorizado (Token JWT inválido ou ausente)"
 // @Failure 403 {object} utils.ErrorResponse "Proibido"
 // @Router /user/my-profile [get]
-func (h *UserHandler) GetMyUserProfile(c *gin.Context){
+func (h *UserHandler) GetMyUserProfile(c *gin.Context) {
 
 	userId := utils.GetUserId(c)
 

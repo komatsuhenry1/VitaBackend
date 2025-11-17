@@ -193,7 +193,6 @@ func (h *AuthHandler) NurseRegister(c *gin.Context) {
 // @Router /auth/login [post]
 func (h *AuthHandler) LoginUser(c *gin.Context) {
 	var userLoginRequestDTO dto.LoginRequestDTO
-	fmt.Println("userLoginRequestDTO", userLoginRequestDTO)
 	if err := c.ShouldBindJSON(&userLoginRequestDTO); err != nil {
 		utils.SendErrorResponse(c, "Requisição inválida", http.StatusBadRequest)
 		return

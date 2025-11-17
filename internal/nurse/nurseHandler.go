@@ -204,16 +204,7 @@ func (h *NurseHandler) GetPatientProfile(c *gin.Context) {
 // @Failure 500 {object} utils.ErrorResponse "Erro interno ao atualizar"
 // @Router /nurse/update [patch]
 func (h *NurseHandler) UpdateNurseProfile(c *gin.Context) {
-	claims, exists := c.Get("claims")
-	if !exists {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Token inválido"})
-		return
-	}
-	nurseId, ok := claims.(jwt.MapClaims)["sub"].(string)
-	if !ok {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "userId inválido no token"})
-		return
-	}
+	nurseId := utils.GetUserId(c)
 
 	var updates map[string]interface{}
 	if err := c.ShouldBindJSON(&updates); err != nil {
